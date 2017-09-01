@@ -1,0 +1,70 @@
+/*Page layout */
+
+body, html {
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.content, header {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+footer {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 1em;
+  padding-top: 1em;
+  border-top: 1px solid black;
+}
+
+nav {
+  width: 100%;
+}
+
+nav li {
+  list-style: none;
+  width: 100%;
+}
+
+nav li ul {
+  margin: 0px;
+  padding: 0px;
+  width: 100%;
+}
+
+nav li ul p {
+  text-align: center;
+  font-size: 1.2em;
+}
+
+nav li ul p.date {
+  font-size: 1.0em;
+  padding-bottom: 0.7em;
+}
+
+/* Tweaking */
+
+a {
+  padding: 1em;
+  margin: -1em; /* keep layout the same */ 
+}
+
+p {
+  margin: 0.2em;
+}
+
+.title-line {
+  border-top: 1px solid black;
+  height: 1em;
+}
