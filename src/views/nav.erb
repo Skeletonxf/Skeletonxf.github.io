@@ -1,11 +1,11 @@
-<li>
-  <ul>
-    <p><a href = "/building">Building this site</a></p><p class = "date">2017/09/01</p>
-  </u>
-  <ul>
-    <p><a href = "#">Test</a></p><p class = "date">2017/09/01</p>
-  </u>
-  <ul>
-    <p><a href = "#">Test</a></p><p class = "date">2017/09/01</p>
-  </u>
-</li>
+<header>
+  <nav>
+    <ul>
+      <% @nav.each do |item| %>
+        <li>
+          <p><a href = "<%= item[0] %>"><%= item[1] %></a></p><p class = "date"><%= item[2] %></p>
+        </li>
+      <% end %>
+    </ul>
+  </nav>
+</header>
