@@ -3,6 +3,7 @@ require 'sinatra/reloader'
 
 class App < Sinatra::Base
   nav = [
+      ["/duplicate-tab", "Duplicate Tab", "2017/12/28"],
       ["/building", "Building this site", "2017/09/04"]
     ]
 
@@ -11,8 +12,9 @@ class App < Sinatra::Base
     erb :'index'
   end
 
-  get '/building' do
+  get '/*' do
     @nav = nav
-    erb :'building'
+    path = params[:splat].first
+    erb :"/#{path}"
   end
 end
