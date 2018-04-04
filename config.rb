@@ -2,9 +2,7 @@
 # https://middlemanapp.com/advanced/configuration/#configuring-extensions
 
 # use relative linking to work on github and local file system
-# and build in root directory
 set :relative_links, true
-set :build_dir, '.'
 
 activate :autoprefixer do |prefix|
   prefix.browsers = "last 2 versions"
