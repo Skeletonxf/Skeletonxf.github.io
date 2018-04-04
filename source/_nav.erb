@@ -1,0 +1,16 @@
+<header>
+  <nav>
+    <ul>
+      <% nav.each do |item| %>
+        <li>
+          <p>
+            <%= link_to item[0], item[1] %>
+          </p>
+          <p class = "date">
+            <%= item[2] %>
+          </p>
+        </li>
+      <% end %>
+    </ul>
+  </nav>
+</header>

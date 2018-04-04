@@ -1,1 +1,6 @@
-src/Gemfile.lock
+Gemfile.lock
+.bundle
+.cache
+.DS_Store
+.sass-cache
+build/
