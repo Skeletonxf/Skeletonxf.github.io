@@ -138,6 +138,6 @@ local PathfindingEntity = {
 }
 ```
 
-[Full code snippet](https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code/source/code-snippets/pathfindingEntity.lua)
+[Full code snippet](/code-snippets/pathfindingEntity.lua)
 
 Each ambiguity is handled by explicit logic in the `__index` function, with non ambiguous methods simply called as normal. If composition works instead though, that's probably better.
