@@ -4,6 +4,11 @@
 # use relative linking to work on github and local file system
 set :relative_links, true
 
+# https://github.com/middleman/middleman-syntax
+activate :syntax, line_numbers: false
+set :markdown_engine, :redcarpet
+set :markdown, fenced_code_blocks: true, smartypants: true
+
 activate :autoprefixer do |prefix|
   prefix.browsers = "last 2 versions"
 end
