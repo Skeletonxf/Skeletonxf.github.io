@@ -1,5 +1,0 @@
-desc 'Runs site'
-task :run do
-  require_relative 'app'
-  App.run!
-end
