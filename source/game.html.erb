@@ -1,0 +1,15 @@
+<%= partial :back %>
+<h1 class = "center">
+  A game eventually
+</h1>
+<div id = "wrapper">
+  <canvas id = "game"></canvas>
+</div>
+<script>
+  let canvas = document.getElementById('game')
+  canvas.style.width = "100%"
+  canvas.style.height = "100%"
+  canvas.style.maxHeight = "95vh"
+  let context = canvas.getContext('2d')
+  context.fillRect(0, 0, canvas.width, canvas.height)
+</script>

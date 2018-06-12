@@ -101,3 +101,8 @@ p {
 .center {
   text-align: center;
 }
+
+canvas, #wrapper {
+  display: block;
+  margin: 0 auto;
+}
