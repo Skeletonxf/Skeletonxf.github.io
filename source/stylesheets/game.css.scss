@@ -133,10 +133,16 @@ ol.nothing-up {
   .base {
     background-color: #c65c8a;
   }
+  .content {
+    transform: rotate(90deg);
+  }
 }
 
 #section1 {
   transform: translate(-50%,-100%) rotate(30deg);
+  .content {
+    transform: rotate(60deg);
+  }
 }
 
 #section2 {
@@ -144,10 +150,16 @@ ol.nothing-up {
   .base {
     background-color: #694b98;
   }
+  .content {
+    transform: rotate(30deg);
+  }
 }
 
 #section3 {
   transform: translate(-50%,-100%) rotate(90deg);
+  .content {
+    transform: rotate(0deg);
+  }
 }
 
 #section4 {
@@ -155,10 +167,16 @@ ol.nothing-up {
   .base {
     background-color: #cd5148;
   }
+  .content {
+    transform: rotate(-30deg);
+  }
 }
 
 #section5 {
   transform: translate(-50%,-100%) rotate(150deg);
+  .content {
+    transform: rotate(-60deg);
+  }
 }
 
 #section6 {
@@ -166,10 +184,16 @@ ol.nothing-up {
   .base {
     background-color: #58a563;
   }
+  .content {
+    transform: rotate(-90deg);
+  }
 }
 
 #section7 {
   transform: translate(-50%,-100%) rotate(210deg);
+  .content {
+    transform: rotate(-120deg);
+  }
 }
 
 #section8 {
@@ -177,10 +201,16 @@ ol.nothing-up {
   .base {
     background-color: #aca535;
   }
+  .content {
+    transform: rotate(-150deg);
+  }
 }
 
 #section9 {
   transform: translate(-50%,-100%) rotate(270deg);
+  .content {
+    transform: rotate(-180deg);
+  }
 }
 
 #section10 {
@@ -188,13 +218,23 @@ ol.nothing-up {
   .base {
     background-color: #7d655e;
   }
+  .content {
+    transform: rotate(-210deg);
+  }
 }
 
 #section11 {
   transform: translate(-50%,-100%) rotate(330deg);
+  .content {
+    transform: rotate(-240deg);
+  }
 }
 
 #section12 {
+  .content {
+    top: 50%;
+    transform: rotate(90deg) translate(-50%,-50%);
+  }
 }
 
 /* Centre hexagon */
@@ -215,4 +255,11 @@ ol.center {
   border-radius: 0.8em;
   background: darkorange;
   margin: auto;
+}
+
+/* Game info */
+
+.hex .content {
+  position: absolute;
+  z-index: 100;
 }
