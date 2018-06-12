@@ -2,13 +2,14 @@
  * Based on the code pen by Elbarto https://codepen.io/elbarto84/pen/wrcob
  */
 
-$hex-size: 4em; // Only change size here. Best used with sizes from 5em - 10em.
+$hex-size: 2em;
 
 /* ----------------------------------------- */
 .container {
-  width: 1000px;
+  display: inline-block;
   line-height: 1.3;
-  padding: $hex-size - 0.5;
+  padding: 5px;
+  margin: 5px;
 }
 
 ol.even {
@@ -21,26 +22,35 @@ ol.odd {
 }
 
 ol.point-to-point-up {
-  margin-top: -1.5%;
+  margin-top: -18%;
 }
 
 ol.point-to-point-down {
-  margin-bottom: -1.5%;
+  margin-bottom: -18%;
 }
 
 ol.face-to-face-up {
-  margin-top: -3.5%;
+  margin-top: -25%;
 }
 
 ol.face-to-face-down {
-  margin-bottom: -3.5%;
+  margin-bottom: -25%;
+}
+
+ol.nothing-down {
+  margin-bottom: 0%;
+}
+
+ol.nothing-up {
+  margin-top: 0%;
 }
 
 .hex {
   position: relative;
   margin: 1em auto;
-  width: $hex-size; height: ($hex-size * 1.7);
-  border-radius: 1em/.5em;
+  width: $hex-size;
+  height: ($hex-size * 1.7);
+  border-radius: 0.4em;
   background: lightgreen;
   transform: rotate(-90deg);
   display: inline-block;
@@ -70,9 +80,94 @@ ol.face-to-face-down {
 }
 
 .hex.blank {
-  background: cyan;
+  background: yellow;
+  opacity: 0.2;
 }
+
 .hex.blank:hover {
-  background: cyan;
+  background: yellow;
   cursor: auto;
+}
+
+.hex.half {
+  height: $hex-size;
+}
+
+// .hex {
+//   z-index: 10000;
+// }
+
+/* Sections of map */
+
+#wrapper {
+  width: 1000px;
+  height: 1000px;
+  position: relative;
+}
+
+.section {
+  border: 1px solid black;
+
+  /* make the div take up the size of its contents only */
+  display: inline-block;
+
+  /*
+   * Absolutely position all divs with an origin of half their width
+   * and at the bottom of their height.
+   */
+  position: absolute;
+  transform: translate(-50%,-100%);
+  top: 50%;
+  left: 50%;
+
+  /* use the middle bottom to rotate each section */
+  transform-origin: 50% 100%;
+}
+
+#section0 {
+  transform: translate(-50%,-100%);
+}
+
+#section1 {
+  transform: translate(-50%,-100%) rotate(30deg);
+}
+
+#section2 {
+  transform: translate(-50%,-100%) rotate(60deg);
+}
+
+#section3 {
+  transform: translate(-50%,-100%) rotate(90deg);
+}
+
+#section4 {
+  transform: translate(-50%,-100%) rotate(120deg);
+}
+
+#section5 {
+  transform: translate(-50%,-100%) rotate(150deg);
+}
+
+#section6 {
+  transform: translate(-50%,-100%) rotate(180deg);
+}
+
+#section7 {
+  transform: translate(-50%,-100%) rotate(210deg);
+}
+
+#section8 {
+  transform: translate(-50%,-100%) rotate(240deg);
+}
+
+#section9 {
+  transform: translate(-50%,-100%) rotate(270deg);
+}
+
+#section10 {
+  transform: translate(-50%,-100%) rotate(300deg);
+}
+
+#section11 {
+  transform: translate(-50%,-100%) rotate(330deg);
 }
