@@ -3,13 +3,45 @@
   A game eventually
 </h1>
 <div id = "wrapper">
-  <canvas id = "game"></canvas>
+  <div class="container">
+    <ol class="odd face-to-face-up face-to-face-down">
+      <li class='hex blank'></li>
+      <li class='hex'></li>
+    </ol>
+    <ol class="even face-to-face-up point-to-point-down">
+      <li class='hex'></li>
+      <li class='hex'></li>
+    </ol>
+    <ol class="even point-to-point-up face-to-face-down">
+      <li class='hex'></li>
+      <li class='hex'></li>
+    </ol>
+    <ol class="odd face-to-face-up face-to-face-down">
+      <li class='hex blank'></li>
+      <li class='hex'></li>
+    </ol>
+  </div>
+  <svg>
+    
+  </svg>
 </div>
+
+<style>
+#wrapper {
+  background-color: cyan;
+  width: 100%;
+  padding: 3px;
+}
+
+/* circle */
+.node {
+  height: 60px;
+  width: 60px;
+  border-radius: 30px;
+  background-color: lightgreen;
+}
+</style>
 <script>
-  let canvas = document.getElementById('game')
-  canvas.style.width = "100%"
-  canvas.style.height = "100%"
-  canvas.style.maxHeight = "95vh"
-  let context = canvas.getContext('2d')
-  context.fillRect(0, 0, canvas.width, canvas.height)
+  let game = document.getElementById('wrapper')
+
 </script>
