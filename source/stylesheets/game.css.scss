@@ -3,6 +3,7 @@
  */
 
 $hex-size: 2em;
+$center-hex-size: 5em;
 
 /* ----------------------------------------- */
 .container {
@@ -74,19 +75,22 @@ ol.nothing-up {
   transform: rotate(-60deg);
 }
 
-.hex:hover {
-  background: lightyellow;
+.hex:hover, .hex.center:hover, .hex.inner:hover {
+  background: gold;
   cursor: pointer;
 }
 
 .hex.blank {
   background: yellow;
-  opacity: 0.2;
+  opacity: 0.1;
 }
 
 .hex.blank:hover {
-  background: yellow;
   cursor: auto;
+}
+
+.hex.inner {
+  background: lightyellow;
 }
 
 .hex.half {
@@ -170,4 +174,27 @@ ol.nothing-up {
 
 #section11 {
   transform: translate(-50%,-100%) rotate(330deg);
+}
+
+#section12 {
+}
+
+/* Centre hexagon */
+
+.section.center {
+  transform: translate(-50%,-50%);
+}
+
+ol.center {
+  margin: auto;
+  padding: 0;
+}
+
+.center.hex {
+  text-align: left;
+  width: $center-hex-size;
+  height: ($center-hex-size * 1.7);
+  border-radius: 0.8em;
+  background: darkorange;
+  margin: auto;
 }
