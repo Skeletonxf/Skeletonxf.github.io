@@ -3,24 +3,48 @@
   A game eventually
 </h1>
 <div id = "wrapper">
+  <% mid = "$" %>
+  <% inner = 1 %>
+  <% middle = 1 %>
+  <% baseOuter = 1 %>
+  <% base = 1 %>
   <% 6.times do |n| %>
     <div id = "section<%= n*2 %>" class="section">
       <div class="container">
         <ol class="even nothing-up face-to-face-down">
-          <li class='hex base'>
+          <li class='hex base' id='base<%= base %>'>
             <div class="content">
               <p>0 P</p>
+              <p class='id'><%= base %></p>
+              <% base += 1 %>
             </div>
           </li>
         </ol>
         <ol class="odd face-to-face-up point-to-point-down">
-          <li class='hex'></li>
-          <li class='hex'></li>
+          <li class='hex' id='outer<%= baseOuter %>'>
+            <div class="content">
+              <p class='id'><%= baseOuter %></p>
+              <% baseOuter += 1 %>
+            </div>
+          </li>
+          <li class='hex' id='outer<%= baseOuter %>'>
+            <div class="content">
+              <p class='id'><%= baseOuter %></p>
+              <% baseOuter += 1 %>
+            </div>
+          </li>
         </ol>
         <ol class="odd point-to-point-up face-to-face-down">
-          <li class='hex'></li>
-          <li class='hex'>
+          <li class='hex' id='middle<%= middle %>'>
             <div class="content">
+              <p class='id'><%= middle %></p>
+              <% middle += 1 %>
+            </div>
+          </li>
+          <li class='hex' id='middle<%= middle %>'>
+            <div class="content">
+              <p class='id'><%= middle %></p>
+              <% middle += 1 %>
               <p>40 C2</p>
               <p>40 C3</p>
               <p>45 I3</p>
@@ -30,7 +54,12 @@
           </li>
         </ol>
         <ol class="even face-to-face-up point-to-point-down">
-          <li class='hex inner'></li>
+          <li class='hex inner' id='inner<%= inner %>'>
+            <div class="content">
+              <p class='id'><%= inner %></p>
+              <% inner += 1 %>
+            </div>
+          </li>
         </ol>
         <ol class="even point-to-point-up nothing-down">
           <li class='hex blank'></li>
@@ -40,12 +69,19 @@
     <div id = "section<%= (n*2)+1 %>" class="section">
       <div class="container">
         <ol class="odd nothing-up point-to-point-down">
-          <li class='hex'></li>
+          <li class='hex' id='middle<%= middle %>'>
+            <div class="content">
+              <p class='id'><%= middle %></p>
+              <% middle += 1 %>
+            </div>
+          </li>
         </ol>
         <ol class="odd point-to-point-up point-to-point-down">
-          <li class='hex inner'>
+          <li class='hex inner' id='inner<%= inner %>'>
             <div class="content">
               <p>2 I2</p>
+              <p class='id'><%= inner %></p>
+              <% inner += 1 %>
             </div>
           </li>
         </ol>
@@ -58,8 +94,9 @@
   <div id="section12" class="center section">
     <div class="container">
       <ol class="center odd nothing-up nothing-down">
-        <li class="center hex">
+        <li class="center hex" id='<%= mid %>'>
           <div class="content">
+            <p class='id mid'><%= mid %></p>
             <p>79 C2</p>
           </div>
         </li>
