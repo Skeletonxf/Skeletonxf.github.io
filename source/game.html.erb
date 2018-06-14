@@ -13,38 +13,51 @@
       <div class="container">
         <ol class="even nothing-up face-to-face-down">
           <li class='hex base' id='base<%= base %>'>
-            <div class="content">
-              <p>0 P</p>
+            <div class="content info">
               <p class='id'><%= base %></p>
               <% base += 1 %>
+            </div>
+            <div class="content units">
+              <p>0 P</p>
             </div>
           </li>
         </ol>
         <ol class="odd face-to-face-up point-to-point-down">
           <li class='hex' id='outer<%= baseOuter %>'>
-            <div class="content">
+            <div class="content info">
               <p class='id'><%= baseOuter %></p>
               <% baseOuter += 1 %>
             </div>
+            <div class="content units">
+              <p>0 P</p>
+            </div>
           </li>
           <li class='hex' id='outer<%= baseOuter %>'>
-            <div class="content">
+            <div class="content info">
               <p class='id'><%= baseOuter %></p>
               <% baseOuter += 1 %>
+            </div>
+            <div class="content units">
+              <p>0 P</p>
             </div>
           </li>
         </ol>
         <ol class="odd point-to-point-up face-to-face-down">
           <li class='hex' id='middle<%= middle %>'>
-            <div class="content">
+            <div class="content info">
               <p class='id'><%= middle %></p>
               <% middle += 1 %>
             </div>
+            <div class="content units">
+              <p>0 P</p>
+            </div>
           </li>
           <li class='hex' id='middle<%= middle %>'>
-            <div class="content">
+            <div class="content info">
               <p class='id'><%= middle %></p>
               <% middle += 1 %>
+            </div>
+            <div class="content units">
               <p>40 C2</p>
               <p>40 C3</p>
               <p>45 I3</p>
@@ -55,9 +68,12 @@
         </ol>
         <ol class="even face-to-face-up point-to-point-down">
           <li class='hex inner' id='inner<%= inner %>'>
-            <div class="content">
+            <div class="content info">
               <p class='id'><%= inner %></p>
               <% inner += 1 %>
+            </div>
+            <div class="content units">
+              <p>0 P</p>
             </div>
           </li>
         </ol>
@@ -70,18 +86,23 @@
       <div class="container">
         <ol class="odd nothing-up point-to-point-down">
           <li class='hex' id='middle<%= middle %>'>
-            <div class="content">
+            <div class="content info">
               <p class='id'><%= middle %></p>
               <% middle += 1 %>
+            </div>
+            <div class="content units">
+              <p>0 P</p>
             </div>
           </li>
         </ol>
         <ol class="odd point-to-point-up point-to-point-down">
           <li class='hex inner' id='inner<%= inner %>'>
-            <div class="content">
-              <p>2 I2</p>
+            <div class="content info">
               <p class='id'><%= inner %></p>
               <% inner += 1 %>
+            </div>
+            <div class="content units">
+              <p>2 I2</p>
             </div>
           </li>
         </ol>
@@ -95,16 +116,53 @@
     <div class="container">
       <ol class="center odd nothing-up nothing-down">
         <li class="center hex" id='<%= mid %>'>
-          <div class="content">
+          <div class="content info">
             <p class='id mid'><%= mid %></p>
+          </div>
+          <div class="content units">
             <p>79 C2</p>
           </div>
         </li>
       </ol>
     </div>
   </div>
+  <svg id="paths"></svg>
 </div>
+
 
 <script>
   let game = document.getElementById('wrapper')
+  let mid = document.getElementById('$')
+  let inner2 = document.getElementById('inner2')
+  let paths = document.getElementById('paths')
+
+  let drawLine = null;
+  {
+    let svgNS = "http://www.w3.org/2000/svg"
+    let createLine = function(values) {
+      let line = document.createElementNS(svgNS, 'line')
+      line.setAttributeNS(null, 'stroke', 'darkgreen')
+      line.setAttributeNS(null, 'stroke-width', 5)
+      for (let property in values) {
+        line.setAttributeNS(null, property, values[property]);
+      }
+      paths.appendChild(line)
+    }
+
+    function bounds(element) {
+      return element.getBoundingClientRect()
+    }
+    drawLine = function(element1, element2) {
+      createLine({
+        x1: (bounds(element1).x + (bounds(element1).width/2)) - bounds(paths).x,
+        y1: (bounds(element1).y + (bounds(element1).height/2)) - bounds(paths).y,
+        x2: (bounds(element2).x + (bounds(element2).width/2)) - bounds(paths).x,
+        y2: (bounds(element2).y + (bounds(element2).height/2)) - bounds(paths).y
+      })
+    }
+  }
+
+  drawLine(mid, inner2)
+
+  console.log("done")
 </script>

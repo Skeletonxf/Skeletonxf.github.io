@@ -148,12 +148,28 @@ ol {
   .content {
     transform: rotate(90deg);
   }
+  .content.info {
+    top: 20px;
+    left: 5px;
+  }
+  .content.units {
+    top: 10px;
+    left: -5px;
+  }
 }
 
 #section1 {
   transform: translate(-50%,-100%) rotate(30deg);
   .content {
     transform: rotate(60deg);
+  }
+  .content.info {
+    top: 15px;
+    left: 10px;
+  }
+  .content.units {
+    top: 12px;
+    left: -3px;
   }
 }
 
@@ -165,12 +181,28 @@ ol {
   .content {
     transform: rotate(30deg);
   }
+  .content.info {
+    top: 8px;
+    left: 12px;
+  }
+  .content.units {
+    top: 12px;
+    left: 0px;
+  }
 }
 
 #section3 {
   transform: translate(-50%,-100%) rotate(90deg);
   .content {
     transform: rotate(0deg);
+  }
+  .content.info {
+    top: 0px;
+    left: 10px;
+  }
+  .content.units {
+    top: 10px;
+    left: 4px;
   }
 }
 
@@ -182,12 +214,28 @@ ol {
   .content {
     transform: rotate(-30deg);
   }
+  .content.info {
+    top: -7px;
+    left: 5px;
+  }
+  .content.units {
+    top: 4px;
+    left: 4px;
+  }
 }
 
 #section5 {
   transform: translate(-50%,-100%) rotate(150deg);
   .content {
     transform: rotate(-60deg);
+  }
+  .content.info {
+    top: -7px;
+    left: -3px;
+  }
+  .content.units {
+    top: 4px;
+    left: 2px;
   }
 }
 
@@ -199,12 +247,28 @@ ol {
   .content {
     transform: rotate(-90deg);
   }
+  .content.info {
+    top: -5px;
+    left: -12px;
+  }
+  .content.units {
+    top: 4px;
+    left: -2px;
+  }
 }
 
 #section7 {
   transform: translate(-50%,-100%) rotate(210deg);
   .content {
     transform: rotate(-120deg);
+  }
+  .content.info {
+    top: 0px;
+    left: -16px;
+  }
+  .content.units {
+    top: 4px;
+    left: -4px;
   }
 }
 
@@ -216,12 +280,28 @@ ol {
   .content {
     transform: rotate(-150deg);
   }
+  .content.info {
+    top: 8px;
+    left: -20px;
+  }
+  .content.units {
+    top: 4px;
+    left: -6px;
+  }
 }
 
 #section9 {
   transform: translate(-50%,-100%) rotate(270deg);
   .content {
     transform: rotate(-180deg);
+  }
+  .content.info {
+    top: 14px;
+    left: -15px;
+  }
+  .content.units {
+    top: 6px;
+    left: -8px;
   }
 }
 
@@ -233,6 +313,14 @@ ol {
   .content {
     transform: rotate(-210deg);
   }
+  .content.info {
+    top: 20px;
+    left: -10px;
+  }
+  .content.units {
+    top: 8px;
+    left: -8px;
+  }
 }
 
 #section11 {
@@ -240,12 +328,24 @@ ol {
   .content {
     transform: rotate(-240deg);
   }
+  .content.info {
+    top: 20px;
+    left: -5px;
+  }
+  .content.units {
+    top: 12px;
+    left: -12px;
+  }
 }
 
 #section12 {
   .content {
     top: 50%;
     transform: rotate(90deg) translate(-50%,-50%);
+  }
+  .content.info {
+    left: 25%;
+    top: 60%;
   }
 }
 
@@ -286,5 +386,12 @@ p.id {
 }
 
 p.id.mid {
-  color: silver;
+  color: yellow;
+}
+
+/* Paths */
+
+#paths {
+  width: 100%;
+  height: 100%;
 }
