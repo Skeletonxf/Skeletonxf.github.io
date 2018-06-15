@@ -84,7 +84,6 @@ ol {
 }
 
 .hex:hover {
-  background: gold !important;
   cursor: pointer;
 }
 
@@ -105,13 +104,18 @@ ol {
   background: lightskyblue;
 }
 
+.hex.highlight {
+  width: 1.2em;
+  margin-left: 0.5em;
+}
+
+.hex.center.highlight {
+  width: 3em;
+}
+
 .hex.half {
   height: $hex-size;
 }
-
-// .hex {
-//   z-index: 10000;
-// }
 
 /* Sections of map */
 

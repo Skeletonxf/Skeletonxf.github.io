@@ -12,7 +12,11 @@
       <h2>Selected</h2>
       <ol id = "territory-armies-selected"></ol>
     </div>
-    <button id = "armies-attack">Attack/Transfer</button>
+    <div id = "armies-attack"></div>
+    <div id = "attacks">
+      <h2>Orders</h2>
+      <ol id = "territory-attacks"></ol>
+    </div>
   </div>
   <div id = "map">
     <% mid = "$" %>
@@ -259,8 +263,6 @@
 
 <script>
 let game = document.getElementById('map')
-let mid = document.getElementById('$')
-let inner2 = document.getElementById('inner2')
 let paths = document.getElementById('paths')
 
 let drawLine = null;
@@ -350,18 +352,11 @@ let graph = {
   water5: ['base5', 'outer10', 'middle14', 'middle15', 'middle16', 'outer11', 'base6'],
   water6: ['base6', 'outer12', 'middle17', 'middle18', 'middle1', 'outer1', 'base1']
 }
-let lines = {}
+
 for (let node in graph) {
   graph[node].forEach((n) => {
     // TODO avoid drawing every line twice
     drawLine(document.getElementById(node), document.getElementById(n))
-  })
-}
-
-for (let node in graph) {
-  let element = document.getElementById(node)
-  element.addEventListener('click', () => {
-    switchFocusTo(element)
   })
 }
 
@@ -380,7 +375,8 @@ let map = {}
         player: 'p' + player,
         mines: 0,
         wall: false,
-        castle: true
+        castle: true,
+        deployed: []
       }
       player += 1
     } else {
@@ -394,7 +390,8 @@ let map = {}
           player: 'neutral',
           mines: 0,
           wall: false,
-          castle: false
+          castle: false,
+          deployed: []
         }
       } else {
         map[node] = {
@@ -406,7 +403,8 @@ let map = {}
           player: 'neutral',
           mines: 0,
           wall: false,
-          castle: false
+          castle: false,
+          deployed: []
         }
       }
     }
@@ -423,54 +421,69 @@ let fullPlayerNames = {
   p6: 'Player 6'
 }
 
-function switchFocusTo(node) {
-  let fullName = ""
-  if (node.id === "$") {
-    fullName = "Mid"
-  } else {
-    fullName = node.id.charAt(0).toUpperCase() + node.id.slice(1)
-    let numbers = [
-      fullName.indexOf('0'),
-      fullName.indexOf('1'),
-      fullName.indexOf('2'),
-      fullName.indexOf('3'),
-      fullName.indexOf('4'),
-      fullName.indexOf('5'),
-      fullName.indexOf('6'),
-      fullName.indexOf('7'),
-      fullName.indexOf('8'),
-      fullName.indexOf('9')
-    ]
-    let number = -1
-    // take max of non -1 numbers
-    numbers.forEach((n) => {
-      if ((n !== -1) && ((n < number) || number === -1)) {
-        number = n
+let uiState = 'selectFocus'
+
+for (let node in graph) {
+  let element = document.getElementById(node)
+  element.addEventListener('click', (event) => {
+    if (uiState === 'selectFocus') {
+      switchFocusTo(element)
+    }
+    if (uiState === 'attack') {
+      attackTarget(element, event)
+    }
+  })
+}
+
+var switchFocusTo = null
+{
+  function updateInfo(node) {
+    let fullName = ""
+    if (node.id === "$") {
+      fullName = "Mid"
+    } else {
+      fullName = node.id.charAt(0).toUpperCase() + node.id.slice(1)
+      let numbers = [
+        fullName.indexOf('0'),
+        fullName.indexOf('1'),
+        fullName.indexOf('2'),
+        fullName.indexOf('3'),
+        fullName.indexOf('4'),
+        fullName.indexOf('5'),
+        fullName.indexOf('6'),
+        fullName.indexOf('7'),
+        fullName.indexOf('8'),
+        fullName.indexOf('9')
+      ]
+      let number = -1
+      // take max of non -1 numbers
+      numbers.forEach((n) => {
+        if ((n !== -1) && ((n < number) || number === -1)) {
+          number = n
+        }
+      })
+      if (number !== -1) {
+        fullName = fullName.slice(0, number) + " " + fullName.slice(number)
       }
-    })
-    if (number !== -1) {
-      fullName = fullName.slice(0, number) + " " + fullName.slice(number)
+    }
+    console.log(fullName)
+
+    document.getElementById('territory-name').textContent = fullName + " Info"
+    document.getElementById('territory-controller').textContent = fullPlayerNames[map[node.id].player]
+    document.getElementById('territory-mines').textContent = map[node.id].mines + " Mines"
+    if (map[node.id].wall) {
+      document.getElementById('territory-wall').textContent = "Wall"
+    } else {
+      document.getElementById('territory-wall').textContent = "No Wall"
+    }
+    if (map[node.id].castle) {
+      document.getElementById('territory-castle').textContent = "Castle"
+    } else {
+      document.getElementById('territory-castle').textContent = "No Castle"
     }
   }
-  console.log(fullName)
 
-  document.getElementById('territory-name').textContent = fullName + " Info"
-  document.getElementById('territory-controller').textContent = fullPlayerNames[map[node.id].player]
-  document.getElementById('territory-mines').textContent = map[node.id].mines + " Mines"
-  if (map[node.id].wall) {
-    document.getElementById('territory-wall').textContent = "Wall"
-  } else {
-    document.getElementById('territory-wall').textContent = "No Wall"
-  }
-  if (map[node.id].castle) {
-    document.getElementById('territory-castle').textContent = "Castle"
-  } else {
-    document.getElementById('territory-castle').textContent = "No Castle"
-  }
-
-  // maintains deployed list to use for declaring attacks/transfers
-  let deployed = []
-  {
+  function updateArmies(node) {
     let armiesList = document.getElementById('territory-armies-all')
     // clear armies list
     while (armiesList.firstChild) {
@@ -489,6 +502,7 @@ function switchFocusTo(node) {
       document.getElementById('armies-selected').classList.add('hidden')
     }
 
+    // setup army deployment UI for this territory
     map[node.id].armies.forEach((army) => {
       let li = document.createElement('li')
       let checkbox = document.createElement('input')
@@ -507,20 +521,69 @@ function switchFocusTo(node) {
 
       // track deployed armies and don't trust the DOM for the values
       checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          selectedList.append(li)
-          deployed.push(army)
-        } else {
-          armiesList.append(li)
-          deployed = deployed.filter(a => a !== army)
+        // don't let the player deploy non player armies
+        if (map[node.id].player === 'p1') {
+          if (checkbox.checked) {
+            selectedList.append(li)
+            map[node.id].deployed.push({
+              army: army,
+              target: null
+            })
+          } else {
+            armiesList.append(li)
+            map[node.id].deployed = map[node.id].deployed.filter(d => d.army !== army)
+          }
+          console.log(map[node.id].deployed)
         }
       })
     })
+
+    let attackContainer = document.getElementById('armies-attack')
+    // delete all old attack buttons
+    while (attackContainer.firstChild) {
+      attackContainer.removeChild(attackContainer.firstChild)
+    }
+    let button = document.createElement('button')
+    button.textContent = 'Attack/Transfer'
+    attackContainer.appendChild(button)
+
+    button.addEventListener('click', () => {
+      console.log('choose attack')
+      let neighbours = graph[node.id]
+      let nodes = neighbours.map(id => document.getElementById(id))
+      console.log(nodes)
+      // highlight all possible locations to attack/transfer
+      nodes.forEach((n) => {
+        n.classList.add('highlight')
+      })
+      uiState = 'attack'
+    })
   }
 
+  switchFocusTo = function(node) {
+    updateInfo(node)
+    updateArmies(node)
+  }
 }
 
-let players = {}
+function attackTarget(node, event) {
+  console.log(event)
+  console.log('ATTACK')
+  uiState = 'selectFocus'
+  stopHighlighting()
+  // stay focused on the current node as the player
+  // may want to deploy additional units
+}
+
+function stopHighlighting() {
+  for (let node in map) {
+    let element = document.getElementById(node)
+    // reset highlighting on changing node focus
+    element.classList.remove('highlight')
+  }
+}
+
+let players = {};
 ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].forEach((p) => {
   players[p] = {
     upgrades: {
@@ -531,8 +594,6 @@ let players = {}
     gold: 0
   }
 })
-
-
 
 console.log("done")
 </script>
