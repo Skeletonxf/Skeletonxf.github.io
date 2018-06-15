@@ -5,7 +5,7 @@
 <div id = "flex-wrapper">
   <div id = "armies">
     <div id = "armies-all">
-      <h2>Armies at Base 1</h2>
+      <h2>Armies</h2>
       <ol>
         <li>
           <input type='checkbox' id='40 C2'>
@@ -183,13 +183,13 @@
     <svg id="paths"></svg>
   </div>
   <div id = "info">
-    <h2>Base 1 Info</h2>
+    <h2 id = "territory-name">Base 1 Info</h2>
     <h3>Control</h3>
-    <p>Player 2</p>
+    <p id = "territory-controller">Player 2</p>
     <h3>Structures</h3>
-    <p>0 Mines</p>
-    <p>Wall</p>
-    <p>No Castle</p>
+    <p id = "territory-mines">0 Mines</p>
+    <p id = "territory-wall">Wall</p>
+    <p id = "territory-castle">No Castle</p>
     <div id="info-build-units">
       <h3>Buy Units</h3>
       <div class="buy">
@@ -285,107 +285,197 @@
 </div>
 
 <script>
-  let game = document.getElementById('map')
-  let mid = document.getElementById('$')
-  let inner2 = document.getElementById('inner2')
-  let paths = document.getElementById('paths')
+let game = document.getElementById('map')
+let mid = document.getElementById('$')
+let inner2 = document.getElementById('inner2')
+let paths = document.getElementById('paths')
 
-  let drawLine = null;
-  {
-    let svgNS = "http://www.w3.org/2000/svg"
-    let createLine = function(values) {
-      let line = document.createElementNS(svgNS, 'line')
-      line.setAttributeNS(null, 'stroke-width', 12)
-      for (let property in values) {
-        line.setAttributeNS(null, property, values[property]);
-      }
-      paths.appendChild(line)
+let drawLine = null;
+{
+  let svgNS = "http://www.w3.org/2000/svg"
+  let createLine = function(values) {
+    let line = document.createElementNS(svgNS, 'line')
+    line.setAttributeNS(null, 'stroke-width', 12)
+    for (let property in values) {
+      line.setAttributeNS(null, property, values[property]);
     }
-
-    function bounds(element) {
-      return element.getBoundingClientRect()
-    }
-    drawLine = function(element1, element2) {
-      let color = 'darkgreen'
-      if (element1.id.includes('water') || element2.id.includes('water')) {
-        color = 'skyblue'
-      }
-      createLine({
-        x1: (bounds(element1).x + (bounds(element1).width/2)) - bounds(paths).x,
-        y1: (bounds(element1).y + (bounds(element1).height/2)) - bounds(paths).y,
-        x2: (bounds(element2).x + (bounds(element2).width/2)) - bounds(paths).x,
-        y2: (bounds(element2).y + (bounds(element2).height/2)) - bounds(paths).y,
-        stroke: color
-      })
-    }
+    paths.appendChild(line)
   }
 
-  let graph = {
-    '$': ['inner2', 'inner4', 'inner6', 'inner8', 'inner10', 'inner12'],
-    inner1: ['inner2', 'inner12', 'middle1', 'middle2'],
-    inner2: ['$', 'inner1', 'inner3', 'middle3'],
-    inner3: ['inner2', 'inner4', 'middle4', 'middle5'],
-    inner4: ['$', 'inner3', 'inner5', 'middle6'],
-    inner5: ['inner4', 'inner6', 'middle7', 'middle8'],
-    inner6: ['$', 'inner5', 'inner7', 'middle9'],
-    inner7: ['inner6', 'inner8', 'middle10', 'middle11'],
-    inner8: ['$', 'inner7', 'inner9', 'middle12'],
-    inner9: ['inner8', 'inner10', 'middle13', 'middle14'],
-    inner10: ['$', 'inner9', 'inner11', 'middle15'],
-    inner11: ['inner10', 'inner12', 'middle16', 'middle17'],
-    inner12: ['$', 'inner1', 'inner11', 'middle18'],
-    middle1: ['inner1', 'middle18', 'middle2', 'outer1', 'outer2', 'water6'],
-    middle2: ['inner1', 'middle1', 'middle3', 'outer1', 'outer2', 'water1'],
-    middle3: ['inner2', 'middle2', 'middle4', 'water1'],
-    middle4: ['inner3', 'middle3', 'middle5', 'outer3', 'outer4', 'water1'],
-    middle5: ['inner3', 'middle4', 'middle6', 'outer3', 'outer4', 'water2'],
-    middle6: ['inner4', 'middle5', 'middle7', 'water2'],
-    middle7: ['inner5', 'middle6', 'middle8', 'outer5', 'outer6', 'water2'],
-    middle8: ['inner5', 'middle7', 'middle9', 'outer5', 'outer6', 'water3'],
-    middle9: ['inner6', 'middle8', 'middle10', 'water3'],
-    middle10: ['inner7', 'middle9', 'middle11', 'outer7', 'outer8', 'water3'],
-    middle11: ['inner7', 'middle10', 'middle12', 'outer7', 'outer8', 'water4'],
-    middle12: ['inner8', 'middle11', 'middle13', 'water4'],
-    middle13: ['inner9', 'middle12', 'middle14', 'outer9', 'outer10', 'water4'],
-    middle14: ['inner9', 'middle13', 'middle15', 'outer9', 'outer10', 'water5'],
-    middle15: ['inner10', 'middle14', 'middle16', 'water5'],
-    middle16: ['inner11', 'middle15', 'middle17', 'outer11', 'outer12', 'water5'],
-    middle17: ['inner11', 'middle16', 'middle18', 'outer11', 'outer12', 'water6'],
-    middle18: ['inner12', 'middle17', 'middle1', 'water6'],
-    outer1: ['middle1', 'middle2', 'base1', 'water6'],
-    outer2: ['middle1', 'middle2', 'base1', 'water1'],
-    outer3: ['middle4', 'middle5', 'base2', 'water1'],
-    outer4: ['middle4', 'middle5', 'base2', 'water2'],
-    outer5: ['middle7', 'middle8', 'base3', 'water2'],
-    outer6: ['middle7', 'middle8', 'base3', 'water3'],
-    outer7: ['middle10', 'middle11', 'base4', 'water3'],
-    outer8: ['middle10', 'middle11', 'base4', 'water4'],
-    outer9: ['middle13', 'middle14', 'base5', 'water4'],
-    outer10: ['middle13', 'middle14', 'base5', 'water5'],
-    outer11: ['middle16', 'middle17', 'base6', 'water5'],
-    outer12: ['middle16', 'middle17', 'base6', 'water6'],
-    base1: ['outer1', 'outer2', 'water1', 'water6'],
-    base2: ['outer3', 'outer4', 'water1', 'water2'],
-    base3: ['outer5', 'outer6', 'water2', 'water3'],
-    base4: ['outer7', 'outer8', 'water3', 'water4'],
-    base5: ['outer9', 'outer10', 'water4', 'water5'],
-    base6: ['outer11', 'outer12', 'water5', 'water6'],
-    water1: ['base1', 'outer2', 'middle2', 'middle3', 'middle4', 'outer3', 'base2'],
-    water2: ['base2', 'outer4', 'middle5', 'middle6', 'middle7', 'outer5', 'base3'],
-    water3: ['base3', 'outer6', 'middle8', 'middle9', 'middle10', 'outer7', 'base4'],
-    water4: ['base4', 'outer8', 'middle11', 'middle12', 'middle13', 'outer9', 'base5'],
-    water5: ['base5', 'outer10', 'middle14', 'middle15', 'middle16', 'outer11', 'base6'],
-    water6: ['base6', 'outer12', 'middle17', 'middle18', 'middle1', 'outer1', 'base1']
+  function bounds(element) {
+    return element.getBoundingClientRect()
   }
-  let lines = {}
-  for (let node in graph) {
-    graph[node].forEach((n) => {
-      // TODO avoid drawing every line twice
-      drawLine(document.getElementById(node), document.getElementById(n))
+  drawLine = function(element1, element2) {
+    let color = 'darkgreen'
+    if (element1.id.includes('water') || element2.id.includes('water')) {
+      color = 'skyblue'
+    }
+    createLine({
+      x1: (bounds(element1).x + (bounds(element1).width/2)) - bounds(paths).x,
+      y1: (bounds(element1).y + (bounds(element1).height/2)) - bounds(paths).y,
+      x2: (bounds(element2).x + (bounds(element2).width/2)) - bounds(paths).x,
+      y2: (bounds(element2).y + (bounds(element2).height/2)) - bounds(paths).y,
+      stroke: color
     })
   }
+}
 
+let graph = {
+  '$': ['inner2', 'inner4', 'inner6', 'inner8', 'inner10', 'inner12'],
+  inner1: ['inner2', 'inner12', 'middle1', 'middle2'],
+  inner2: ['$', 'inner1', 'inner3', 'middle3'],
+  inner3: ['inner2', 'inner4', 'middle4', 'middle5'],
+  inner4: ['$', 'inner3', 'inner5', 'middle6'],
+  inner5: ['inner4', 'inner6', 'middle7', 'middle8'],
+  inner6: ['$', 'inner5', 'inner7', 'middle9'],
+  inner7: ['inner6', 'inner8', 'middle10', 'middle11'],
+  inner8: ['$', 'inner7', 'inner9', 'middle12'],
+  inner9: ['inner8', 'inner10', 'middle13', 'middle14'],
+  inner10: ['$', 'inner9', 'inner11', 'middle15'],
+  inner11: ['inner10', 'inner12', 'middle16', 'middle17'],
+  inner12: ['$', 'inner1', 'inner11', 'middle18'],
+  middle1: ['inner1', 'middle18', 'middle2', 'outer1', 'outer2', 'water6'],
+  middle2: ['inner1', 'middle1', 'middle3', 'outer1', 'outer2', 'water1'],
+  middle3: ['inner2', 'middle2', 'middle4', 'water1'],
+  middle4: ['inner3', 'middle3', 'middle5', 'outer3', 'outer4', 'water1'],
+  middle5: ['inner3', 'middle4', 'middle6', 'outer3', 'outer4', 'water2'],
+  middle6: ['inner4', 'middle5', 'middle7', 'water2'],
+  middle7: ['inner5', 'middle6', 'middle8', 'outer5', 'outer6', 'water2'],
+  middle8: ['inner5', 'middle7', 'middle9', 'outer5', 'outer6', 'water3'],
+  middle9: ['inner6', 'middle8', 'middle10', 'water3'],
+  middle10: ['inner7', 'middle9', 'middle11', 'outer7', 'outer8', 'water3'],
+  middle11: ['inner7', 'middle10', 'middle12', 'outer7', 'outer8', 'water4'],
+  middle12: ['inner8', 'middle11', 'middle13', 'water4'],
+  middle13: ['inner9', 'middle12', 'middle14', 'outer9', 'outer10', 'water4'],
+  middle14: ['inner9', 'middle13', 'middle15', 'outer9', 'outer10', 'water5'],
+  middle15: ['inner10', 'middle14', 'middle16', 'water5'],
+  middle16: ['inner11', 'middle15', 'middle17', 'outer11', 'outer12', 'water5'],
+  middle17: ['inner11', 'middle16', 'middle18', 'outer11', 'outer12', 'water6'],
+  middle18: ['inner12', 'middle17', 'middle1', 'water6'],
+  outer1: ['middle1', 'middle2', 'base1', 'water6'],
+  outer2: ['middle1', 'middle2', 'base1', 'water1'],
+  outer3: ['middle4', 'middle5', 'base2', 'water1'],
+  outer4: ['middle4', 'middle5', 'base2', 'water2'],
+  outer5: ['middle7', 'middle8', 'base3', 'water2'],
+  outer6: ['middle7', 'middle8', 'base3', 'water3'],
+  outer7: ['middle10', 'middle11', 'base4', 'water3'],
+  outer8: ['middle10', 'middle11', 'base4', 'water4'],
+  outer9: ['middle13', 'middle14', 'base5', 'water4'],
+  outer10: ['middle13', 'middle14', 'base5', 'water5'],
+  outer11: ['middle16', 'middle17', 'base6', 'water5'],
+  outer12: ['middle16', 'middle17', 'base6', 'water6'],
+  base1: ['outer1', 'outer2', 'water1', 'water6'],
+  base2: ['outer3', 'outer4', 'water1', 'water2'],
+  base3: ['outer5', 'outer6', 'water2', 'water3'],
+  base4: ['outer7', 'outer8', 'water3', 'water4'],
+  base5: ['outer9', 'outer10', 'water4', 'water5'],
+  base6: ['outer11', 'outer12', 'water5', 'water6'],
+  water1: ['base1', 'outer2', 'middle2', 'middle3', 'middle4', 'outer3', 'base2'],
+  water2: ['base2', 'outer4', 'middle5', 'middle6', 'middle7', 'outer5', 'base3'],
+  water3: ['base3', 'outer6', 'middle8', 'middle9', 'middle10', 'outer7', 'base4'],
+  water4: ['base4', 'outer8', 'middle11', 'middle12', 'middle13', 'outer9', 'base5'],
+  water5: ['base5', 'outer10', 'middle14', 'middle15', 'middle16', 'outer11', 'base6'],
+  water6: ['base6', 'outer12', 'middle17', 'middle18', 'middle1', 'outer1', 'base1']
+}
+let lines = {}
+for (let node in graph) {
+  graph[node].forEach((n) => {
+    // TODO avoid drawing every line twice
+    drawLine(document.getElementById(node), document.getElementById(n))
+  })
+}
 
+for (let node in graph) {
+  let element = document.getElementById(node)
+  element.addEventListener('click', () => {
+    switchFocusTo(element)
+  })
+}
 
-  console.log("done")
+let map = {}
+{
+  let player = 1
+  for (let node in graph) {
+    let element = document.getElementById(node)
+    if (node.includes('base')) {
+      map[node] = {
+        armies: [{
+          quantity: 30,
+          type: 'neutral'
+        }],
+        player: 'p' + player,
+        mines: 0,
+        wall: false,
+        castle: true
+      }
+      player += 1
+    } else {
+      map[node] = {
+        armies: [],
+        player: 'neutral',
+        mines: 0,
+        wall: false,
+        castle: false
+      }
+    }
+  }
+}
+
+let fullPlayerNames = {
+  neutral: 'Neutral',
+  p1: 'Player 1',
+  p2: 'Player 2',
+  p3: 'Player 3',
+  p4: 'Player 4',
+  p5: 'Player 5',
+  p6: 'Player 6'
+}
+
+function switchFocusTo(node) {
+  let fullName = ""
+  if (node.id === "$") {
+    fullName = "Mid"
+  } else {
+    fullName = node.id.charAt(0).toUpperCase() + node.id.slice(1)
+    let numbers = [
+      fullName.indexOf('0'),
+      fullName.indexOf('1'),
+      fullName.indexOf('2'),
+      fullName.indexOf('3'),
+      fullName.indexOf('4'),
+      fullName.indexOf('5'),
+      fullName.indexOf('6'),
+      fullName.indexOf('7'),
+      fullName.indexOf('8'),
+      fullName.indexOf('9')
+    ]
+    let number = -1
+    // take max of non -1 numbers
+    numbers.forEach((n) => {
+      if ((n !== -1) && ((n < number) || number === -1)) {
+        number = n
+      }
+    })
+    if (number !== -1) {
+      fullName = fullName.slice(0, number) + " " + fullName.slice(number)
+    }
+  }
+  console.log(fullName)
+
+  document.getElementById('territory-name').textContent = fullName + " Info"
+  document.getElementById('territory-controller').textContent = fullPlayerNames[map[node.id].player]
+  document.getElementById('territory-mines').textContent = map[node.id].mines + " Mines"
+  if (map[node.id].wall) {
+    document.getElementById('territory-wall').textContent = "Wall"
+  } else {
+    document.getElementById('territory-wall').textContent = "No Wall"
+  }
+  if (map[node.id].castle) {
+    document.getElementById('territory-castle').textContent = "Castle"
+  } else {
+    document.getElementById('territory-castle').textContent = "No Castle"
+  }
+}
+
+console.log("done")
 </script>
