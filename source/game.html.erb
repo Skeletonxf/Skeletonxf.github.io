@@ -2,151 +2,290 @@
 <h1 class = "center">
   A game eventually
 </h1>
-<div id = "wrapper">
-  <% mid = "$" %>
-  <% inner = 1 %>
-  <% middle = 1 %>
-  <% outer = 1 %>
-  <% base = 1 %>
-  <% water = 1 %>
-  <% 6.times do |n| %>
-    <div id = "section<%= n*2 %>" class="section">
-      <div class="container">
-        <ol class="even nothing-up face-to-face-down">
-          <li class='hex base' id='base<%= base %>'>
-            <div class="content info">
-              <p class='id'><%= base %></p>
-              <% base += 1 %>
-            </div>
-            <div class="content units">
-              <p>0 P</p>
-            </div>
-          </li>
-        </ol>
-        <ol class="odd face-to-face-up point-to-point-down">
-          <li class='hex' id='outer<%= outer %>'>
-            <div class="content info">
-              <p class='id'><%= outer %></p>
-              <% outer += 1 %>
-            </div>
-            <div class="content units">
-              <p>0 P</p>
-            </div>
-          </li>
-          <li class='hex' id='outer<%= outer %>'>
-            <div class="content info">
-              <p class='id'><%= outer %></p>
-              <% outer += 1 %>
-            </div>
-            <div class="content units">
-              <p>0 P</p>
-            </div>
-          </li>
-        </ol>
-        <ol class="odd point-to-point-up face-to-face-down">
-          <li class='hex' id='middle<%= middle %>'>
-            <div class="content info">
-              <p class='id'><%= middle %></p>
-              <% middle += 1 %>
-            </div>
-            <div class="content units">
-              <p>0 P</p>
-            </div>
-          </li>
-          <li class='hex' id='middle<%= middle %>'>
-            <div class="content info">
-              <p class='id'><%= middle %></p>
-              <% middle += 1 %>
-            </div>
-            <div class="content units">
-              <p>40 C2</p>
-              <p>40 C3</p>
-              <p>45 I3</p>
-              <p>44 I2</p>
-              <p>46 A2</p>
-            </div>
-          </li>
-        </ol>
-        <ol class="even face-to-face-up point-to-point-down">
-          <li class='hex inner' id='inner<%= inner %>'>
-            <div class="content info">
-              <p class='id'><%= inner %></p>
-              <% inner += 1 %>
-            </div>
-            <div class="content units">
-              <p>0 P</p>
-            </div>
-          </li>
-        </ol>
-        <ol class="even point-to-point-up nothing-down">
-          <li class='hex blank'></li>
-        </ol>
-      </div>
-    </div>
-    <div id = "section<%= (n*2)+1 %>" class="section">
-      <div class="container">
-        <ol class="odd nothing-up point-to-point-down">
-          <li class='hex water', id='water<%= water %>'>
-            <div class="content info">
-              <p class='id'><%= water %></p>
-              <% water += 1 %>
-            </div>
-            <div class="content units">
-              <p>1000</p>
-            </div>
-          </li>
-        </ol>
-        <ol class="odd point-to-point-up point-to-point-down">
-          <li class='hex blank half'></li>
-        </ol>
-        <ol class="odd point-to-point-up point-to-point-down">
-          <li class='hex' id='middle<%= middle %>'>
-            <div class="content info">
-              <p class='id'><%= middle %></p>
-              <% middle += 1 %>
-            </div>
-            <div class="content units">
-              <p>0 P</p>
-            </div>
-          </li>
-        </ol>
-        <ol class="odd point-to-point-up point-to-point-down">
-          <li class='hex inner' id='inner<%= inner %>'>
-            <div class="content info">
-              <p class='id'><%= inner %></p>
-              <% inner += 1 %>
-            </div>
-            <div class="content units">
-              <p>2 I2</p>
-            </div>
-          </li>
-        </ol>
-        <ol class="odd point-to-point-up nothing-down">
-          <li class='hex blank half'></li>
-        </ol>
-      </div>
-    </div>
-  <% end %>
-  <div id="section12" class="center section">
-    <div class="container">
-      <ol class="center odd nothing-up nothing-down">
-        <li class="center hex" id='<%= mid %>'>
-          <div class="content info">
-            <p class='id mid'><%= mid %></p>
-          </div>
-          <div class="content units">
-            <p>79 C2</p>
-          </div>
+<div id = "flex-wrapper">
+  <div id = "armies">
+    <div id = "armies-all">
+      <h2>Armies at Base 1</h2>
+      <ol>
+        <li>
+          <input type='checkbox' id='40 C2'>
+            <label for='40 C2'>40 C2</label>
+          </input>
+        </li>
+        <li>
+          <input type='checkbox' id='40 C3'>
+            <label for='40 C3'>40 C3</label>
+          </input>
+        </li>
+        <li>
+          <input type='checkbox' id='45 I3'>
+            <label for='45 I3'>45 I3</label>
+          </input>
         </li>
       </ol>
     </div>
+    <div id = "armies-selected">
+      <h2>Selected</h2>
+      <ol>
+        <li>
+          <input type='checkbox' id='45 I3' checked>
+            <label for='45 I3'>45 I3</label>
+          </input>
+        </li>
+        <li>
+          <input type='checkbox' id='40 C3' checked>
+            <label for='40 C3'>40 C3</label>
+          </input>
+        </li>
+      </ol>
+    </div>
+    <button id = "armies-attack">Attack</button>
   </div>
-  <svg id="paths"></svg>
+  <div id = "map">
+    <% mid = "$" %>
+    <% inner = 1 %>
+    <% middle = 1 %>
+    <% outer = 1 %>
+    <% base = 1 %>
+    <% water = 1 %>
+    <% 6.times do |n| %>
+      <div id = "section<%= n*2 %>" class="section">
+        <div class="container">
+          <ol class="even nothing-up face-to-face-down">
+            <li class='hex base' id='base<%= base %>'>
+              <div class="content info">
+                <p class='id'><%= base %></p>
+                <% base += 1 %>
+              </div>
+              <div class="content units">
+                <p>0 P</p>
+              </div>
+            </li>
+          </ol>
+          <ol class="odd face-to-face-up point-to-point-down">
+            <li class='hex' id='outer<%= outer %>'>
+              <div class="content info">
+                <p class='id'><%= outer %></p>
+                <% outer += 1 %>
+              </div>
+              <div class="content units">
+                <p>0 P</p>
+              </div>
+            </li>
+            <li class='hex' id='outer<%= outer %>'>
+              <div class="content info">
+                <p class='id'><%= outer %></p>
+                <% outer += 1 %>
+              </div>
+              <div class="content units">
+                <p>0 P</p>
+              </div>
+            </li>
+          </ol>
+          <ol class="odd point-to-point-up face-to-face-down">
+            <li class='hex' id='middle<%= middle %>'>
+              <div class="content info">
+                <p class='id'><%= middle %></p>
+                <% middle += 1 %>
+              </div>
+              <div class="content units">
+                <p>0 P</p>
+              </div>
+            </li>
+            <li class='hex' id='middle<%= middle %>'>
+              <div class="content info">
+                <p class='id'><%= middle %></p>
+                <% middle += 1 %>
+              </div>
+              <div class="content units">
+                <p>40 C2</p>
+                <p>40 C3</p>
+                <p>45 I3</p>
+                <p>44 I2</p>
+                <p>46 A2</p>
+              </div>
+            </li>
+          </ol>
+          <ol class="even face-to-face-up point-to-point-down">
+            <li class='hex inner' id='inner<%= inner %>'>
+              <div class="content info">
+                <p class='id'><%= inner %></p>
+                <% inner += 1 %>
+              </div>
+              <div class="content units">
+                <p>0 P</p>
+              </div>
+            </li>
+          </ol>
+          <ol class="even point-to-point-up nothing-down">
+            <li class='hex blank'></li>
+          </ol>
+        </div>
+      </div>
+      <div id = "section<%= (n*2)+1 %>" class="section">
+        <div class="container">
+          <ol class="odd nothing-up point-to-point-down">
+            <li class='hex water', id='water<%= water %>'>
+              <div class="content info">
+                <p class='id'><%= water %></p>
+                <% water += 1 %>
+              </div>
+              <div class="content units">
+                <p>1000</p>
+              </div>
+            </li>
+          </ol>
+          <ol class="odd point-to-point-up point-to-point-down">
+            <li class='hex blank half'></li>
+          </ol>
+          <ol class="odd point-to-point-up point-to-point-down">
+            <li class='hex' id='middle<%= middle %>'>
+              <div class="content info">
+                <p class='id'><%= middle %></p>
+                <% middle += 1 %>
+              </div>
+              <div class="content units">
+                <p>0 P</p>
+              </div>
+            </li>
+          </ol>
+          <ol class="odd point-to-point-up point-to-point-down">
+            <li class='hex inner' id='inner<%= inner %>'>
+              <div class="content info">
+                <p class='id'><%= inner %></p>
+                <% inner += 1 %>
+              </div>
+              <div class="content units">
+                <p>2 I2</p>
+              </div>
+            </li>
+          </ol>
+          <ol class="odd point-to-point-up nothing-down">
+            <li class='hex blank half'></li>
+          </ol>
+        </div>
+      </div>
+    <% end %>
+    <div id="section12" class="center section">
+      <div class="container">
+        <ol class="center odd nothing-up nothing-down">
+          <li class="center hex" id='<%= mid %>'>
+            <div class="content info">
+              <p class='id mid'><%= mid %></p>
+            </div>
+            <div class="content units">
+              <p>79 C2</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+    <svg id="paths"></svg>
+  </div>
+  <div id = "info">
+    <h2>Base 1 Info</h2>
+    <h3>Control</h3>
+    <p>Player 2</p>
+    <h3>Structures</h3>
+    <p>0 Mines</p>
+    <p>Wall</p>
+    <p>No Castle</p>
+    <div id="info-build-units">
+      <h3>Buy Units</h3>
+      <div class="buy">
+        <label for="archers">Archers</label>
+        <p>20 Gold</p>
+        <input type="number" id="archers"></input>
+      </div>
+      <div class="buy">
+        <label for="calvary">Calvary</label>
+        <p>20 Gold</p>
+        <input type="number" id="calvary"></input>
+      </div>
+      <div class="buy">
+        <label for="infantry">Infantry</label>
+        <p>20 Gold</p>
+        <input type="number" id="infantry"></input>
+      </div>
+      <div class="buy">
+        <label for="rams">Battering Ram</label>
+        <p>1500 Gold</p>
+        <input type="number" id="rams"></input>
+      </div>
+    </div>
+    <div id="info-buttons">
+      <button>Build Castle</button>
+      <button>Build Mine</button>
+      <button>Build Wall</button>
+      <button>Raze down</button>
+    </div>
+  </div>
+  <div id = "players">
+    <ul>
+      <li>
+        <h2>Player 1</h2>
+        <h3>Resources</h3>
+        <p>Gold: 500</p>
+        <div class="player-info">
+          <p>Archers Level 2</p>
+          <button>Upgrade</button>
+        </div>
+        <div class="player-info">
+          <p>Calvary Level 1</p>
+          <button>Upgrade</button>
+        </div>
+        <div class="player-info">
+          <p>Infantry Level 3</p>
+          <button>Upgrade</button>
+        </div>
+        <button>End Turn</button>
+      </li>
+      <li>
+        <h2>Player 2</h2>
+        <h3>Resources</h3>
+        <p>Gold: 500</p>
+        <p>Archers Level 2</p>
+        <p>Calvary Level 1</p>
+        <p>Infantry Level 3</p>
+      </li>
+      <li>
+        <h2>Player 3</h2>
+        <h3>Resources</h3>
+        <p>Gold: 500</p>
+        <p>Archers Level 2</p>
+        <p>Calvary Level 1</p>
+        <p>Infantry Level 3</p>
+      </li>
+      <li>
+        <h2>Player 4</h2>
+        <h3>Resources</h3>
+        <p>Gold: 500</p>
+        <p>Archers Level 2</p>
+        <p>Calvary Level 1</p>
+        <p>Infantry Level 3</p>
+      </li>
+      <li>
+        <h2>Player 5</h2>
+        <h3>Resources</h3>
+        <p>Gold: 500</p>
+        <p>Archers Level 2</p>
+        <p>Calvary Level 1</p>
+        <p>Infantry Level 3</p>
+      </li>
+      <li>
+        <h2>Player 6</h2>
+        <h3>Resources</h3>
+        <p>Gold: 500</p>
+        <p>Archers Level 2</p>
+        <p>Calvary Level 1</p>
+        <p>Infantry Level 3</p>
+      </li>
+    </ul>
+  </div>
 </div>
 
-
 <script>
-  let game = document.getElementById('wrapper')
+  let game = document.getElementById('map')
   let mid = document.getElementById('$')
   let inner2 = document.getElementById('inner2')
   let paths = document.getElementById('paths')
@@ -245,6 +384,8 @@
       drawLine(document.getElementById(node), document.getElementById(n))
     })
   }
+
+
 
   console.log("done")
 </script>
