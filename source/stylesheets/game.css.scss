@@ -101,6 +101,10 @@ ol {
   background: lightyellow;
 }
 
+.hex.water {
+  background: lightskyblue;
+}
+
 .hex.half {
   height: $hex-size;
 }
@@ -112,8 +116,8 @@ ol {
 /* Sections of map */
 
 #wrapper {
-  width: 750px;
-  height: 750px;
+  width: 700px;
+  height: 660px;
   position: relative;
   background-color: cyan;
   padding: 3px;
