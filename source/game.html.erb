@@ -5,41 +5,14 @@
 <div id = "flex-wrapper">
   <div id = "armies">
     <div id = "armies-all">
-      <h2>Armies</h2>
-      <ol>
-        <li>
-          <input type='checkbox' id='40 C2'>
-            <label for='40 C2'>40 C2</label>
-          </input>
-        </li>
-        <li>
-          <input type='checkbox' id='40 C3'>
-            <label for='40 C3'>40 C3</label>
-          </input>
-        </li>
-        <li>
-          <input type='checkbox' id='45 I3'>
-            <label for='45 I3'>45 I3</label>
-          </input>
-        </li>
-      </ol>
+      <h2>Available</h2>
+      <ol id = "territory-armies-all"></ol>
     </div>
     <div id = "armies-selected">
       <h2>Selected</h2>
-      <ol>
-        <li>
-          <input type='checkbox' id='45 I3' checked>
-            <label for='45 I3'>45 I3</label>
-          </input>
-        </li>
-        <li>
-          <input type='checkbox' id='40 C3' checked>
-            <label for='40 C3'>40 C3</label>
-          </input>
-        </li>
-      </ol>
+      <ol id = "territory-armies-selected"></ol>
     </div>
-    <button id = "armies-attack">Attack</button>
+    <button id = "armies-attack">Attack/Transfer</button>
   </div>
   <div id = "map">
     <% mid = "$" %>
@@ -401,7 +374,8 @@ let map = {}
       map[node] = {
         armies: [{
           quantity: 30,
-          type: 'neutral'
+          type: 'Neutral',
+          level: 1
         }],
         player: 'p' + player,
         mines: 0,
@@ -410,12 +384,30 @@ let map = {}
       }
       player += 1
     } else {
-      map[node] = {
-        armies: [],
-        player: 'neutral',
-        mines: 0,
-        wall: false,
-        castle: false
+      if (node.includes('water')) {
+        map[node] = {
+          armies: [{
+            quantity: 1000,
+            type: 'Neutral',
+            level: 1
+          }],
+          player: 'neutral',
+          mines: 0,
+          wall: false,
+          castle: false
+        }
+      } else {
+        map[node] = {
+          armies: [{
+            quantity: 10,
+            type: 'Neutral',
+            level: 1
+          }],
+          player: 'neutral',
+          mines: 0,
+          wall: false,
+          castle: false
+        }
       }
     }
   }
@@ -475,6 +467,57 @@ function switchFocusTo(node) {
   } else {
     document.getElementById('territory-castle').textContent = "No Castle"
   }
+
+  // maintains deployed list to use for declaring attacks/transfers
+  let deployed = []
+  {
+    let armiesList = document.getElementById('territory-armies-all')
+    // clear armies list
+    while (armiesList.firstChild) {
+      armiesList.removeChild(armiesList.firstChild)
+    }
+
+    let selectedList = document.getElementById('territory-armies-selected')
+    // clear selected armies list
+    while (selectedList.firstChild) {
+      selectedList.removeChild(selectedList.firstChild)
+    }
+
+    if (map[node.id].player === 'p1') {
+      document.getElementById('armies-selected').classList.remove('hidden')
+    } else {
+      document.getElementById('armies-selected').classList.add('hidden')
+    }
+
+    map[node.id].armies.forEach((army) => {
+      let li = document.createElement('li')
+      let checkbox = document.createElement('input')
+      checkbox.setAttribute('type', 'checkbox')
+      let id = army.type + 'ArmyInTerritory'
+      checkbox.setAttribute('id', id)
+      let label = document.createElement('label')
+      label.setAttribute('for', id)
+      let text = document.createTextNode(
+        army.quantity + ' ' + army.type + ' ' + army.level)
+
+      armiesList.appendChild(li)
+      li.appendChild(checkbox)
+      li.appendChild(label)
+      label.appendChild(text)
+
+      // track deployed armies and don't trust the DOM for the values
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          selectedList.append(li)
+          deployed.push(army)
+        } else {
+          armiesList.append(li)
+          deployed = deployed.filter(a => a !== army)
+        }
+      })
+    })
+  }
+
 }
 
 console.log("done")

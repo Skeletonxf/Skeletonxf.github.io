@@ -432,6 +432,10 @@ p.id.mid {
   flex-direction: column;
 }
 
+#armies .hidden {
+  visibility: hidden;
+}
+
 #info-buttons {
   display: flex;
   flex-direction: column;
