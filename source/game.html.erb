@@ -422,6 +422,7 @@ let fullPlayerNames = {
 }
 
 let uiState = 'selectFocus'
+let attackFrom = null
 
 for (let node in graph) {
   let element = document.getElementById(node)
@@ -430,43 +431,47 @@ for (let node in graph) {
       switchFocusTo(element)
     }
     if (uiState === 'attack') {
-      attackTarget(element, event)
+      attackTarget(element, attackFrom)
     }
   })
+}
+
+function getFullName(id) {
+  let fullName = ""
+  if (id === "$") {
+    fullName = "Mid"
+  } else {
+    fullName = id.charAt(0).toUpperCase() + id.slice(1)
+    let numbers = [
+      fullName.indexOf('0'),
+      fullName.indexOf('1'),
+      fullName.indexOf('2'),
+      fullName.indexOf('3'),
+      fullName.indexOf('4'),
+      fullName.indexOf('5'),
+      fullName.indexOf('6'),
+      fullName.indexOf('7'),
+      fullName.indexOf('8'),
+      fullName.indexOf('9')
+    ]
+    let number = -1
+    // take max of non -1 numbers
+    numbers.forEach((n) => {
+      if ((n !== -1) && ((n < number) || number === -1)) {
+        number = n
+      }
+    })
+    if (number !== -1) {
+      fullName = fullName.slice(0, number) + " " + fullName.slice(number)
+    }
+  }
+  return fullName
 }
 
 var switchFocusTo = null
 {
   function updateInfo(node) {
-    let fullName = ""
-    if (node.id === "$") {
-      fullName = "Mid"
-    } else {
-      fullName = node.id.charAt(0).toUpperCase() + node.id.slice(1)
-      let numbers = [
-        fullName.indexOf('0'),
-        fullName.indexOf('1'),
-        fullName.indexOf('2'),
-        fullName.indexOf('3'),
-        fullName.indexOf('4'),
-        fullName.indexOf('5'),
-        fullName.indexOf('6'),
-        fullName.indexOf('7'),
-        fullName.indexOf('8'),
-        fullName.indexOf('9')
-      ]
-      let number = -1
-      // take max of non -1 numbers
-      numbers.forEach((n) => {
-        if ((n !== -1) && ((n < number) || number === -1)) {
-          number = n
-        }
-      })
-      if (number !== -1) {
-        fullName = fullName.slice(0, number) + " " + fullName.slice(number)
-      }
-    }
-    console.log(fullName)
+    let fullName = getFullName(node.id)
 
     document.getElementById('territory-name').textContent = fullName + " Info"
     document.getElementById('territory-controller').textContent = fullPlayerNames[map[node.id].player]
@@ -496,10 +501,30 @@ var switchFocusTo = null
       selectedList.removeChild(selectedList.firstChild)
     }
 
+    // create button for attack/transfer
+    let attackContainer = document.getElementById('armies-attack')
+    // delete all old attack buttons
+    while (attackContainer.firstChild) {
+      attackContainer.removeChild(attackContainer.firstChild)
+    }
+    let button = document.createElement('button')
+    button.textContent = 'Attack/Transfer'
+    attackContainer.appendChild(button)
+
+    button.setAttribute('disabled', 'disabled')
     if (map[node.id].player === 'p1') {
       document.getElementById('armies-selected').classList.remove('hidden')
+      if (map[node.id].deployed.length > 0) {
+        button.removeAttribute('disabled')
+      }
     } else {
       document.getElementById('armies-selected').classList.add('hidden')
+    }
+
+    let attacksList = document.getElementById('territory-attacks')
+    // clear deployed list
+    while (attacksList.firstChild) {
+      attacksList.removeChild(attacksList.firstChild)
     }
 
     // setup army deployment UI for this territory
@@ -511,19 +536,40 @@ var switchFocusTo = null
       checkbox.setAttribute('id', id)
       let label = document.createElement('label')
       label.setAttribute('for', id)
-      let text = document.createTextNode(
-        army.quantity + ' ' + army.type + ' ' + army.level)
+
+      let target = map[node.id].deployed.find((d) => d.army === army && d.target !== null)
+      let hasTarget = target !== undefined
+
+      let text = null
+      if (hasTarget) {
+        text = document.createTextNode(
+          army.quantity + ' ' + army.type + ' ' + army.level + ' to ' +
+          getFullName(target.target))
+      } else {
+        text = document.createTextNode(
+          army.quantity + ' ' + army.type + ' ' + army.level)
+      }
 
       armiesList.appendChild(li)
       li.appendChild(checkbox)
       li.appendChild(label)
       label.appendChild(text)
 
+      // put all deployed armies back on the selected section
+      if (map[node.id].deployed.some((d) => d.army === army)) {
+        selectedList.append(li)
+        checkbox.checked = true
+        if (hasTarget) {
+          // put this attack in the deployed section
+          attacksList.append(li)
+        }
+      }
+
       // track deployed armies and don't trust the DOM for the values
       checkbox.addEventListener('change', () => {
         // don't let the player deploy non player armies
         if (map[node.id].player === 'p1') {
-          if (checkbox.checked) {
+          if ((checkbox.checked) && (!hasTarget)) {
             selectedList.append(li)
             map[node.id].deployed.push({
               army: army,
@@ -532,31 +578,37 @@ var switchFocusTo = null
           } else {
             armiesList.append(li)
             map[node.id].deployed = map[node.id].deployed.filter(d => d.army !== army)
+            hasTarget = false
           }
+
+          // remove target location on now undeployed army
+          label.removeChild(label.firstChild)
+          let text = document.createTextNode(
+            army.quantity + ' ' + army.type + ' ' + army.level)
+          label.appendChild(text)
+
+          if (map[node.id].deployed.length === 0) {
+            button.setAttribute('disabled', 'disabled')
+          } else {
+            button.removeAttribute('disabled')
+          }
+
           console.log(map[node.id].deployed)
         }
       })
     })
 
-    let attackContainer = document.getElementById('armies-attack')
-    // delete all old attack buttons
-    while (attackContainer.firstChild) {
-      attackContainer.removeChild(attackContainer.firstChild)
-    }
-    let button = document.createElement('button')
-    button.textContent = 'Attack/Transfer'
-    attackContainer.appendChild(button)
-
     button.addEventListener('click', () => {
-      console.log('choose attack')
       let neighbours = graph[node.id]
       let nodes = neighbours.map(id => document.getElementById(id))
-      console.log(nodes)
       // highlight all possible locations to attack/transfer
       nodes.forEach((n) => {
         n.classList.add('highlight')
       })
       uiState = 'attack'
+      // mutate the global variable to let the recieving
+      // event know the originating node
+      attackFrom = node
     })
   }
 
@@ -566,13 +618,23 @@ var switchFocusTo = null
   }
 }
 
-function attackTarget(node, event) {
-  console.log(event)
-  console.log('ATTACK')
+function attackTarget(to, from) {
+  if (from) {
+    if (graph[from.id].includes(to.id)) {
+      // mark all semi deployed armies with the target
+      map[from.id].deployed.forEach((d) => {
+        if (d.target === null) {
+          d.target = to.id
+        }
+      })
+    }
+  }
   uiState = 'selectFocus'
   stopHighlighting()
   // stay focused on the current node as the player
   // may want to deploy additional units
+  // let this refresh the UI to show the new attacks
+  switchFocusTo(from)
 }
 
 function stopHighlighting() {
