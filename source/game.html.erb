@@ -34,9 +34,7 @@
                 <p class='id'><%= base %></p>
                 <% base += 1 %>
               </div>
-              <div class="content units">
-                <p>0 P</p>
-              </div>
+              <div class="content units"></div>
             </li>
           </ol>
           <ol class="odd face-to-face-up point-to-point-down">
@@ -45,18 +43,14 @@
                 <p class='id'><%= outer %></p>
                 <% outer += 1 %>
               </div>
-              <div class="content units">
-                <p>0 P</p>
-              </div>
+              <div class="content units"></div>
             </li>
             <li class='hex' id='outer<%= outer %>'>
               <div class="content info">
                 <p class='id'><%= outer %></p>
                 <% outer += 1 %>
               </div>
-              <div class="content units">
-                <p>0 P</p>
-              </div>
+              <div class="content units"></div>
             </li>
           </ol>
           <ol class="odd point-to-point-up face-to-face-down">
@@ -65,22 +59,14 @@
                 <p class='id'><%= middle %></p>
                 <% middle += 1 %>
               </div>
-              <div class="content units">
-                <p>0 P</p>
-              </div>
+              <div class="content units"></div>
             </li>
             <li class='hex' id='middle<%= middle %>'>
               <div class="content info">
                 <p class='id'><%= middle %></p>
                 <% middle += 1 %>
               </div>
-              <div class="content units">
-                <p>40 C2</p>
-                <p>40 C3</p>
-                <p>45 I3</p>
-                <p>44 I2</p>
-                <p>46 A2</p>
-              </div>
+              <div class="content units"></div>
             </li>
           </ol>
           <ol class="even face-to-face-up point-to-point-down">
@@ -89,9 +75,7 @@
                 <p class='id'><%= inner %></p>
                 <% inner += 1 %>
               </div>
-              <div class="content units">
-                <p>0 P</p>
-              </div>
+              <div class="content units"></div>
             </li>
           </ol>
           <ol class="even point-to-point-up nothing-down">
@@ -107,9 +91,7 @@
                 <p class='id'><%= water %></p>
                 <% water += 1 %>
               </div>
-              <div class="content units">
-                <p>1000</p>
-              </div>
+              <div class="content units"></div>
             </li>
           </ol>
           <ol class="odd point-to-point-up point-to-point-down">
@@ -121,9 +103,7 @@
                 <p class='id'><%= middle %></p>
                 <% middle += 1 %>
               </div>
-              <div class="content units">
-                <p>0 P</p>
-              </div>
+              <div class="content units"></div>
             </li>
           </ol>
           <ol class="odd point-to-point-up point-to-point-down">
@@ -132,9 +112,7 @@
                 <p class='id'><%= inner %></p>
                 <% inner += 1 %>
               </div>
-              <div class="content units">
-                <p>2 I2</p>
-              </div>
+              <div class="content units"></div>
             </li>
           </ol>
           <ol class="odd point-to-point-up nothing-down">
@@ -150,9 +128,7 @@
             <div class="content info">
               <p class='id mid'><%= mid %></p>
             </div>
-            <div class="content units">
-              <p>79 C2</p>
-            </div>
+            <div class="content units"></div>
           </li>
         </ol>
       </div>
@@ -380,32 +356,23 @@ let map = {}
       }
       player += 1
     } else {
+      map[node] = {
+        armies: [{
+          quantity: 10,
+          type: 'Neutral',
+          level: 1
+        }],
+        player: 'neutral',
+        mines: 0,
+        wall: false,
+        castle: false,
+        deployed: []
+      }
       if (node.includes('water')) {
-        map[node] = {
-          armies: [{
-            quantity: 1000,
-            type: 'Neutral',
-            level: 1
-          }],
-          player: 'neutral',
-          mines: 0,
-          wall: false,
-          castle: false,
-          deployed: []
-        }
-      } else {
-        map[node] = {
-          armies: [{
-            quantity: 10,
-            type: 'Neutral',
-            level: 1
-          }],
-          player: 'neutral',
-          mines: 0,
-          wall: false,
-          castle: false,
-          deployed: []
-        }
+        map[node].armies[0].quantity = 1000
+      }
+      if (node.includes('$')) {
+        map[node].armies[0].quantity = 50
       }
     }
   }
@@ -656,6 +623,39 @@ let players = {};
     gold: 0
   }
 })
+
+function getShortTerritoryUnits(army) {
+  if (army.type === 'Neutral') {
+    return army.quantity
+  } else {
+    return army.quantity + ' ' + army.type.charAt(0).toUpperCase()
+  }
+}
+
+function updateMap() {
+  for (let node in map) {
+    let element = document.getElementById(node);
+    // update colors for each node
+    ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].forEach((p) => {
+      element.classList.remove(p)
+      if (map[node].player === p) {
+        element.classList.add(p)
+      }
+    })
+    // update unit counts
+    let units = Array.from(element.childNodes).find(n => n.classList && n.classList.contains('units'))
+    while (units.firstChild) {
+      units.removeChild(units.firstChild)
+    }
+    map[node].armies.forEach((army) => {
+      let p = document.createElement('p')
+      p.textContent = getShortTerritoryUnits(army)
+      units.appendChild(p)
+    })
+  }
+}
+
+updateMap()
 
 console.log("done")
 </script>
