@@ -134,6 +134,7 @@
       </div>
     </div>
     <svg id="paths"></svg>
+    <svg id="walls"></svg>
   </div>
   <div id = "info">
     <h2 id = "territory-name">Base 1 Info</h2>
@@ -239,10 +240,13 @@
 
 <script>
 let game = document.getElementById('map')
-let paths = document.getElementById('paths')
 
 let drawLine = null;
+let drawWall = null;
 {
+  let paths = document.getElementById('paths')
+  let walls = document.getElementById('walls')
+
   let svgNS = "http://www.w3.org/2000/svg"
   let createLine = function(values) {
     let line = document.createElementNS(svgNS, 'line')
@@ -252,10 +256,19 @@ let drawLine = null;
     }
     paths.appendChild(line)
   }
+  let createCircle = function(values) {
+    let circle = document.createElementNS(svgNS, 'circle')
+    circle.setAttributeNS(null, 'fill', 'grey')
+    for (let property in values) {
+      circle.setAttributeNS(null, property, values[property]);
+    }
+    walls.appendChild(circle)
+  }
 
   function bounds(element) {
     return element.getBoundingClientRect()
   }
+
   drawLine = function(element1, element2) {
     let color = 'darkgreen'
     if (element1.id.includes('water') || element2.id.includes('water')) {
@@ -267,6 +280,18 @@ let drawLine = null;
       x2: (bounds(element2).x + (bounds(element2).width/2)) - bounds(paths).x,
       y2: (bounds(element2).y + (bounds(element2).height/2)) - bounds(paths).y,
       stroke: color
+    })
+  }
+
+  drawWall = function(element) {
+    let radius = 35
+    if (element.id === '$') {
+      radius = 80
+    }
+    createCircle({
+      cx: (bounds(element).x + (bounds(element).width/2)) - bounds(paths).x,
+      cy: (bounds(element).y + (bounds(element).height/2)) - bounds(paths).y,
+      r: radius
     })
   }
 }
@@ -350,7 +375,7 @@ let map = {}
         }],
         player: 'p' + player,
         mines: 0,
-        wall: false,
+        wall: true,
         castle: true,
         deployed: []
       }
@@ -633,6 +658,12 @@ function getShortTerritoryUnits(army) {
 }
 
 function updateMap() {
+  let walls = document.getElementById('walls')
+  // remove all walls
+  while (walls.firstChild) {
+    walls.removeChild(walls.firstChild)
+  }
+
   for (let node in map) {
     let element = document.getElementById(node);
     // update colors for each node
@@ -643,15 +674,23 @@ function updateMap() {
       }
     })
     // update unit counts
-    let units = Array.from(element.childNodes).find(n => n.classList && n.classList.contains('units'))
+    let units = Array.from(element.childNodes).find(
+      n => n.classList && n.classList.contains('units'))
+
     while (units.firstChild) {
       units.removeChild(units.firstChild)
     }
+
     map[node].armies.forEach((army) => {
       let p = document.createElement('p')
       p.textContent = getShortTerritoryUnits(army)
       units.appendChild(p)
     })
+
+    if (map[node].wall) {
+      console.log('drawing wall')
+      drawWall(element)
+    }
   }
 }
 
