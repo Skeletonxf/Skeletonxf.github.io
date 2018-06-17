@@ -451,6 +451,16 @@ p.id.mid {
   border: 1px solid black;
 }
 
+#armies, #info, #players {
+  h2, h3, h4, ol {
+    margin: 5px 0;
+  }
+  input[type='number'] {
+    width: 30%;
+  }
+  padding: 5px;
+}
+
 #flex-wrapper {
   display: flex;
   flex-wrap: wrap;
@@ -471,7 +481,12 @@ p.id.mid {
 
 .buy {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  p, label, input {
+    margin: 5px 0;
+    margin-right: 5px;
+  }
 }
 
 #armies .hidden {

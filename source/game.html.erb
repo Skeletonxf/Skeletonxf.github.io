@@ -141,41 +141,40 @@
     <svg id="castles"></svg>
   </div>
   <div id = "info">
-    <h2 id = "territory-name">Base 1 Info</h2>
+    <h2 id = "territory-name"></h2>
     <h3>Control</h3>
-    <p id = "territory-controller">Player 2</p>
+    <p id = "territory-controller"></p>
     <h3>Structures</h3>
-    <p id = "territory-mines">0 Mines</p>
-    <p id = "territory-wall">Wall</p>
-    <p id = "territory-castle">No Castle</p>
+    <p id = "territory-mines"></p>
+    <p id = "territory-wall"></p>
+    <p id = "territory-castle"></p>
     <div id="info-build-units">
       <h3>Buy Units</h3>
+      <h4>20 Gold</h4>
       <div class="buy">
         <label for="archers">Archers</label>
-        <p>20 Gold</p>
         <input type="number" id="archers"></input>
       </div>
       <div class="buy">
         <label for="calvary">Calvary</label>
-        <p>20 Gold</p>
         <input type="number" id="calvary"></input>
       </div>
       <div class="buy">
         <label for="infantry">Infantry</label>
-        <p>20 Gold</p>
         <input type="number" id="infantry"></input>
       </div>
+      <h4>1500 Gold</h4>
       <div class="buy">
         <label for="rams">Battering Ram</label>
-        <p>1500 Gold</p>
         <input type="number" id="rams"></input>
       </div>
     </div>
     <div id="info-buttons">
-      <button>Build Castle</button>
-      <button>Build Mine</button>
-      <button>Build Wall</button>
-      <button>Raze down</button>
+      <h4>Territory Upgrades</h4>
+      <button>Build Mine (200)</button>
+      <button>Build Wall (1500)</button>
+      <button>Build Castle (2000)</button>
+      <button>Raze Down</button>
     </div>
   </div>
   <div id = "players">
@@ -433,9 +432,9 @@ let map = {}
           level: 1
         }],
         player: 'neutral',
-        mines: 6,
-        wall: true,
-        castle: true,
+        mines: 0,
+        wall: false,
+        castle: false,
         deployed: []
       }
       if (node.includes('water')) {
