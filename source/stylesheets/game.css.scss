@@ -408,10 +408,10 @@ p.id.mid {
   color: yellow;
 }
 
-/* Paths and Walls background SVG */
+/* Map SVG and layout */
 
 /* position all parts of map in the same position as the map */
-#walls, #paths, #territories {
+#walls, #paths, #territories, #mines {
   position: absolute;
   top: 3px;
   left: 3px;
@@ -422,6 +422,16 @@ p.id.mid {
 /* put walls and paths below territories */
 #walls, #paths {
   z-index: -1000;
+}
+
+/* put mines over territories */
+#mines {
+  z-index: 100;
+  /* hide the wrapper so territories can still be clicked */
+  visibility: hidden;
+  circle {
+    visibility: visible;
+  }
 }
 
 #paths {

@@ -137,6 +137,7 @@
     </div>
     <svg id="paths"></svg>
     <svg id="walls"></svg>
+    <svg id="mines"></svg>
   </div>
   <div id = "info">
     <h2 id = "territory-name">Base 1 Info</h2>
@@ -245,9 +246,11 @@ let game = document.getElementById('map')
 
 let drawLine = null;
 let drawWall = null;
+let drawMine = null;
 {
   let paths = document.getElementById('paths')
   let walls = document.getElementById('walls')
+  let mines = document.getElementById('mines')
 
   let svgNS = "http://www.w3.org/2000/svg"
   let createLine = function(values) {
@@ -258,13 +261,12 @@ let drawWall = null;
     }
     paths.appendChild(line)
   }
-  let createCircle = function(values) {
+  let createCircle = function(values, parent) {
     let circle = document.createElementNS(svgNS, 'circle')
-    circle.setAttributeNS(null, 'fill', 'grey')
     for (let property in values) {
       circle.setAttributeNS(null, property, values[property]);
     }
-    walls.appendChild(circle)
+    parent.appendChild(circle)
   }
 
   function bounds(element) {
@@ -293,8 +295,18 @@ let drawWall = null;
     createCircle({
       cx: (bounds(element).x + (bounds(element).width/2)) - bounds(paths).x,
       cy: (bounds(element).y + (bounds(element).height/2)) - bounds(paths).y,
+      fill: 'grey',
       r: radius
-    })
+    }, walls)
+  }
+
+  drawMine = function(element, level) {
+    createCircle({
+      cx: (bounds(element).x + (0.8*(bounds(element).width))) - bounds(paths).x,
+      cy: (bounds(element).y + (0.15*(bounds(element).height))) - bounds(paths).y,
+      fill: 'gold',
+      r: 5
+    }, mines)
   }
 }
 
@@ -376,7 +388,7 @@ let map = {}
           level: 1
         }],
         player: 'p' + player,
-        mines: 0,
+        mines: 1,
         wall: true,
         castle: true,
         deployed: []
@@ -400,6 +412,7 @@ let map = {}
       }
       if (node.includes('$')) {
         map[node].armies[0].quantity = 50
+        map[node].mines = 1
       }
     }
   }
@@ -666,6 +679,12 @@ function updateMap() {
     walls.removeChild(walls.firstChild)
   }
 
+  let mines = document.getElementById('mines')
+  // remove all mines
+  while (mines.firstChild) {
+    mines.removeChild(mines.firstChild)
+  }
+
   for (let node in map) {
     let element = document.getElementById(node);
     // update colors for each node
@@ -690,8 +709,12 @@ function updateMap() {
     })
 
     if (map[node].wall) {
-      console.log('drawing wall')
       drawWall(element)
+    }
+
+    if (map[node].mines > 0) {
+      console.log('drawing mine')
+      drawMine(element, map[node].mines)
     }
   }
 }
