@@ -138,6 +138,7 @@
     <svg id="paths"></svg>
     <svg id="walls"></svg>
     <svg id="mines"></svg>
+    <svg id="castles"></svg>
   </div>
   <div id = "info">
     <h2 id = "territory-name">Base 1 Info</h2>
@@ -251,6 +252,7 @@ let drawMine = null;
   let paths = document.getElementById('paths')
   let walls = document.getElementById('walls')
   let mines = document.getElementById('mines')
+  let castles = document.getElementById('castles')
 
   let svgNS = "http://www.w3.org/2000/svg"
   let createLine = function(values) {
@@ -320,6 +322,22 @@ let drawMine = null;
         r: 5
       }, mines)
     }
+  }
+
+  drawCastle = function(element) {
+    let cx = (bounds(element).x + (bounds(element).width/2)) - bounds(paths).x
+    let cy = (bounds(element).y + (bounds(element).height/2)) - bounds(paths).y
+    let radius = 24
+    if (element.id === '$') {
+      radius = 50
+    }
+    let angle = -Math.PI/3
+    createCircle({
+      cx: cx + (Math.sin(angle)*radius),
+      cy: cy + (Math.cos(angle)*radius),
+      fill: 'black',
+      r: element.id === '$' ? 12 : 6
+    }, castles)
   }
 }
 
@@ -401,7 +419,7 @@ let map = {}
           level: 1
         }],
         player: 'p' + player,
-        mines: 6,
+        mines: 0,
         wall: true,
         castle: true,
         deployed: []
@@ -416,8 +434,8 @@ let map = {}
         }],
         player: 'neutral',
         mines: 6,
-        wall: false,
-        castle: false,
+        wall: true,
+        castle: true,
         deployed: []
       }
       if (node.includes('water')) {
@@ -697,6 +715,12 @@ function updateMap() {
     mines.removeChild(mines.firstChild)
   }
 
+  let castles = document.getElementById('castles')
+  // remove all castles
+  while (castles.firstChild) {
+    castles.removeChild(castles.firstChild)
+  }
+
   for (let node in map) {
     let element = document.getElementById(node);
     // update colors for each node
@@ -727,6 +751,10 @@ function updateMap() {
     if (map[node].mines > 0) {
       console.log('drawing mine')
       drawMine(element, map[node].mines)
+    }
+
+    if (map[node].castle) {
+      drawCastle(element)
     }
   }
 }
