@@ -726,6 +726,12 @@ function territoryGoldIncome(node) {
   return income += mineIncome[map[node].mines]
 }
 
+function applyPlayerGoldIncome() {
+  for (let node in map) {
+    players[map[node].player] += territoryGoldIncome(node)
+  }
+}
+
 function getShortTerritoryUnits(army) {
   if (army.type === 'Neutral') {
     return army.quantity
@@ -792,6 +798,7 @@ function updateMap() {
 }
 
 updateMap()
+applyPlayerGoldIncome()
 
 console.log("done")
 </script>
