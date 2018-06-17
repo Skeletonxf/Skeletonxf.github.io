@@ -269,6 +269,7 @@ let drawMine = null;
     parent.appendChild(circle)
   }
 
+
   function bounds(element) {
     return element.getBoundingClientRect()
   }
@@ -301,12 +302,24 @@ let drawMine = null;
   }
 
   drawMine = function(element, level) {
-    createCircle({
-      cx: (bounds(element).x + (0.8*(bounds(element).width))) - bounds(paths).x,
-      cy: (bounds(element).y + (0.15*(bounds(element).height))) - bounds(paths).y,
-      fill: 'gold',
-      r: 5
-    }, mines)
+    let cx = (bounds(element).x + (bounds(element).width/2)) - bounds(paths).x
+    let cy = (bounds(element).y + (bounds(element).height/2)) - bounds(paths).y
+    let radius = 28
+    let increment = -Math.PI/6
+    if (element.id === '$') {
+      radius = 70
+      increment = -Math.PI/12
+    }
+    // draw mines around the perimeter
+    for (let i = 0; i < level; i++) {
+      let angle = 2.3*(Math.PI/3) + (i*increment)
+      createCircle({
+        cx: cx + (Math.sin(angle)*radius),
+        cy: cy + (Math.cos(angle)*radius),
+        fill: 'gold',
+        r: 5
+      }, mines)
+    }
   }
 }
 
@@ -388,7 +401,7 @@ let map = {}
           level: 1
         }],
         player: 'p' + player,
-        mines: 1,
+        mines: 6,
         wall: true,
         castle: true,
         deployed: []
@@ -402,7 +415,7 @@ let map = {}
           level: 1
         }],
         player: 'neutral',
-        mines: 0,
+        mines: 6,
         wall: false,
         castle: false,
         deployed: []
@@ -412,7 +425,6 @@ let map = {}
       }
       if (node.includes('$')) {
         map[node].armies[0].quantity = 50
-        map[node].mines = 1
       }
     }
   }
