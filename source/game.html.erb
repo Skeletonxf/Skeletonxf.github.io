@@ -148,6 +148,8 @@
     <p id = "territory-mines"></p>
     <p id = "territory-wall"></p>
     <p id = "territory-castle"></p>
+    <h3>Gold Income</h3>
+    <p id = "territory-gold-income"></p>
     <div id="info-build-units">
       <h3>Buy Units</h3>
       <h4>20 Gold</h4>
@@ -421,7 +423,9 @@ let map = {}
         mines: 0,
         wall: true,
         castle: true,
-        deployed: []
+        deployed: [],
+        capital: true,
+        justTaken: true
       }
       player += 1
     } else {
@@ -435,7 +439,9 @@ let map = {}
         mines: 0,
         wall: false,
         castle: false,
-        deployed: []
+        deployed: [],
+        capital: false,
+        justTaken: false
       }
       if (node.includes('water')) {
         map[node].armies[0].quantity = 1000
@@ -522,6 +528,7 @@ var switchFocusTo = null
     } else {
       document.getElementById('territory-castle').textContent = "No Castle"
     }
+    document.getElementById('territory-gold-income').textContent = territoryGoldIncome(node.id)
   }
 
   function updateArmies(node) {
@@ -692,6 +699,32 @@ let players = {};
     gold: 0
   }
 })
+
+// mine income rates and upgrade costs
+// index by level of mine 0-6
+let mineIncome = [ 0, 100, 150, 190, 230, 250, 500 ]
+// index by level of mine to buy 1-6
+let mineUpgradeCost = [ 200, 300, 450, 600, 750, 1200 ]
+
+function territoryGoldIncome(node) {
+  // passive income for territory
+  let income = 150
+  if (node.includes('water')) {
+    income = 0
+  }
+  if (map[node].capital) {
+    income = 400
+  }
+  if (node.includes('$')) {
+    if (map[node].justTaken) {
+      income = 2000
+    } else {
+      income = 600
+    }
+  }
+  // gain extra gold for mine levels
+  return income += mineIncome[map[node].mines]
+}
 
 function getShortTerritoryUnits(army) {
   if (army.type === 'Neutral') {
