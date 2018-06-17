@@ -19,118 +19,120 @@
     </div>
   </div>
   <div id = "map">
-    <% mid = "$" %>
-    <% inner = 1 %>
-    <% middle = 1 %>
-    <% outer = 1 %>
-    <% base = 1 %>
-    <% water = 1 %>
-    <% 6.times do |n| %>
-      <div id = "section<%= n*2 %>" class="section">
+    <div id = "territories">
+      <% mid = "$" %>
+      <% inner = 1 %>
+      <% middle = 1 %>
+      <% outer = 1 %>
+      <% base = 1 %>
+      <% water = 1 %>
+      <% 6.times do |n| %>
+        <div id = "section<%= n*2 %>" class="section">
+          <div class="container">
+            <ol class="even nothing-up face-to-face-down">
+              <li class='hex base' id='base<%= base %>'>
+                <div class="content info">
+                  <p class='id'><%= base %></p>
+                  <% base += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd face-to-face-up point-to-point-down">
+              <li class='hex' id='outer<%= outer %>'>
+                <div class="content info">
+                  <p class='id'><%= outer %></p>
+                  <% outer += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='outer<%= outer %>'>
+                <div class="content info">
+                  <p class='id'><%= outer %></p>
+                  <% outer += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up face-to-face-down">
+              <li class='hex' id='middle<%= middle %>'>
+                <div class="content info">
+                  <p class='id'><%= middle %></p>
+                  <% middle += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='middle<%= middle %>'>
+                <div class="content info">
+                  <p class='id'><%= middle %></p>
+                  <% middle += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even face-to-face-up point-to-point-down">
+              <li class='hex inner' id='inner<%= inner %>'>
+                <div class="content info">
+                  <p class='id'><%= inner %></p>
+                  <% inner += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even point-to-point-up nothing-down">
+              <li class='hex blank'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section<%= (n*2)+1 %>" class="section">
+          <div class="container">
+            <ol class="odd nothing-up point-to-point-down">
+              <li class='hex water', id='water<%= water %>'>
+                <div class="content info">
+                  <p class='id'><%= water %></p>
+                  <% water += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex blank half'></li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex' id='middle<%= middle %>'>
+                <div class="content info">
+                  <p class='id'><%= middle %></p>
+                  <% middle += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex inner' id='inner<%= inner %>'>
+                <div class="content info">
+                  <p class='id'><%= inner %></p>
+                  <% inner += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up nothing-down">
+              <li class='hex blank half'></li>
+            </ol>
+          </div>
+        </div>
+      <% end %>
+      <div id="section12" class="center section">
         <div class="container">
-          <ol class="even nothing-up face-to-face-down">
-            <li class='hex base' id='base<%= base %>'>
+          <ol class="center odd nothing-up nothing-down">
+            <li class="center hex" id='<%= mid %>'>
               <div class="content info">
-                <p class='id'><%= base %></p>
-                <% base += 1 %>
+                <p class='id mid'><%= mid %></p>
               </div>
               <div class="content units"></div>
             </li>
-          </ol>
-          <ol class="odd face-to-face-up point-to-point-down">
-            <li class='hex' id='outer<%= outer %>'>
-              <div class="content info">
-                <p class='id'><%= outer %></p>
-                <% outer += 1 %>
-              </div>
-              <div class="content units"></div>
-            </li>
-            <li class='hex' id='outer<%= outer %>'>
-              <div class="content info">
-                <p class='id'><%= outer %></p>
-                <% outer += 1 %>
-              </div>
-              <div class="content units"></div>
-            </li>
-          </ol>
-          <ol class="odd point-to-point-up face-to-face-down">
-            <li class='hex' id='middle<%= middle %>'>
-              <div class="content info">
-                <p class='id'><%= middle %></p>
-                <% middle += 1 %>
-              </div>
-              <div class="content units"></div>
-            </li>
-            <li class='hex' id='middle<%= middle %>'>
-              <div class="content info">
-                <p class='id'><%= middle %></p>
-                <% middle += 1 %>
-              </div>
-              <div class="content units"></div>
-            </li>
-          </ol>
-          <ol class="even face-to-face-up point-to-point-down">
-            <li class='hex inner' id='inner<%= inner %>'>
-              <div class="content info">
-                <p class='id'><%= inner %></p>
-                <% inner += 1 %>
-              </div>
-              <div class="content units"></div>
-            </li>
-          </ol>
-          <ol class="even point-to-point-up nothing-down">
-            <li class='hex blank'></li>
           </ol>
         </div>
-      </div>
-      <div id = "section<%= (n*2)+1 %>" class="section">
-        <div class="container">
-          <ol class="odd nothing-up point-to-point-down">
-            <li class='hex water', id='water<%= water %>'>
-              <div class="content info">
-                <p class='id'><%= water %></p>
-                <% water += 1 %>
-              </div>
-              <div class="content units"></div>
-            </li>
-          </ol>
-          <ol class="odd point-to-point-up point-to-point-down">
-            <li class='hex blank half'></li>
-          </ol>
-          <ol class="odd point-to-point-up point-to-point-down">
-            <li class='hex' id='middle<%= middle %>'>
-              <div class="content info">
-                <p class='id'><%= middle %></p>
-                <% middle += 1 %>
-              </div>
-              <div class="content units"></div>
-            </li>
-          </ol>
-          <ol class="odd point-to-point-up point-to-point-down">
-            <li class='hex inner' id='inner<%= inner %>'>
-              <div class="content info">
-                <p class='id'><%= inner %></p>
-                <% inner += 1 %>
-              </div>
-              <div class="content units"></div>
-            </li>
-          </ol>
-          <ol class="odd point-to-point-up nothing-down">
-            <li class='hex blank half'></li>
-          </ol>
-        </div>
-      </div>
-    <% end %>
-    <div id="section12" class="center section">
-      <div class="container">
-        <ol class="center odd nothing-up nothing-down">
-          <li class="center hex" id='<%= mid %>'>
-            <div class="content info">
-              <p class='id mid'><%= mid %></p>
-            </div>
-            <div class="content units"></div>
-          </li>
-        </ol>
       </div>
     </div>
     <svg id="paths"></svg>
