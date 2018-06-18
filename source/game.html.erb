@@ -1,5 +1,5 @@
 <%= partial :back %>
-<h1 class = "center">
+<h1 class = "center" id = "title">
   A game eventually
 </h1>
 <div id = "flex-wrapper">
@@ -181,7 +181,7 @@
   </div>
   <div id = "players">
     <ul>
-      <li>
+      <li id = "p1-player-info">
         <h2>Player 1</h2>
         <h3>Resources</h3>
         <p>Gold: 500</p>
@@ -197,9 +197,9 @@
           <p>Infantry Level 3</p>
           <button>Upgrade</button>
         </div>
-        <button>End Turn</button>
+        <button id="end-turn">End Turn</button>
       </li>
-      <li>
+      <li id = "p2-player-info">
         <h2>Player 2</h2>
         <h3>Resources</h3>
         <p>Gold: 500</p>
@@ -207,7 +207,7 @@
         <p>Calvary Level 1</p>
         <p>Infantry Level 3</p>
       </li>
-      <li>
+      <li id = "p3-player-info">
         <h2>Player 3</h2>
         <h3>Resources</h3>
         <p>Gold: 500</p>
@@ -215,7 +215,7 @@
         <p>Calvary Level 1</p>
         <p>Infantry Level 3</p>
       </li>
-      <li>
+      <li id = "p4-player-info">
         <h2>Player 4</h2>
         <h3>Resources</h3>
         <p>Gold: 500</p>
@@ -223,7 +223,7 @@
         <p>Calvary Level 1</p>
         <p>Infantry Level 3</p>
       </li>
-      <li>
+      <li id = "p5-player-info">
         <h2>Player 5</h2>
         <h3>Resources</h3>
         <p>Gold: 500</p>
@@ -231,7 +231,7 @@
         <p>Calvary Level 1</p>
         <p>Infantry Level 3</p>
       </li>
-      <li>
+      <li id = "p6-player-info">
         <h2>Player 6</h2>
         <h3>Resources</h3>
         <p>Gold: 500</p>
@@ -556,12 +556,8 @@ var switchFocusTo = null
     button.textContent = 'Attack/Transfer'
     attackContainer.appendChild(button)
 
-    button.setAttribute('disabled', 'disabled')
-    if (map[node.id].player === 'p1') {
+    if (map[node.id].player === turnPlayer) {
       document.getElementById('armies-selected').classList.remove('hidden')
-      if (map[node.id].deployed.length > 0) {
-        button.removeAttribute('disabled')
-      }
     } else {
       document.getElementById('armies-selected').classList.add('hidden')
     }
@@ -574,7 +570,8 @@ var switchFocusTo = null
 
     function updateButton() {
       if (map[node.id].deployed.length === 0 ||
-        map[node.id].deployed.every(d => d.target !== null)) {
+        map[node.id].deployed.every(d => d.target !== null) ||
+        map[node.id].player !== turnPlayer) {
           button.setAttribute('disabled', 'disabled')
         } else {
           button.removeAttribute('disabled')
@@ -598,7 +595,7 @@ var switchFocusTo = null
       quantity.setAttribute('type', 'number')
       quantity.value = army.quantity
 
-      if (map[node.id].player === 'p1') {
+      if (map[node.id].player === turnPlayer) {
         quantity.addEventListener('change', () => {
           // only allow splitting
           if (+quantity.value > army.quantity) {
@@ -639,7 +636,8 @@ var switchFocusTo = null
       let hasTarget = target !== undefined
 
       let text = null
-      if (hasTarget) {
+      // don't let the player see other player's deloyments
+      if (hasTarget && map[node.id].player === turnPlayer) {
         text = document.createTextNode(army.type + ' ' + army.level + ' to ' +
           getFullName(target.target))
       } else {
@@ -652,20 +650,23 @@ var switchFocusTo = null
       label.appendChild(quantity)
       label.appendChild(text)
 
-      // put all deployed armies back on the selected section
-      if (map[node.id].deployed.some((d) => d.army === army)) {
-        selectedList.append(li)
-        checkbox.checked = true
-        if (hasTarget) {
-          // put this attack in the deployed section
-          attacksList.append(li)
+      // don't let the player see other player's deloyments
+      if (map[node.id].player === turnPlayer) {
+        // put all deployed armies back on the selected section
+        if (map[node.id].deployed.some((d) => d.army === army)) {
+          selectedList.append(li)
+          checkbox.checked = true
+          if (hasTarget) {
+            // put this attack in the deployed section
+            attacksList.append(li)
+          }
         }
       }
 
-      // track deployed armies and don't trust the DOM for the values
-      checkbox.addEventListener('change', () => {``
-        // don't let the player deploy non player armies
-        if (map[node.id].player === 'p1') {
+      // don't let the player deploy non player armies
+      if (map[node.id].player === turnPlayer) {
+        // track deployed armies and don't trust the DOM for the values
+        checkbox.addEventListener('change', () => {
           if ((checkbox.checked) && (!hasTarget)) {
             selectedList.append(li)
             map[node.id].deployed.push({
@@ -686,22 +687,22 @@ var switchFocusTo = null
           updateButton()
 
           console.log(map[node.id].deployed)
-        }
-      })
-    }
+        })
 
-    button.addEventListener('click', () => {
-      let neighbours = graph[node.id]
-      let nodes = neighbours.map(id => document.getElementById(id))
-      // highlight all possible locations to attack/transfer
-      nodes.forEach((n) => {
-        n.classList.add('highlight')
-      })
-      uiState = 'attack'
-      // mutate the global variable to let the recieving
-      // event know the originating node
-      attackFrom = node
-    })
+        button.addEventListener('click', () => {
+          let neighbours = graph[node.id]
+          let nodes = neighbours.map(id => document.getElementById(id))
+          // highlight all possible locations to attack/transfer
+          nodes.forEach((n) => {
+            n.classList.add('highlight')
+          })
+          uiState = 'attack'
+          // mutate the global variable to let the recieving
+          // event know the originating node
+          attackFrom = node
+        })
+      }
+    }
   }
 
   switchFocusTo = function(node) {
@@ -893,6 +894,39 @@ function updateMap() {
 
 updateMap()
 applyPlayerGoldIncome()
+
+/* Turns */
+
+let turn = 1
+let phase = 1
+var turnPlayer = 'p0' // needs hoisting
+
+function changeTurnPlayer() {
+  let player = +turnPlayer.slice(1)
+  player += 1
+  if (player > 6) {
+    player = 1
+    applyTurns()
+  }
+  turnPlayer = 'p' + player
+  switchFocusTo(document.getElementById('base' + player))
+
+  let title = document.getElementById('title')
+  title.textContent = 'Player ' + player + "'s Turn - Phase: " + phase
+  let playerInfo = document.getElementById('p' + player + '-player-info')
+  let endTurnButton = document.getElementById('end-turn')
+  // move end turn button to the next player
+  playerInfo.append(endTurnButton)
+}
+
+document.getElementById('end-turn').addEventListener('click', changeTurnPlayer)
+
+changeTurnPlayer()
+
+function applyTurns() {
+  phase = phase += 1
+  // The update function
+}
 
 console.log("done")
 </script>
