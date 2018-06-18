@@ -720,6 +720,52 @@ function attackTarget(to, from) {
   }
   uiState = 'selectFocus'
   stopHighlighting()
+  // find all armies for this target
+  let targetArmies = map[from.id].deployed.filter((d) => {
+    return d.target === to.id
+  })
+  let types = []
+  let typeRepeats = []
+  // find any repeated types going to the same target
+  targetArmies.forEach((d) => {
+    if (types.includes(d.army.type)) {
+      typeRepeats.push(d.army.type)
+    } else {
+      types.push(d.army.type)
+    }
+  })
+  typeRepeats.forEach((type) => {
+    // for each repeated type to a target identify all armies of that type
+    let repeatedTypesForTarget = targetArmies.filter((d) => {
+      return d.army.type === type
+    })
+    console.log(repeatedTypesForTarget)
+    let first = repeatedTypesForTarget[0]
+    // merge these together
+    if (first) {
+      let totalQuantity = repeatedTypesForTarget.reduce(
+        (accumulator, current) => {
+          return accumulator + current.army.quantity
+      }, 0)
+      console.log('quantity', totalQuantity)
+      // raise quantity on remaining one
+      first.army.quantity = totalQuantity
+      console.log('now', map[from.id].armies)
+    }
+    // remove the others
+    let removals = []
+    map[from.id].deployed = map[from.id].deployed.filter((d) => {
+      let keep = d.army.type !== first.army.type || d.target !== first.target || d.army === first.army
+      if (!keep) {
+        removals.push(d.army)
+      }
+      return keep
+    })
+    map[from.id].armies = map[from.id].armies.filter((army) => {
+      return !removals.includes(army)
+    })
+  })
+  console.log('done', map[from.id].armies)
   // stay focused on the current node as the player
   // may want to deploy additional units
   // let this refresh the UI to show the new attacks
