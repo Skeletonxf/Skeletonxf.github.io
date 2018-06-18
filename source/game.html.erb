@@ -426,7 +426,8 @@ let map = {}
         castle: true,
         deployed: [],
         capital: true,
-        justTaken: true
+        justTaken: true,
+        arriving: []
       }
       player += 1
     } else {
@@ -443,7 +444,8 @@ let map = {}
         castle: false,
         deployed: [],
         capital: false,
-        justTaken: false
+        justTaken: false,
+        arriving: []
       }
       if (node.includes('water')) {
         map[node].armies[0].quantity = 1000
@@ -926,7 +928,201 @@ changeTurnPlayer()
 function applyTurns() {
   phase = phase += 1
   // The update function
+
+  for (let node in map) {
+    if (map[node].deployed.length > 0) {
+      console.log(map[node].deployed)
+      map[node].deployed.forEach((d) => {
+        map[d.target].arriving.push({
+          player: map[node].player,
+          army: d.army,
+          from: node
+        })
+      })
+    }
+  }
+
+  // first handle opposing armies meeting on an edge
+  for (let node in map) {
+    if (map[node].arriving.length > 0) {
+      if (map[node].deployed.length > 0) {
+        map[node].deployed.forEach((d) => {
+          map[node].arriving.forEach((a) => {
+            if (d.target === a.from) {
+              // armies meet on edge
+              d.edgeBattle = true
+              a.edgeBattle = true
+            }
+          })
+        })
+      }
+    }
+  }
+  for (let node in map) {
+    // find nodes with at least one edge battle
+    if (map[node].arriving.some(a => a.edgeBattle)) {
+      // the armies arriving to this node may be from multiple players or nodes
+      let arriving = map[node].arriving.filter(a => a.edgeBattle)
+      // collect list of each direction an edge battle is in
+      let edgeBattles = []
+      arriving.forEach((a) => {
+        if (!edgeBattles.includes(a.from)) {
+          edgeBattles.push(a.from)
+        }
+      })
+      // process each direction in turn
+      // the armies fighting on each edge do not need to interact
+      // at this point
+      edgeBattles.forEach((n) => {
+        // collect the armies sent from this node onto the edge
+        // in this direction for the battle
+        let originating = map[node].deployed.filter(d => (d.target === n && d.edgeBattle))
+        // in each direction there can only be 1 player attacking
+        // so all incoming armies from this direction is the single opponent
+        let incoming = arriving.filter(a => a.from === n)
+        edgeBattle(originating, incoming)
+      })
+    }
+  }
+
+  // TODO
+  // do normal attack/defender battles (which may involve multiple players)
+
+  // TODO
+  // after all units battling have died then clear deployed lists,
+  // move in arrival units, clear arrival lists and tranfer ownership
+  // of territories taken, toggle justTaken on each transfer, and
+  // toggle justTaken off on territories held.
+
+  // TODO
+  // apply territory purchases/upgrades
+
+  applyPlayerGoldIncome()
 }
+
+// Kills the armies battling along the edge till one side loses.
+// Afterward the victor may have to fight defenders at the node.
+function edgeBattle(originating, incoming) {
+  // no defending bonus for either
+  freeForAll([originating, incoming])
+}
+
+// The most simple attacker versus defender battle.
+// Attacking army list and Defending army list.
+function oneOnOneBattle(attacking, defending) {
+  let attackingArmies = attacking.length
+  let defendingArmies = defending.length
+  let attackingArmy = 0
+  let defendingArmy = 0
+  while (attackingArmy < attackingArmies.length &&
+    defendingArmy < defendingArmies.length) {
+    // at least one army left on both sides
+    let attackers = attackingArmies[attackingArmy]
+    let defenders = defendingArmies[defendingArmy]
+    // if an army is at 0 then pass
+    if (attackers.quantity === 0) {
+      attackingArmy += 1
+      continue
+    }
+    if (defenders.quantity === 0) {
+      defendingArmy += 1
+      continue
+    }
+    let attackingArmyTradeForOne = battleMultiplier(attackers, defenders)
+    let defendingArmyTradeForOne = battleMultiplier(attackers, defenders)
+    console.log(attackingArmyTradeForOne)
+    console.log(defendingArmyTradeForOne)
+    if (attackingArmyTradeForOne > defendingArmyTradeForOne) {
+      // attacker should die any if able to
+      // kill more than remaining defenders
+      // TODO
+    } else if (defendingArmyTradeForOne > attackingArmyTradeForOne) {
+      // defender should survive if able
+      // to kill more than remaining attackers
+      // TODO
+    } else {
+      if (attackers.quantity > defenders.quantity) {
+        // all defenders die
+        attackers.quantity -= defenders.quantity
+        defenders.quantity = 0
+      } else if (defenders.quantity > attackers.quantity) {
+        // all attackers die
+        defenders.quantity -= attackers.quantity
+        attackers.quantity = 0
+      } else {
+        // both die
+        defenders.quantity = 0
+        attackers.quantity = 0
+      }
+    }
+  }
+}
+
+// n on n cannot happen as it is impossible for multiple
+// players to control the same territory.
+// What is possible is n on 1 where the defender
+// loses while multiple attackers are still fighting for
+// the territory.
+// Attacking list of arriving armies and Defending list of armies.
+function nOnOneBattle(attacking, defending) {
+  let attackingPlayers = attacking.reduce((players, arriving) => {
+    if (!players.includes(arriving.player) && arriving.army.quantity > 0) {
+      players.push(arriving.player)
+    }
+    return players
+  }, [])
+  if (attackingPlayers.length === 1) {
+    // battle simplifies to 1 on 1
+    return oneOnOneBattle(attacking.map(arriving => arriving.army), defending)
+  }
+  // TODO
+}
+
+// List of list of armies fighting in free for all
+// with no one with defending advantage.
+function freeForAll(attackingList) {
+}
+
+// first against second index
+let typeAdvantage = {
+  Neutral: {
+    Neutral: 0,
+    Archers: 0,
+    Calvary: 0,
+    Infantry: 0
+  },
+  Archers: {
+    Neutral: 0,
+    Archers: 0,
+    Calvary: -1, // weak to calvary
+    Infantry: 1 // strong against infantry
+  },
+  Calvary: {
+    Neutral: 0,
+    Archers: 1, // strong against archers
+    Calvary: 0,
+    Infantry: -1 // weak to infantry
+  },
+  Infantry: {
+    Neutral: 0,
+    Archers: -1, // weak to archers
+    Calvary: 1, // strong against calvary
+    Infantry: 0
+  }
+}
+function battleMultiplier(trade, against) {
+  let levelDifference = trade.level - against.level
+  return Math.pow(2,
+    levelDifference + typeAdvantage[trade.type][against.type])
+}
+
+// console.log('A4 against I2', battleMultiplier({
+//   type: 'Archers',
+//   level: 4
+// }, {
+//   type: 'Infantry',
+//   level: 2
+// })) --> 8
 
 console.log("done")
 </script>
