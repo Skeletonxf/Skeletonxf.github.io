@@ -417,7 +417,8 @@ let map = {}
         armies: [{
           quantity: 30,
           type: 'Neutral',
-          level: 1
+          level: 1,
+          id: 0
         }],
         player: 'p' + player,
         mines: 0,
@@ -433,7 +434,8 @@ let map = {}
         armies: [{
           quantity: 10,
           type: 'Neutral',
-          level: 1
+          level: 1,
+          id: 0
         }],
         player: 'neutral',
         mines: 0,
@@ -571,31 +573,72 @@ var switchFocusTo = null
     }
 
     // setup army deployment UI for this territory
-    map[node.id].armies.forEach((army) => {
+    map[node.id].armies.forEach(listArmy)
+
+    function listArmy(army) {
       let li = document.createElement('li')
       let checkbox = document.createElement('input')
       checkbox.setAttribute('type', 'checkbox')
-      let id = army.type + 'ArmyInTerritory'
+      let id = army.type + 'ArmyInTerritory' + army.id
       checkbox.setAttribute('id', id)
       let label = document.createElement('label')
       label.setAttribute('for', id)
 
-      let target = map[node.id].deployed.find((d) => d.army === army && d.target !== null)
+      let quantity = document.createElement('input')
+      quantity.setAttribute('type', 'number')
+      quantity.value = army.quantity
+
+      quantity.addEventListener('change', () => {
+        // only allow splitting
+        if (+quantity.value > army.quantity) {
+          console.log('too high', quantity.value, army.quantity)
+          quantity.value = army.quantity
+          return
+        }
+        if (+quantity.value < 1) {
+          quantity.value = 1
+          return
+        }
+        // split army
+        let left = +quantity.value
+        let right = +army.quantity - quantity.value
+
+        // find all armies of this type in this territory
+        let splitArmies = map[node.id].armies.filter(a => a.type === army.type)
+        // find the highest id
+        let highestID = splitArmies.reduce((accumulator, current) => {
+          console.log(current)
+          return Math.max(accumulator, current.id)
+        }, 0)
+        console.log(splitArmies)
+        army.quantity = left
+        let splitArmy = {
+          quantity: right,
+          type: army.type,
+          level: army.level,
+          id: highestID + 1
+        }
+        map[node.id].armies.push(splitArmy)
+        listArmy(splitArmy)
+      })
+
+      let target = map[node.id].deployed.find((d) => {
+        return d.army === army && d.target !== null
+      })
       let hasTarget = target !== undefined
 
       let text = null
       if (hasTarget) {
-        text = document.createTextNode(
-          army.quantity + ' ' + army.type + ' ' + army.level + ' to ' +
+        text = document.createTextNode(army.type + ' ' + army.level + ' to ' +
           getFullName(target.target))
       } else {
-        text = document.createTextNode(
-          army.quantity + ' ' + army.type + ' ' + army.level)
+        text = document.createTextNode(army.type + ' ' + army.level)
       }
 
       armiesList.appendChild(li)
       li.appendChild(checkbox)
       li.appendChild(label)
+      label.appendChild(quantity)
       label.appendChild(text)
 
       // put all deployed armies back on the selected section
@@ -609,7 +652,7 @@ var switchFocusTo = null
       }
 
       // track deployed armies and don't trust the DOM for the values
-      checkbox.addEventListener('change', () => {
+      checkbox.addEventListener('change', () => {``
         // don't let the player deploy non player armies
         if (map[node.id].player === 'p1') {
           if ((checkbox.checked) && (!hasTarget)) {
@@ -625,9 +668,8 @@ var switchFocusTo = null
           }
 
           // remove target location on now undeployed army
-          label.removeChild(label.firstChild)
-          let text = document.createTextNode(
-            army.quantity + ' ' + army.type + ' ' + army.level)
+          label.removeChild(text)
+          text = document.createTextNode(army.type + ' ' + army.level)
           label.appendChild(text)
 
           if (map[node.id].deployed.length === 0) {
@@ -639,7 +681,7 @@ var switchFocusTo = null
           console.log(map[node.id].deployed)
         }
       })
-    })
+    }
 
     button.addEventListener('click', () => {
       let neighbours = graph[node.id]
