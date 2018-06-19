@@ -541,30 +541,18 @@ var switchFocusTo = null
     document.getElementById('territory-gold-income').textContent = territoryGoldIncome(node.id)
 
     // purchases
-    let buyArchers = document.getElementById('archers')
-    let buyCalvary = document.getElementById('calvary')
-    let buyInfantry = document.getElementById('infantry')
-    if ((map[node.id].player === turnPlayer) && (map[node.id].castle)) {
-      buyArchers.removeAttribute('disabled')
-      buyCalvary.removeAttribute('disabled')
-      buyInfantry.removeAttribute('disabled')
-      buyArchers.value = map[node.id].purchases.archers
-      buyCalvary.value = map[node.id].purchases.calvary
-      buyInfantry.value = map[node.id].purchases.infantry
-      buyArchers.previousValue = map[node.id].purchases.archers
-      buyCalvary.previousValue = map[node.id].purchases.calvary
-      buyInfantry.previousValue = map[node.id].purchases.infantry
-      buyArchers.nodeid = node.id
-      buyCalvary.nodeid = node.id
-      buyInfantry.nodeid = node.id
-    } else {
-      buyArchers.setAttribute('disabled', 'disabled')
-      buyCalvary.setAttribute('disabled', 'disabled')
-      buyInfantry.setAttribute('disabled', 'disabled')
-      buyArchers.value = ''
-      buyCalvary.value = ''
-      buyInfantry.value = ''
-    }
+    ;['archers', 'calvary', 'infantry'].forEach((unit) => {
+      let buyUnit = document.getElementById(unit)
+      if ((map[node.id].player === turnPlayer) && (map[node.id].castle)) {
+        buyUnit.removeAttribute('disabled')
+        buyUnit.value = map[node.id].purchases[unit]
+        buyUnit.previousValue = map[node.id].purchases[unit]
+        buyUnit.nodeid = node.id
+      } else {
+        buyUnit.setAttribute('disabled', 'disabled')
+        buyUnit.value = ''
+      }
+    })
   }
 
   function updateArmies(node) {
