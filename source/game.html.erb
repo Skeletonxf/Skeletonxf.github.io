@@ -414,18 +414,10 @@ let map = {}
           id: 0
         }],
         player: 'p' + player,
-        mines: 0,
         wall: true,
         castle: true,
-        deployed: [],
         capital: true,
-        justTaken: true,
-        arriving: [],
-        purchases: {
-          archers: 0,
-          calvary: 0,
-          infantry: 0
-        }
+        justTaken: true
       }
       player += 1
     } else {
@@ -437,26 +429,26 @@ let map = {}
           id: 0
         }],
         player: 'neutral',
-        mines: 0,
         wall: false,
         castle: false,
-        deployed: [],
         capital: false,
-        justTaken: false,
-        arriving: [],
-        purchases: {
-          archers: 0,
-          calvary: 0,
-          infantry: 0
-        }
+        justTaken: false
       }
       if (node.includes('water')) {
-        map[node].armies[0].quantity = 10
+        map[node].armies[0].quantity = 1000
       }
       if (node.includes('$')) {
         map[node].armies[0].quantity = 50
       }
     }
+    map[node].mines = 0
+    map[node].purchases = {
+      archers: 0,
+      calvary: 0,
+      infantry: 0
+    }
+    map[node].arriving = []
+    map[node].deployed = []
   }
 }
 
