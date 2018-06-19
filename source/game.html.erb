@@ -451,7 +451,7 @@ let map = {}
         }
       }
       if (node.includes('water')) {
-        map[node].armies[0].quantity = 1000
+        map[node].armies[0].quantity = 10
       }
       if (node.includes('$')) {
         map[node].armies[0].quantity = 50
@@ -1028,7 +1028,6 @@ function applyTurns() {
 
   for (let node in map) {
     if (map[node].deployed.length > 0) {
-      console.log(map[node].deployed)
       map[node].deployed.forEach((d) => {
         map[d.target].arriving.push({
           player: map[node].player,
@@ -1040,6 +1039,7 @@ function applyTurns() {
   }
 
   // first opposing armies battle on edges
+  // find all edge battles
   for (let node in map) {
     if (map[node].arriving.length > 0) {
       if (map[node].deployed.length > 0) {
@@ -1057,6 +1057,7 @@ function applyTurns() {
       }
     }
   }
+  // run edge battles
   for (let node in map) {
     // find nodes with at least one edge battle
     if (map[node].arriving.some(a => a.edgeBattle)) {
@@ -1079,6 +1080,7 @@ function applyTurns() {
         // in each direction there can only be 1 player attacking
         // so all incoming armies from this direction is the single opponent
         let incoming = arriving.filter(a => a.from === n)
+        console.log('edge battle', originating, incoming)
         edgeBattle(originating, incoming)
       })
       // surviving armies need to then attack/defend on the node
@@ -1100,24 +1102,21 @@ function applyTurns() {
     map[node].justTaken = false
     // do normal attack/defender battles (which may involve multiple players)
     if (map[node].arriving.length > 0) {
-      console.log('units arriving to ', node, map[node].arriving, map[node].armies)
       let arrivingDefendingUnits = map[node].arriving.filter((a) => {
         // if a player sends units to one of their own territories
         // they join the defenders before battle for simplicity
         return a.player === map[node].player
       })
-      console.log('arriving defending units', arrivingDefendingUnits)
-      // take arriving defending units out of the arriving list
-      map[node].arriving = map[node].arriving.filter((a) => {
-        return !arrivingDefendingUnits.includes(a)
-      })
-      console.log('arriving after filter', map[node].arriving)
-      // they join the end of the defending list of armies at this territory
-      arrivingDefendingUnits.forEach((a) => {
-        map[node].armies.push(a.army)
+      arrivingDefendingUnits.forEach((arrivingDefending) => {
+        // they join the end of the list of armies at this territory
+        map[node].armies.push(arrivingDefending.army)
+        // take arriving defending units out of the arriving list
+        map[node].arriving = map[node].arriving.filter((a) => {
+          return a !== arrivingDefending
+        })
+        console.log('defending unit arrived', map[node].armies, map[node].arriving)
       })
       // perform battle for control of the node
-      console.log('before battle', map[node].arriving, map[node].armies)
       nOnOneBattle(map[node].arriving, map[node].armies)
       if (map[node].armies.some(army => army.quantity > 0)) {
         // defenders hold territory, no update needed
@@ -1182,7 +1181,7 @@ function applyTurns() {
 // Afterward the victor may have to fight defenders at the node.
 function edgeBattle(originating, incoming) {
   // no defending bonus for either
-  freeForAll([originating, incoming])
+  freeForAll([originating, incoming], null)
 }
 
 // The most simple attacker versus defender battle.
@@ -1259,21 +1258,106 @@ function nOnOneBattle(attacking, defending) {
     }
     return players
   }, [])
-  if (attackingPlayers.length === 1) {
-    // battle simplifies to 1 on 1
-    return oneOnOneBattle(attacking.map(arriving => arriving.army), defending)
-  }
+  // if (attackingPlayers.length === 1) {
+  //   // battle simplifies to 1 on 1
+  //   return oneOnOneBattle(attacking.map(arriving => arriving.army), defending)
+  // }
 
-  // like freeForAll but apply defender rounding advantage at each step
+  // freeForAll but apply defender rounding advantage at each step
+  let attackers = []
+  attackingPlayers.forEach((player) => {
+    let playerAttackingArmies = attacking.filter((arriving) => {
+      return arriving.player === player
+    }).map(arriving => arriving.army)
+    // collect the list of armies that are attacking by player
+    // this should preserve the order given in deployments
+    attackers.push(playerAttackingArmies)
+  })
+  attackers.push(defending)
+  console.log('attackers', attackers, attackers.length)
+  freeForAll(attackers, attackers.length - 1)
 }
 
 // List of list of armies fighting in free for all
-// with no one with defending advantage.
-function freeForAll(attackingList) {
+// with optionally no one with defending advantage.
+// Defender is either index of defender in attackingList
+// or null if no defender.
+function freeForAll(attackingList, defender) {
   // calculate every tradeForOne
   // sum up 'kills' from every viewpoint fighting every other (round robin)
   // divide by highest value to normalise to 0-1 units dying
   // subtract and loop until at least all but one hit 0 life
+  let attackingArmiesCounters = []
+  attackingList.forEach((attackingArmies) => {
+    attackingArmiesCounters.push({
+      armies: attackingArmies,
+      counter: 0
+    })
+  })
+  // run till last player's armies standing
+  // so there is 1 or 0 winners
+  let armies = []
+  while (true) {
+    // collect armies for next fight
+    armies = []
+    attackingArmiesCounters.forEach((counter) => {
+      // don't push an army if none left for that counter
+      if (counter.counter < counter.armies.length) {
+        armies.push(counter.armies[counter.counter])
+      }
+    })
+    if (armies.length <= 1) {
+      console.log('battle over', armies)
+      break
+    }
+    // check for any dead armies
+    let deadArmy = armies.find(army => army.quantity === 0)
+    if (deadArmy) {
+      // if army is at 0 then pass onto next
+      let counter = attackingArmiesCounters.find((counter) => {
+        return counter.armies.includes(deadArmy)
+      })
+      counter.counter += 1
+      continue
+    }
+    // each army attacks all others in round robin style
+    armies.forEach(a => a.incomingDamage = 0)
+    armies.forEach((army) => {
+      armies.forEach((opponent) => {
+        if (army !== opponent) {
+          army.incomingDamage += 1
+          opponent.incomingDamage += battleMultiplier(army, opponent)
+        }
+      })
+    })
+    highestDamage = armies.reduce((accumulator, army) => {
+      return Math.max(accumulator, army.incomingDamage)
+    }, 0)
+    // highest damage should never be 0
+    // normalise damage into 0-1 range
+    armies.forEach(a => a.incomingDamage /= highestDamage)
+    // apply damage to each army
+    armies.forEach(a => a.quantity -= a.incomingDamage)
+    armies.forEach(a => a.incomingDamage = null)
+    // set any dead armies to 0
+    armies.forEach((army) => {
+      if (army.quantity < 0) {
+        army.quantity = 0
+      }
+    })
+  }
+  // remove non integer quantities from surviving army
+  if ((defender !== null) && armies.length === 1) {
+    let victor = armies[0]
+    if (attackingList[defender].includes(victor)) {
+      // defender survives rounding
+      victor.quantity = Math.ceil(victor.quantity)
+    } else {
+      victor.quantity = Math.floor(victor.quantity)
+    }
+  } else {
+    victor.quantity = Math.floor(victor.quantity)
+  }
 }
 
 // first against second index
@@ -1318,18 +1402,30 @@ function battleTests() {
     level: 2
   }))
   console.log('10 A4 against 15 I2 battle')
-  let attackers = {
+  let attackers1 = {
     type: 'Archers',
     level: 4,
     quantity: 10
   }
-  let defenders = {
+  let defenders1 = {
     type: 'Infantry',
     level: 2,
     quantity: 15
   }
-  oneOnOneBattle([attackers], [defenders])
-  console.log('result', attackers, defenders)
+  oneOnOneBattle([attackers1], [defenders1])
+  console.log('141 result', attackers1, defenders1)
+  let attackers2 = {
+    type: 'Archers',
+    level: 4,
+    quantity: 10
+  }
+  let defenders2 = {
+    type: 'Infantry',
+    level: 2,
+    quantity: 15
+  }
+  freeForAll([[attackers2], [defenders2]], 1)
+  console.log('FFA result', attackers2, defenders2)
 }
 battleTests()
 
