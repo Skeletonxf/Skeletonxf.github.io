@@ -4,6 +4,9 @@
 </h1>
 <div id = "flex-wrapper">
   <div id = "armies">
+    <div>
+      <p id = "turn-player-remaining-gold">Remaining Gold: </p>
+    </div>
     <div id = "armies-all">
       <h2>Available</h2>
       <ol id = "territory-armies-all"></ol>
@@ -183,7 +186,6 @@
     <ul>
       <li id = "p1-player-info">
         <h2>Player 1</h2>
-        <h3>Resources</h3>
         <p id = "p1-gold">Gold: 500</p>
         <p id = "p1-archers-level">Archers Level 2</p>
         <p id = "p1-calvary-level">Calvary Level 1</p>
@@ -197,7 +199,6 @@
       </li>
       <li id = "p2-player-info">
         <h2>Player 2</h2>
-        <h3>Resources</h3>
         <p id = "p2-gold">Gold: 500</p>
         <p id = "p2-archers-level">Archers Level 2</p>
         <p id = "p2-calvary-level">Calvary Level 1</p>
@@ -205,7 +206,6 @@
       </li>
       <li id = "p3-player-info">
         <h2>Player 3</h2>
-        <h3>Resources</h3>
         <p id = "p3-gold">Gold: 500</p>
         <p id = "p3-archers-level">Archers Level 2</p>
         <p id = "p3-calvary-level">Calvary Level 1</p>
@@ -213,7 +213,6 @@
       </li>
       <li id = "p4-player-info">
         <h2>Player 4</h2>
-        <h3>Resources</h3>
         <p id = "p4-gold">Gold: 500</p>
         <p id = "p4-archers-level">Archers Level 2</p>
         <p id = "p4-calvary-level">Calvary Level 1</p>
@@ -221,7 +220,6 @@
       </li>
       <li id = "p5-player-info">
         <h2>Player 5</h2>
-        <h3>Resources</h3>
         <p id = "p5-gold">Gold: 500</p>
         <p id = "p5-archers-level">Archers Level 2</p>
         <p id = "p5-calvary-level">Calvary Level 1</p>
@@ -229,7 +227,6 @@
       </li>
       <li id = "p6-player-info">
         <h2>Player 6</h2>
-        <h3>Resources</h3>
         <p id = "p6-gold">Gold: 500</p>
         <p id = "p6-archers-level">Archers Level 2</p>
         <p id = "p6-calvary-level">Calvary Level 1</p>
@@ -988,6 +985,8 @@ function changeTurnPlayer() {
   let endTurnButton = document.getElementById('end-turn')
   // move end turn button to the next player
   playerInfo.append(endTurnButton)
+  // refresh player gold info
+  updatePlayerGold()
 }
 
 document.getElementById('end-turn').addEventListener('click', changeTurnPlayer)
@@ -1016,6 +1015,10 @@ function updatePlayerGold() {
       element.textContent = 'Gold: ' + player.goldPublic +
       ' Income: ' + player.goldIncome
     }
+  }
+  if (players[turnPlayer]) {
+    let turnPlayerNotice = 'Remaining Gold: ' + players[turnPlayer].gold
+    document.getElementById('turn-player-remaining-gold').textContent = turnPlayerNotice
   }
 }
 

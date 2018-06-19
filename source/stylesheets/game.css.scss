@@ -479,6 +479,10 @@ p.id.mid {
   width: 200px;
 }
 
+#armies-attack button {
+  width: 100%;
+}
+
 .buy {
   display: flex;
   flex-direction: row;
@@ -501,6 +505,9 @@ p.id.mid {
 #players ul {
   display: flex;
   flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
 }
 
 .player-info {
