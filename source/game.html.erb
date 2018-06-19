@@ -1002,10 +1002,10 @@ function updatePlayerGold() {
     let player = players[id]
     if (turnPlayer === id) {
       element.textContent = 'Gold: ' + player.gold +
-      ' Income: ' + player.goldIncome
+      ' (+' + player.goldIncome + ')'
     } else {
       element.textContent = 'Gold: ' + player.goldPublic +
-      ' Income: ' + player.goldIncome
+      ' (+' + player.goldIncome + ')'
     }
   }
   if (players[turnPlayer]) {
