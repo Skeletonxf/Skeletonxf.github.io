@@ -423,7 +423,12 @@ let map = {}
         deployed: [],
         capital: true,
         justTaken: true,
-        arriving: []
+        arriving: [],
+        purchases: {
+          archers: 0,
+          calvary: 0,
+          infantry: 0
+        }
       }
       player += 1
     } else {
@@ -441,7 +446,12 @@ let map = {}
         deployed: [],
         capital: false,
         justTaken: false,
-        arriving: []
+        arriving: [],
+        purchases: {
+          archers: 0,
+          calvary: 0,
+          infantry: 0
+        }
       }
       if (node.includes('water')) {
         map[node].armies[0].quantity = 1000
@@ -529,6 +539,32 @@ var switchFocusTo = null
       document.getElementById('territory-castle').textContent = "No Castle"
     }
     document.getElementById('territory-gold-income').textContent = territoryGoldIncome(node.id)
+
+    // purchases
+    let buyArchers = document.getElementById('archers')
+    let buyCalvary = document.getElementById('calvary')
+    let buyInfantry = document.getElementById('infantry')
+    if ((map[node.id].player === turnPlayer) && (map[node.id].castle)) {
+      buyArchers.removeAttribute('disabled')
+      buyCalvary.removeAttribute('disabled')
+      buyInfantry.removeAttribute('disabled')
+      buyArchers.value = map[node.id].purchases.archers
+      buyCalvary.value = map[node.id].purchases.calvary
+      buyInfantry.value = map[node.id].purchases.infantry
+      buyArchers.previousValue = map[node.id].purchases.archers
+      buyCalvary.previousValue = map[node.id].purchases.calvary
+      buyInfantry.previousValue = map[node.id].purchases.infantry
+      buyArchers.nodeid = node.id
+      buyCalvary.nodeid = node.id
+      buyInfantry.nodeid = node.id
+    } else {
+      buyArchers.setAttribute('disabled', 'disabled')
+      buyCalvary.setAttribute('disabled', 'disabled')
+      buyInfantry.setAttribute('disabled', 'disabled')
+      buyArchers.value = ''
+      buyCalvary.value = ''
+      buyInfantry.value = ''
+    }
   }
 
   function updateArmies(node) {
@@ -780,6 +816,43 @@ function stopHighlighting() {
     // reset highlighting on changing node focus
     element.classList.remove('highlight')
   }
+}
+
+{
+  let buyArchers = document.getElementById('archers')
+  let buyCalvary = document.getElementById('calvary')
+  let buyInfantry = document.getElementById('infantry')
+
+  function buyUnit(unit, input) {
+    if ((+input.previousValue) < (+input.value)) {
+      let difference = (+input.value) - (+input.previousValue)
+      if (players[turnPlayer].gold >= (20*difference)) {
+        players[turnPlayer].gold -= (20*difference)
+        map[input.nodeid].purchases[unit] += difference
+        input.previousValue = input.value
+      } else {
+        input.value = input.previousValue
+      }
+    } else {
+      let difference = (+input.previousValue) - (+input.value)
+      players[turnPlayer].gold += (20*difference)
+      map[input.nodeid].purchases[unit] -= difference
+      input.previousValue = input.value
+    }
+  }
+
+  buyArchers.addEventListener('change', () => {
+    buyUnit('archers', buyArchers)
+    updatePlayerGold()
+  })
+  buyCalvary.addEventListener('change', () => {
+    buyUnit('calvary', buyCalvary)
+    updatePlayerGold()
+  })
+  buyInfantry.addEventListener('change', () => {
+    buyUnit('infantry', buyInfantry)
+    updatePlayerGold()
+  })
 }
 
 let players = {};
@@ -1058,6 +1131,13 @@ function applyTurns() {
       if (map[node].armies.some(army => army.quantity > 0)) {
         // defenders hold territory, no update needed
       } else if (map[node].arriving.some(a => a.army.quantity > 0)) {
+        // refund attempted unit purchases if there were any
+        ['archers', 'calvary', 'infantry'].forEach(unit => {
+          if (map[node].purchases[unit] > 0) {
+            players[map[node].player].gold += (20 * map[node].purchases[unit])
+            map[node].purchases[unit] = 0
+          }
+        })
         // attackers win and take territory
         map[node].player = map[node].arriving.find(a => a.army.quantity > 0).player
         // surviving armies remain in territory
@@ -1083,7 +1163,25 @@ function applyTurns() {
     map[node].arriving = []
   }
 
-  // TODO apply territory purchases/upgrades
+  // Spawn in purchased armies.
+  for (let node in map) {
+    ['archers', 'calvary', 'infantry'].forEach(unit => {
+      if (map[node].purchases[unit] > 0) {
+        let highestID = map[node].armies.reduce((accumulator, current) => {
+          return Math.max(accumulator, current.id)
+        }, 0)
+        map[node].armies.push({
+          quantity: map[node].purchases[unit],
+          type: unit.charAt(0).toUpperCase() + unit.slice(1),
+          level: 1,
+          id: highestID + 1
+        })
+        map[node].purchases[unit] = 0
+      }
+    })
+  }
+
+  // TODO apply territory upgrades
 
   applyPlayerGoldIncome()
   updateMap()
