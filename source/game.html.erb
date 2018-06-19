@@ -942,13 +942,15 @@ function applyTurns() {
     }
   }
 
-  // first handle opposing armies meeting on an edge
+  // first opposing armies battle on edges
   for (let node in map) {
     if (map[node].arriving.length > 0) {
       if (map[node].deployed.length > 0) {
         map[node].deployed.forEach((d) => {
           map[node].arriving.forEach((a) => {
-            if (d.target === a.from) {
+            // exclude units passing through the same player's territory
+            // as they do not fight
+            if ((d.target === a.from) && (map[node].player !== a.player)) {
               // armies meet on edge
               d.edgeBattle = true
               a.edgeBattle = true
@@ -982,22 +984,76 @@ function applyTurns() {
         let incoming = arriving.filter(a => a.from === n)
         edgeBattle(originating, incoming)
       })
+      // surviving armies need to then attack/defend on the node
     }
   }
 
-  // TODO
-  // do normal attack/defender battles (which may involve multiple players)
+  // remove deployed units from the territory they have left
+  // these armies are still arriving at the new territory
+  for (let node in map) {
+    map[node].armies = map[node].armies.filter((a) => {
+      return !map[node].deployed.map(d => d.army).includes(a)
+    })
+    map[node].deployed = []
+  }
 
-  // TODO
-  // after all units battling have died then clear deployed lists,
-  // move in arrival units, clear arrival lists and tranfer ownership
-  // of territories taken, toggle justTaken on each transfer, and
-  // toggle justTaken off on territories held.
+  // Battle for each territory with incoming arriving units.
+  // Arriving units move into territory if successful.
+  for (let node in map) {
+    map[node].justTaken = false
+    // do normal attack/defender battles (which may involve multiple players)
+    if (map[node].arriving.length > 0) {
+      console.log('units arriving to ', node, map[node].arriving, map[node].armies)
+      let arrivingDefendingUnits = map[node].arriving.filter((a) => {
+        // if a player sends units to one of their own territories
+        // they join the defenders before battle for simplicity
+        return a.player === map[node].player
+      })
+      console.log('arriving defending units', arrivingDefendingUnits)
+      // take arriving defending units out of the arriving list
+      map[node].arriving = map[node].arriving.filter((a) => {
+        return !arrivingDefendingUnits.includes(a)
+      })
+      console.log('arriving after filter', map[node].arriving)
+      // they join the end of the defending list of armies at this territory
+      arrivingDefendingUnits.forEach((a) => {
+        map[node].armies.push(a.army)
+      })
+      // perform battle for control of the node
+      console.log('before battle', map[node].arriving, map[node].armies)
+      nOnOneBattle(map[node].arriving, map[node].armies)
+      if (map[node].armies.some(army => army.quantity > 0)) {
+        // defenders hold territory, no update needed
+      } else if (map[node].arriving.some(a => a.army.quantity > 0)) {
+        // attackers win and take territory
+        map[node].player = map[node].arriving.find(a => a.army.quantity > 0).player
+        // surviving armies remain in territory
+        map[node].armies = map[node].arriving.filter(a => a.army.quantity > 0).map(a => a.army)
+        map[node].justTaken = true
+      } else {
+        // territory turns neutral
+        map[node].armies = []
+        // if only one player attacked this neutral territory
+        // then they gain control of it anyway
+        if ((map[node].player === 'neutral') &&
+        (new Set(map[node].arriving.map(a => a.player))).size === 1) {
+          map[node].player = map[node].arriving[0].player
+        } else {
+          map[node].player = 'neutral'
+        }
+      }
+    }
+  }
 
-  // TODO
-  // apply territory purchases/upgrades
+  // Clear unsuccessful arriving armies.
+  for (let node in map) {
+    map[node].arriving = []
+  }
+
+  // TODO apply territory purchases/upgrades
 
   applyPlayerGoldIncome()
+  updateMap()
 }
 
 // Kills the armies battling along the edge till one side loses.
@@ -1009,13 +1065,11 @@ function edgeBattle(originating, incoming) {
 
 // The most simple attacker versus defender battle.
 // Attacking army list and Defending army list.
-function oneOnOneBattle(attacking, defending) {
-  let attackingArmies = attacking.length
-  let defendingArmies = defending.length
+function oneOnOneBattle(attackingArmies, defendingArmies) {
   let attackingArmy = 0
   let defendingArmy = 0
-  while (attackingArmy < attackingArmies.length &&
-    defendingArmy < defendingArmies.length) {
+  while ((attackingArmy < attackingArmies.length) &&
+    (defendingArmy < defendingArmies.length)) {
     // at least one army left on both sides
     let attackers = attackingArmies[attackingArmy]
     let defenders = defendingArmies[defendingArmy]
@@ -1029,17 +1083,29 @@ function oneOnOneBattle(attacking, defending) {
       continue
     }
     let attackingArmyTradeForOne = battleMultiplier(attackers, defenders)
-    let defendingArmyTradeForOne = battleMultiplier(attackers, defenders)
-    console.log(attackingArmyTradeForOne)
-    console.log(defendingArmyTradeForOne)
+    let defendingArmyTradeForOne = battleMultiplier(defenders, attackers)
+    console.log('trades', attackingArmyTradeForOne, defendingArmyTradeForOne)
     if (attackingArmyTradeForOne > defendingArmyTradeForOne) {
-      // attacker should die any if able to
+      // attacker should die anyway if able to
       // kill more than remaining defenders
-      // TODO
+      while (attackers.quantity > 0 && defenders.quantity > 0) {
+        attackers.quantity -= 1
+        defenders.quantity -= attackingArmyTradeForOne
+      }
+      if (defenders.quantity < 0) {
+        defenders.quantity = 0
+      }
     } else if (defendingArmyTradeForOne > attackingArmyTradeForOne) {
       // defender should survive if able
       // to kill more than remaining attackers
-      // TODO
+      while (defenders.quantity > 0 && attackers.quantity > 0) {
+        defenders.quantity -= 1
+        attackers.quantity -= defendingArmyTradeForOne
+      }
+      if (attackers.quantity < 0) {
+        attackers.quantity = 0
+        defenders.quantity += 1 // defender survives rounding
+      }
     } else {
       if (attackers.quantity > defenders.quantity) {
         // all defenders die
@@ -1075,12 +1141,17 @@ function nOnOneBattle(attacking, defending) {
     // battle simplifies to 1 on 1
     return oneOnOneBattle(attacking.map(arriving => arriving.army), defending)
   }
-  // TODO
+
+  // like freeForAll but apply defender rounding advantage at each step
 }
 
 // List of list of armies fighting in free for all
 // with no one with defending advantage.
 function freeForAll(attackingList) {
+  // calculate every tradeForOne
+  // sum up 'kills' from every viewpoint fighting every other (round robin)
+  // divide by highest value to normalise to 0-1 units dying
+  // subtract and loop until at least all but one hit 0 life
 }
 
 // first against second index
@@ -1116,13 +1187,29 @@ function battleMultiplier(trade, against) {
     levelDifference + typeAdvantage[trade.type][against.type])
 }
 
-// console.log('A4 against I2', battleMultiplier({
-//   type: 'Archers',
-//   level: 4
-// }, {
-//   type: 'Infantry',
-//   level: 2
-// })) --> 8
+function battleTests() {
+  console.log('A4 against I2 multiplier (8)', battleMultiplier({
+    type: 'Archers',
+    level: 4
+  }, {
+    type: 'Infantry',
+    level: 2
+  }))
+  console.log('10 A4 against 15 I2 battle')
+  let attackers = {
+    type: 'Archers',
+    level: 4,
+    quantity: 10
+  }
+  let defenders = {
+    type: 'Infantry',
+    level: 2,
+    quantity: 15
+  }
+  oneOnOneBattle([attackers], [defenders])
+  console.log('result', attackers, defenders)
+}
+battleTests()
 
 console.log("done")
 </script>
