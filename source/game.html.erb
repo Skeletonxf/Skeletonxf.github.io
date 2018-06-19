@@ -184,60 +184,56 @@
       <li id = "p1-player-info">
         <h2>Player 1</h2>
         <h3>Resources</h3>
-        <p>Gold: 500</p>
-        <div class="player-info">
-          <p>Archers Level 2</p>
-          <button>Upgrade</button>
-        </div>
-        <div class="player-info">
-          <p>Calvary Level 1</p>
-          <button>Upgrade</button>
-        </div>
-        <div class="player-info">
-          <p>Infantry Level 3</p>
-          <button>Upgrade</button>
+        <p id = "p1-gold">Gold: 500</p>
+        <p id = "p1-archers-level">Archers Level 2</p>
+        <p id = "p1-calvary-level">Calvary Level 1</p>
+        <p id = "p1-infantry-level">Infantry Level 3</p>
+        <div id = "turn-player-unit-upgrades">
+          <button id = "turn-player-upgrade-archers">Upgrade Archers</button>
+          <button id = "turn-player-upgrade-calvary">Upgrade Calvary</button>
+          <button id = "turn-player-upgrade-infantry">Upgrade Infantry</button>
         </div>
         <button id="end-turn">End Turn</button>
       </li>
       <li id = "p2-player-info">
         <h2>Player 2</h2>
         <h3>Resources</h3>
-        <p>Gold: 500</p>
-        <p>Archers Level 2</p>
-        <p>Calvary Level 1</p>
-        <p>Infantry Level 3</p>
+        <p id = "p2-gold">Gold: 500</p>
+        <p id = "p2-archers-level">Archers Level 2</p>
+        <p id = "p2-calvary-level">Calvary Level 1</p>
+        <p id = "p2-infantry-level">Infantry Level 3</p>
       </li>
       <li id = "p3-player-info">
         <h2>Player 3</h2>
         <h3>Resources</h3>
-        <p>Gold: 500</p>
-        <p>Archers Level 2</p>
-        <p>Calvary Level 1</p>
-        <p>Infantry Level 3</p>
+        <p id = "p3-gold">Gold: 500</p>
+        <p id = "p3-archers-level">Archers Level 2</p>
+        <p id = "p3-calvary-level">Calvary Level 1</p>
+        <p id = "p3-infantry-level">Infantry Level 3</p>
       </li>
       <li id = "p4-player-info">
         <h2>Player 4</h2>
         <h3>Resources</h3>
-        <p>Gold: 500</p>
-        <p>Archers Level 2</p>
-        <p>Calvary Level 1</p>
-        <p>Infantry Level 3</p>
+        <p id = "p4-gold">Gold: 500</p>
+        <p id = "p4-archers-level">Archers Level 2</p>
+        <p id = "p4-calvary-level">Calvary Level 1</p>
+        <p id = "p4-infantry-level">Infantry Level 3</p>
       </li>
       <li id = "p5-player-info">
         <h2>Player 5</h2>
         <h3>Resources</h3>
-        <p>Gold: 500</p>
-        <p>Archers Level 2</p>
-        <p>Calvary Level 1</p>
-        <p>Infantry Level 3</p>
+        <p id = "p5-gold">Gold: 500</p>
+        <p id = "p5-archers-level">Archers Level 2</p>
+        <p id = "p5-calvary-level">Calvary Level 1</p>
+        <p id = "p5-infantry-level">Infantry Level 3</p>
       </li>
       <li id = "p6-player-info">
         <h2>Player 6</h2>
         <h3>Resources</h3>
-        <p>Gold: 500</p>
-        <p>Archers Level 2</p>
-        <p>Calvary Level 1</p>
-        <p>Infantry Level 3</p>
+        <p id = "p6-gold">Gold: 500</p>
+        <p id = "p6-archers-level">Archers Level 2</p>
+        <p id = "p6-calvary-level">Calvary Level 1</p>
+        <p id = "p6-infantry-level">Infantry Level 3</p>
       </li>
     </ul>
   </div>
@@ -794,7 +790,9 @@ let players = {};
       calvary: 1,
       infantry: 1
     },
-    gold: 0
+    gold: 0,
+    goldIncome: 0,
+    goldPublic: 0
   }
 })
 
@@ -825,9 +823,19 @@ function territoryGoldIncome(node) {
 }
 
 function applyPlayerGoldIncome() {
-  for (let node in map) {
-    players[map[node].player] += territoryGoldIncome(node)
+  for (let player in players) {
+    players[player].goldIncome = 0
   }
+  for (let node in map) {
+    if (map[node].player !== 'neutral') {
+      players[map[node].player].gold += territoryGoldIncome(node)
+      players[map[node].player].goldIncome += territoryGoldIncome(node)
+    }
+  }
+  for (let player in players) {
+    players[player].goldPublic = players[player].gold
+  }
+  updatePlayerGold()
 }
 
 function getShortTerritoryUnits(army) {
@@ -924,6 +932,31 @@ function changeTurnPlayer() {
 document.getElementById('end-turn').addEventListener('click', changeTurnPlayer)
 
 changeTurnPlayer()
+
+// Updates UI showing player's gold.
+// The gold of the player at the start of their turn is shown
+// as each non turn player's gold.
+function updatePlayerGold() {
+  let elements = {
+    p1: document.getElementById('p1-gold'),
+    p2: document.getElementById('p2-gold'),
+    p3: document.getElementById('p3-gold'),
+    p4: document.getElementById('p4-gold'),
+    p5: document.getElementById('p5-gold'),
+    p6: document.getElementById('p6-gold')
+  }
+  for (let id in elements) {
+    let element = elements[id]
+    let player = players[id]
+    if (turnPlayer === id) {
+      element.textContent = 'Gold: ' + player.gold +
+      ' Income: ' + player.goldIncome
+    } else {
+      element.textContent = 'Gold: ' + player.goldPublic +
+      ' Income: ' + player.goldIncome
+    }
+  }
+}
 
 function applyTurns() {
   phase = phase += 1
