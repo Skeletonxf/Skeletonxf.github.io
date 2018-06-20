@@ -180,7 +180,7 @@
         <label for="build-mines" id="build-mines-label">Mines +1: 200</label>
         <input type="number" id="build-mines"></input>
       </div>
-      <button>Build Wall (1500)</button>
+      <button id="build-wall">Build Wall (1500)</button>
       <button id = "build-castle">Build Castle (2000)</button>
       <button>Raze Down</button>
     </div>
@@ -553,11 +553,14 @@ var switchFocusTo = null
       }
     })
 
-    document.getElementById('build-castle').nodeid = node.id
-    updateCastlePurchases()
-
     document.getElementById('build-mines').nodeid = node.id
     updateMinePurchases()
+
+    document.getElementById('build-wall').nodeid = node.id
+    updateWallPurchases()
+
+    document.getElementById('build-castle').nodeid = node.id
+    updateCastlePurchases()
   }
 
   function updateArmies(node) {
@@ -863,33 +866,54 @@ function stopHighlighting() {
     updatePlayerGold()
     updateCastlePurchases()
   })
+
+  let buyWall = document.getElementById('build-wall')
+  buyWall.addEventListener('click', () => {
+    if (map[buyWall.nodeid].purchases.wall) {
+      players[turnPlayer].gold += 1500
+      map[buyWall.nodeid].purchases.wall = false
+    } else {
+      if (buyWall.nodeid && players[turnPlayer].gold >= 1500) {
+        players[turnPlayer].gold -= 1500
+        map[buyWall.nodeid].purchases.wall = true
+      }
+    }
+    updatePlayerGold()
+    updateWallPurchases()
+  })
 }
 
 function updateCastlePurchases() {
   let buyCastle = document.getElementById('build-castle')
   let nodeid = buyCastle.nodeid
-  if (nodeid) {
-    if (map[nodeid].player !== turnPlayer) {
-      buyCastle.textContent = 'Build Castle (2000)'
-      buyCastle.setAttribute('disabled', 'disabled')
-      return
-    }
+  buyCastle.textContent = 'Build Castle (2000)'
+  buyCastle.setAttribute('disabled', 'disabled')
+  if ((nodeid) && (map[nodeid].player === turnPlayer)) {
     if (map[nodeid].purchases.castle) {
       buyCastle.textContent = 'Cancel Castle'
+      buyCastle.removeAttribute('disabled')
     } else {
-      buyCastle.textContent = 'Build Castle (2000)'
+      if ((players[turnPlayer].gold >= 2000) && (!map[nodeid].castle)) {
+        buyCastle.removeAttribute('disabled')
+      }
     }
-    if ((map[nodeid].player === turnPlayer) && (map[nodeid].purchases.castle)) {
-        buyCastle.removeAttribute('disabled')
-    } else if (players[turnPlayer].gold >= 2000 &&
-      (!map[nodeid].purchases.castle) && !map[nodeid].castle) {
-        buyCastle.removeAttribute('disabled')
+  }
+}
+
+function updateWallPurchases() {
+  let buyWall = document.getElementById('build-wall')
+  let nodeid = buyWall.nodeid
+  buyWall.textContent = 'Build Wall (1500)'
+  buyWall.setAttribute('disabled', 'disabled')
+  if ((nodeid) && (map[nodeid].player === turnPlayer)) {
+    if (map[nodeid].purchases.wall) {
+      buyWall.textContent = 'Cancel Wall'
+      buyWall.removeAttribute('disabled')
     } else {
-        buyCastle.setAttribute('disabled', 'disabled')
+      if ((players[turnPlayer].gold >= 1500) && (!map[nodeid].wall)) {
+        buyWall.removeAttribute('disabled')
+      }
     }
-  } else {
-    buyCastle.textContent = 'Build Castle (2000)'
-    buyCastle.setAttribute('disabled', 'disabled')
   }
 }
 
@@ -1279,6 +1303,10 @@ function applyTurns() {
         })
         console.log('defending unit arrived', map[node].armies, map[node].arriving)
       })
+      // check for any apply wall bonus flags to defenders
+      if (map[node].wall) {
+        map[node].armies.forEach(a => a.insideWall = true)
+      }
       // perform battle for control of the node
       nOnOneBattle(map[node].arriving, map[node].armies)
       if (map[node].armies.some(army => army.quantity > 0)) {
@@ -1294,6 +1322,10 @@ function applyTurns() {
         if (map[node].purchases.castle) {
           map[node].purchases.castle = false
           players[map[node].player].gold += 2000
+        }
+        if (map[node].purchases.wall) {
+          map[node].purchases.wall = false
+          players[map[node].player].wall += 1500
         }
         if (map[node].purchases.mines > 0) {
           while (map[node].purchases.mines > 0) {
@@ -1328,8 +1360,15 @@ function applyTurns() {
     map[node].arriving = []
   }
 
+  // Remove wall bonus flags.
+  for (let node in map) {
+    map[node].armies.forEach(a => a.insideWall = null)
+  }
+
   // apply gold income before building new mines
   applyPlayerGoldIncome()
+
+  // TODO apply unit upgrades
 
   // Apply purchases on territories that remain under the same player's
   // control.
@@ -1352,14 +1391,15 @@ function applyTurns() {
       map[node].purchases.castle = false
       map[node].castle = true
     }
+    if (map[node].purchases.wall) {
+      map[node].purchases.wall = false
+      map[node].wall = true
+    }
     if (map[node].purchases.mines > 0) {
       map[node].mines += map[node].purchases.mines
       map[node].purchases.mines = 0
     }
   }
-
-  // TODO apply other territory upgrades
-
 
   updateMap()
 }
@@ -1369,67 +1409,6 @@ function applyTurns() {
 function edgeBattle(originating, incoming) {
   // no defending bonus for either
   freeForAll([originating, incoming], null)
-}
-
-// The most simple attacker versus defender battle.
-// Attacking army list and Defending army list.
-function oneOnOneBattle(attackingArmies, defendingArmies) {
-  let attackingArmy = 0
-  let defendingArmy = 0
-  while ((attackingArmy < attackingArmies.length) &&
-    (defendingArmy < defendingArmies.length)) {
-    // at least one army left on both sides
-    let attackers = attackingArmies[attackingArmy]
-    let defenders = defendingArmies[defendingArmy]
-    // if an army is at 0 then pass
-    if (attackers.quantity === 0) {
-      attackingArmy += 1
-      continue
-    }
-    if (defenders.quantity === 0) {
-      defendingArmy += 1
-      continue
-    }
-    let attackingArmyTradeForOne = battleMultiplier(attackers, defenders)
-    let defendingArmyTradeForOne = battleMultiplier(defenders, attackers)
-    console.log('trades', attackingArmyTradeForOne, defendingArmyTradeForOne)
-    if (attackingArmyTradeForOne > defendingArmyTradeForOne) {
-      // attacker should die anyway if able to
-      // kill more than remaining defenders
-      while (attackers.quantity > 0 && defenders.quantity > 0) {
-        attackers.quantity -= 1
-        defenders.quantity -= attackingArmyTradeForOne
-      }
-      if (defenders.quantity < 0) {
-        defenders.quantity = 0
-      }
-    } else if (defendingArmyTradeForOne > attackingArmyTradeForOne) {
-      // defender should survive if able
-      // to kill more than remaining attackers
-      while (defenders.quantity > 0 && attackers.quantity > 0) {
-        defenders.quantity -= 1
-        attackers.quantity -= defendingArmyTradeForOne
-      }
-      if (attackers.quantity < 0) {
-        attackers.quantity = 0
-        defenders.quantity += 1 // defender survives rounding
-      }
-    } else {
-      if (attackers.quantity > defenders.quantity) {
-        // all defenders die
-        attackers.quantity -= defenders.quantity
-        defenders.quantity = 0
-      } else if (defenders.quantity > attackers.quantity) {
-        // all attackers die
-        defenders.quantity -= attackers.quantity
-        attackers.quantity = 0
-      } else {
-        // both die
-        defenders.quantity = 0
-        attackers.quantity = 0
-      }
-    }
-  }
 }
 
 // n on n cannot happen as it is impossible for multiple
@@ -1445,10 +1424,6 @@ function nOnOneBattle(attacking, defending) {
     }
     return players
   }, [])
-  // if (attackingPlayers.length === 1) {
-  //   // battle simplifies to 1 on 1
-  //   return oneOnOneBattle(attacking.map(arriving => arriving.army), defending)
-  // }
 
   // freeForAll but apply defender rounding advantage at each step
   let attackers = []
@@ -1576,6 +1551,14 @@ let typeAdvantage = {
 }
 function battleMultiplier(trade, against) {
   let levelDifference = trade.level - against.level
+  if (trade.insideWall) {
+    levelDifference += 1
+    console.log('applied defensive bonus trade')
+  }
+  if (against.insideWall) {
+    levelDifference -= 1
+    console.log('applied defensive bonus against')
+  }
   return Math.pow(2,
     levelDifference + typeAdvantage[trade.type][against.type])
 }
@@ -1589,32 +1572,20 @@ function battleTests() {
     level: 2
   }))
   console.log('10 A4 against 15 I2 battle')
-  let attackers1 = {
+  let attackers = {
     type: 'Archers',
     level: 4,
     quantity: 10
   }
-  let defenders1 = {
+  let defenders = {
     type: 'Infantry',
     level: 2,
     quantity: 15
   }
-  oneOnOneBattle([attackers1], [defenders1])
-  console.log('141 result', attackers1, defenders1)
-  let attackers2 = {
-    type: 'Archers',
-    level: 4,
-    quantity: 10
-  }
-  let defenders2 = {
-    type: 'Infantry',
-    level: 2,
-    quantity: 15
-  }
-  freeForAll([[attackers2], [defenders2]], 1)
-  console.log('FFA result', attackers2, defenders2)
+  freeForAll([[attackers], [defenders]], 1)
+  console.log('FFA result', attackers, defenders)
 }
-battleTests()
+//battleTests()
 
 console.log("done")
 </script>
