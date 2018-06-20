@@ -445,13 +445,13 @@ p.id.mid {
 /* UI Sections */
 
 
-#armies, #map, #info, #players {
+#armies, #map, #info, #players, #mine-gold-income {
   display: block;
   margin: 0;
   border: 1px solid black;
 }
 
-#armies, #info, #players {
+#armies, #info, #players, #mine-gold-income {
   h2, h3, h4, ol {
     margin: 5px 0;
   }
@@ -508,6 +508,7 @@ p.id.mid {
   margin: 0;
   padding: 0;
   list-style-type: none;
+  justify-content: center;
 }
 
 .player-info {
@@ -518,4 +519,11 @@ p.id.mid {
 #turn-player-unit-upgrades {
   display: flex;
   flex-direction: column;
+}
+
+#mine-gold-income {
+  text-align: center;
+  ol {
+    visibility: visible;
+  }
 }

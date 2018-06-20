@@ -238,6 +238,11 @@
     </ul>
   </div>
 </div>
+<div id = "mine-gold-income">
+  <h2>Mine gold income levels</h2>
+  <ol id = "mine-gold-income-list"></ol>
+</div>
+
 
 <script>
 let game = document.getElementById('map')
@@ -907,6 +912,19 @@ let players = {};
 let mineIncome = [ 0, 100, 150, 190, 230, 250, 500 ]
 // index by level of mine to buy 1-6
 let mineUpgradeCost = [ 200, 300, 450, 600, 750, 1200 ]
+
+{
+  let ol = document.getElementById('mine-gold-income-list')
+  for (let i = 0; i < 6; i++) {
+   let li = document.createElement('li')
+    ol.appendChild(li)
+    li.appendChild(
+      document.createTextNode(mineIncome[i+1] + ' Gold per turn for '+
+      mineUpgradeCost[i] + ' Gold')
+    )
+  }
+}
+
 
 function territoryGoldIncome(node) {
   // passive income for territory
