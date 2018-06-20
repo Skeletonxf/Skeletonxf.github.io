@@ -47,3 +47,17 @@ A castle costs 2000 gold to build, and is build after all battles. Castles under
 <!-- Razing territories down -->
 
 <!-- Aggressive/Defensive/Scientific -->
+
+# I don't have 6 players
+- 1 player: ☹️ Wait for me to add AI players
+- 2 players: Form 2 teams each
+  - p1,p2,p3 vs p4,p5,p6
+  - p1,p3,p5 vs p2,p4,p6 (probably more interesting)
+- 3 players: Form 2 teams each
+  - p1,p2 vs p3,p4 vs p5,p6
+  - p1, p4 vs p2,p5 vs p3,p6 (probably more interesting)
+- 4 players: rotate control of two opposite non player players
+  - p2 vs p3 vs p5 vs p6 vs p1[rotating control through p2,p3,p5,p6] vs p4[rotating p5,p6,p2,p3]
+- 5 players: rotate control of last non player player
+    - p1 vs p2 vs p3 vs p4 vs p5 vs p6[rotating]
+- 6 players: ☺️ Full game
