@@ -177,7 +177,7 @@
     <div id="info-buttons">
       <h4>Territory Upgrades</h4>
       <div class="buy">
-        <label for="build-mines">Mines +1: 200</label>
+        <label for="build-mines" id="build-mines-label">Mines +1: 200</label>
         <input type="number" id="build-mines"></input>
       </div>
       <button>Build Wall (1500)</button>
@@ -449,7 +449,8 @@ let map = {}
       archers: 0,
       calvary: 0,
       infantry: 0,
-      castle: false
+      castle: false,
+      mines: 0
     }
     map[node].arriving = []
     map[node].deployed = []
@@ -549,6 +550,9 @@ var switchFocusTo = null
 
     document.getElementById('build-castle').nodeid = node.id
     updateCastlePurchases()
+
+    document.getElementById('build-mines').nodeid = node.id
+    updateMinePurchases()
   }
 
   function updateArmies(node) {
@@ -924,6 +928,103 @@ function territoryGoldIncome(node) {
   return income += mineIncome[map[node].mines]
 }
 
+// Updates the UI on mine purchases for a territory
+function updateMinePurchases() {
+  let buyMines = document.getElementById('build-mines')
+  let label = document.getElementById('build-mines-label')
+  let nodeid = buyMines.nodeid
+  if (nodeid) {
+    console.log('mines', map[nodeid].mines, map[nodeid].purchases.mines)
+    if (map[nodeid].player === turnPlayer) {
+      buyMines.removeAttribute('disabled')
+      let mineLevel = map[nodeid].mines + map[nodeid].purchases.mines
+      buyMines.value = mineLevel
+      buyMines.previousValue = mineLevel
+      // do not allow changes if fully upgraded mine
+      if (map[nodeid].mines < 6) {
+        let nextMineLevel = mineLevel + 1
+        if (nextMineLevel <= 6) {
+          label.textContent = 'Mines +1: ' + mineUpgradeCost[nextMineLevel - 1]
+        } else {
+          // do not show upgrades past 6
+          label.textContent = 'Mines'
+        }
+      } else {
+        label.textContent = 'Mines'
+        buyMines.setAttribute('disabled', 'disabled')
+      }
+    } else {
+      buyMines.setAttribute('disabled', 'disabled')
+      // hide purchase information from other players
+      buyMines.value = map[nodeid].mines
+      label.textContent = 'Mines'
+    }
+  } else {
+    buyMines.setAttribute('disabled', 'disabled')
+    buyMines.value = 0
+    label.textContent = 'Mines'
+  }
+}
+
+document.getElementById('build-mines').addEventListener('change', () => {
+  let buyMines = document.getElementById('build-mines')
+  let nodeid = buyMines.nodeid
+  if (nodeid) {
+    if ((+buyMines.value) > 6) {
+      buyMines.value = buyMines.previousValue
+      updateMinePurchases()
+      return
+    }
+    if ((+buyMines.value) < map[nodeid].mines) {
+      // do not allow selling mines already built
+      buyMines.value = map[nodeid].mines
+      buyMines.previousValue = map[nodeid].mines
+      updateMinePurchases()
+      return
+    }
+    let mines = map[nodeid].mines
+    let purchases = map[nodeid].purchases.mines
+    let totalMines = mines + purchases
+    // cancel purchase
+    if ((+buyMines.value) < totalMines) {
+      while ((+buyMines.value) < totalMines) {
+        let costOfPurchase = mineUpgradeCost[totalMines - 1]
+        players[turnPlayer].gold += costOfPurchase
+        map[nodeid].purchases.mines -= 1
+        totalMines = mines + map[nodeid].purchases.mines
+      }
+      buyMines.previousValue = buyMines.value
+      updateMinePurchases()
+      updatePlayerGold()
+      return
+    }
+    // purchase next level
+    if (buyMines.value > totalMines) {
+      while ((+buyMines.value) > totalMines) {
+        console.log('purchasing')
+        let costToPurchase = mineUpgradeCost[totalMines]
+        if (players[turnPlayer].gold < costToPurchase) {
+          // stop if run out of money
+          console.log('no money')
+          buyMines.value = totalMines
+          buyMines.previousValue = totalMines
+          updateMinePurchases()
+          updatePlayerGold()
+          return
+        }
+        players[turnPlayer].gold -= costToPurchase
+        map[nodeid].purchases.mines += 1
+        totalMines = mines + map[nodeid].purchases.mines
+      }
+      buyMines.previousValue = buyMines.value
+      updateMinePurchases()
+      updatePlayerGold()
+      return
+    }
+  }
+  updateMinePurchases()
+})
+
 function applyPlayerGoldIncome() {
   for (let player in players) {
     players[player].goldIncome = 0
@@ -1176,6 +1277,14 @@ function applyTurns() {
           map[node].purchases.castle = false
           players[map[node].player].gold += 2000
         }
+        if (map[node].purchases.mines > 0) {
+          while (map[node].purchases.mines > 0) {
+            let totalMines = map[node].mines + map[node].purchases.mines
+            let costOfPurchase = mineUpgradeCost[totalMines - 1]
+            players[map[node].player].gold += costOfPurchase
+            map[nodeid].purchases.mines -= 1
+          }
+        }
         // attackers win and take territory
         map[node].player = map[node].arriving.find(a => a.army.quantity > 0).player
         // surviving armies remain in territory
@@ -1201,6 +1310,9 @@ function applyTurns() {
     map[node].arriving = []
   }
 
+  // apply gold income before building new mines
+  applyPlayerGoldIncome()
+
   // Apply purchases on territories that remain under the same player's
   // control.
   for (let node in map) {
@@ -1222,11 +1334,15 @@ function applyTurns() {
       map[node].purchases.castle = false
       map[node].castle = true
     }
+    if (map[node].purchases.mines > 0) {
+      map[node].mines += map[node].purchases.mines
+      map[node].purchases.mines = 0
+    }
   }
 
   // TODO apply other territory upgrades
 
-  applyPlayerGoldIncome()
+
   updateMap()
 }
 
