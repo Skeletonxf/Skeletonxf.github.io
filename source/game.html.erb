@@ -176,9 +176,12 @@
     </div>
     <div id="info-buttons">
       <h4>Territory Upgrades</h4>
-      <button>Build Mine (200)</button>
+      <div class="buy">
+        <label for="build-mines">Mines +1: 200</label>
+        <input type="number" id="build-mines"></input>
+      </div>
       <button>Build Wall (1500)</button>
-      <button>Build Castle (2000)</button>
+      <button id = "build-castle">Build Castle (2000)</button>
       <button>Raze Down</button>
     </div>
   </div>
@@ -445,7 +448,8 @@ let map = {}
     map[node].purchases = {
       archers: 0,
       calvary: 0,
-      infantry: 0
+      infantry: 0,
+      castle: false
     }
     map[node].arriving = []
     map[node].deployed = []
@@ -542,6 +546,9 @@ var switchFocusTo = null
         buyUnit.value = ''
       }
     })
+
+    document.getElementById('build-castle').nodeid = node.id
+    updateCastlePurchases()
   }
 
   function updateArmies(node) {
@@ -832,6 +839,49 @@ function stopHighlighting() {
     buyUnit('infantry', buyInfantry)
     updatePlayerGold()
   })
+
+  let buyCastle = document.getElementById('build-castle')
+  buyCastle.addEventListener('click', () => {
+    if (map[buyCastle.nodeid].purchases.castle) {
+      players[turnPlayer].gold += 2000
+      map[buyCastle.nodeid].purchases.castle = false
+    } else {
+      if (buyCastle.nodeid && players[turnPlayer].gold >= 2000) {
+        players[turnPlayer].gold -= 2000
+        map[buyCastle.nodeid].purchases.castle = true
+      }
+    }
+    updatePlayerGold()
+    updateCastlePurchases()
+  })
+}
+
+function updateCastlePurchases() {
+  let buyCastle = document.getElementById('build-castle')
+  let nodeid = buyCastle.nodeid
+  if (nodeid) {
+    if (map[nodeid].player !== turnPlayer) {
+      buyCastle.textContent = 'Build Castle (2000)'
+      buyCastle.setAttribute('disabled', 'disabled')
+      return
+    }
+    if (map[nodeid].purchases.castle) {
+      buyCastle.textContent = 'Cancel Castle'
+    } else {
+      buyCastle.textContent = 'Build Castle (2000)'
+    }
+    if ((map[nodeid].player === turnPlayer) && (map[nodeid].purchases.castle)) {
+        buyCastle.removeAttribute('disabled')
+    } else if (players[turnPlayer].gold >= 2000 &&
+      (!map[nodeid].purchases.castle) && !map[nodeid].castle) {
+        buyCastle.removeAttribute('disabled')
+    } else {
+        buyCastle.setAttribute('disabled', 'disabled')
+    }
+  } else {
+    buyCastle.textContent = 'Build Castle (2000)'
+    buyCastle.setAttribute('disabled', 'disabled')
+  }
 }
 
 let players = {};
@@ -1115,13 +1165,17 @@ function applyTurns() {
       if (map[node].armies.some(army => army.quantity > 0)) {
         // defenders hold territory, no update needed
       } else if (map[node].arriving.some(a => a.army.quantity > 0)) {
-        // refund attempted unit purchases if there were any
+        // refund attempted purchases if there were any
         ['archers', 'calvary', 'infantry'].forEach(unit => {
           if (map[node].purchases[unit] > 0) {
             players[map[node].player].gold += (20 * map[node].purchases[unit])
             map[node].purchases[unit] = 0
           }
         })
+        if (map[node].purchases.castle) {
+          map[node].purchases.castle = false
+          players[map[node].player].gold += 2000
+        }
         // attackers win and take territory
         map[node].player = map[node].arriving.find(a => a.army.quantity > 0).player
         // surviving armies remain in territory
@@ -1147,7 +1201,8 @@ function applyTurns() {
     map[node].arriving = []
   }
 
-  // Spawn in purchased armies.
+  // Apply purchases on territories that remain under the same player's
+  // control.
   for (let node in map) {
     ['archers', 'calvary', 'infantry'].forEach(unit => {
       if (map[node].purchases[unit] > 0) {
@@ -1163,9 +1218,13 @@ function applyTurns() {
         map[node].purchases[unit] = 0
       }
     })
+    if (map[node].purchases.castle) {
+      map[node].purchases.castle = false
+      map[node].castle = true
+    }
   }
 
-  // TODO apply territory upgrades
+  // TODO apply other territory upgrades
 
   applyPlayerGoldIncome()
   updateMap()
