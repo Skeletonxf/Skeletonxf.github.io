@@ -708,6 +708,7 @@ var switchFocusTo = null
             n.classList.add('highlight')
           })
           uiState = 'attack'
+          document.getElementById('end-turn').setAttribute('disabled', 'disabled')
           // mutate the global variable to let the recieving
           // event know the originating node
           attackFrom = node
@@ -734,6 +735,7 @@ function attackTarget(to, from) {
     }
   }
   uiState = 'selectFocus'
+  document.getElementById('end-turn').removeAttribute('disabled')
   stopHighlighting()
   // find all armies for this target
   let targetArmies = map[from.id].deployed.filter((d) => {
