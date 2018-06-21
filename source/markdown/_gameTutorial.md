@@ -61,3 +61,9 @@ A castle costs 2000 gold to build, and is build after all battles. Castles under
 - 5 players: rotate control of last non player player
     - p1 vs p2 vs p3 vs p4 vs p5 vs p6[rotating]
 - 6 players: ☺️ Full game
+
+# Notes
+
+Player colours chosen using [I want hue](http://tools.medialab.sciences-po.fr/iwanthue/)
+
+The original [forum game](http://forums.stickpage.com/showthread.php?100762-Risky-Business-Forum-Game)
