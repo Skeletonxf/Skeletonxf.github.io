@@ -189,10 +189,10 @@
     <ul>
       <li id = "p1-player-info" class="p1 player-info">
         <h2>Player 1</h2>
-        <p id = "p1-gold">Gold: 500</p>
-        <p id = "p1-archers-level">Archers Level 2</p>
-        <p id = "p1-calvary-level">Calvary Level 1</p>
-        <p id = "p1-infantry-level">Infantry Level 3</p>
+        <p id = "p1-gold"></p>
+        <p id = "p1-archers-level"></p>
+        <p id = "p1-calvary-level"></p>
+        <p id = "p1-infantry-level"></p>
         <div id = "turn-player-unit-upgrades">
           <button id = "turn-player-upgrade-archers">Upgrade Archers</button>
           <button id = "turn-player-upgrade-calvary">Upgrade Calvary</button>
@@ -202,38 +202,38 @@
       </li>
       <li id = "p2-player-info" class="p2 player-info">
         <h2>Player 2</h2>
-        <p id = "p2-gold">Gold: 500</p>
-        <p id = "p2-archers-level">Archers Level 2</p>
-        <p id = "p2-calvary-level">Calvary Level 1</p>
-        <p id = "p2-infantry-level">Infantry Level 3</p>
+        <p id = "p2-gold"></p>
+        <p id = "p2-archers-level"></p>
+        <p id = "p2-calvary-level"></p>
+        <p id = "p2-infantry-level"></p>
       </li>
       <li id = "p3-player-info" class="p3 player-info">
         <h2>Player 3</h2>
-        <p id = "p3-gold">Gold: 500</p>
-        <p id = "p3-archers-level">Archers Level 2</p>
-        <p id = "p3-calvary-level">Calvary Level 1</p>
-        <p id = "p3-infantry-level">Infantry Level 3</p>
+        <p id = "p3-gold"></p>
+        <p id = "p3-archers-level"></p>
+        <p id = "p3-calvary-level"></p>
+        <p id = "p3-infantry-level"></p>
       </li>
       <li id = "p4-player-info" class="p4 player-info">
         <h2>Player 4</h2>
-        <p id = "p4-gold">Gold: 500</p>
-        <p id = "p4-archers-level">Archers Level 2</p>
-        <p id = "p4-calvary-level">Calvary Level 1</p>
-        <p id = "p4-infantry-level">Infantry Level 3</p>
+        <p id = "p4-gold"></p>
+        <p id = "p4-archers-level"></p>
+        <p id = "p4-calvary-level"></p>
+        <p id = "p4-infantry-level"></p>
       </li>
       <li id = "p5-player-info" class="p5 player-info">
         <h2>Player 5</h2>
-        <p id = "p5-gold">Gold: 500</p>
-        <p id = "p5-archers-level">Archers Level 2</p>
-        <p id = "p5-calvary-level">Calvary Level 1</p>
-        <p id = "p5-infantry-level">Infantry Level 3</p>
+        <p id = "p5-gold"></p>
+        <p id = "p5-archers-level"></p>
+        <p id = "p5-calvary-level"></p>
+        <p id = "p5-infantry-level"></p>
       </li>
       <li id = "p6-player-info" class="p6 player-info">
         <h2>Player 6</h2>
-        <p id = "p6-gold">Gold: 500</p>
-        <p id = "p6-archers-level">Archers Level 2</p>
-        <p id = "p6-calvary-level">Calvary Level 1</p>
-        <p id = "p6-infantry-level">Infantry Level 3</p>
+        <p id = "p6-gold"></p>
+        <p id = "p6-archers-level"></p>
+        <p id = "p6-calvary-level"></p>
+        <p id = "p6-infantry-level"></p>
       </li>
     </ul>
   </div>
@@ -924,14 +924,19 @@ function updateWallPurchases() {
 let players = {};
 ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].forEach((p) => {
   players[p] = {
-    upgrades: {
+    units: {
       archers: 1,
       calvary: 1,
       infantry: 1
     },
     gold: 0,
     goldIncome: 0,
-    goldPublic: 0
+    goldPublic: 0,
+    upgrades: {
+      archers: false,
+      calvary: false,
+      infantry: false
+    }
   }
 })
 
@@ -1071,6 +1076,66 @@ document.getElementById('build-mines').addEventListener('change', () => {
   updateMinePurchases()
 })
 
+// cost for next unit upgrade from 2-4
+let unitUpgradesCost = [ 1500, 3000, 5000 ]
+
+// updates the UI for the player unit upgrades
+function updatePlayerUnitUpgrades() {
+  {
+    // update levels of units for each player
+    ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].forEach((player) => {
+      ['archers', 'calvary', 'infantry'].forEach((unit) => {
+        let p = document.getElementById(player + '-' + unit + '-level')
+        let unitText = unit.charAt(0).toUpperCase() + unit.slice(1)
+        p.textContent = unitText + ' Level ' + players[player].units[unit]
+      })
+    })
+  }
+
+  let upgradesContainer = document.getElementById('turn-player-unit-upgrades')
+  let playerUpgrades = 'p' + turnPlayer.charAt(1) + '-player-info'
+  // move upgrades to turn player
+  document.getElementById(playerUpgrades).appendChild(upgradesContainer);
+  ['archers', 'calvary', 'infantry'].forEach((unit) => {
+    let upgradeUnit = document.getElementById('turn-player-upgrade-' + unit)
+    upgradeUnit.setAttribute('disabled', 'disabled')
+    let unitText = unit.charAt(0).toUpperCase() + unit.slice(1)
+    if (players[turnPlayer].units[unit] >= 4) {
+      upgradeUnit.textContent = unitText + ' Level 4'
+      return
+    }
+    let upgradeText = 'Upgrade ' + unitText
+    let upgradeCost = unitUpgradesCost[players[turnPlayer].units[unit] - 1]
+    upgradeUnit.textContent = upgradeText + ' (' + upgradeCost + ')'
+    if (players[turnPlayer].upgrades[unit]) {
+      upgradeUnit.textContent = 'Cancel Upgrade'
+      upgradeUnit.removeAttribute('disabled')
+    } else {
+      if (players[turnPlayer].gold >= upgradeCost) {
+        upgradeUnit.removeAttribute('disabled')
+      }
+    }
+  })
+}
+
+['archers', 'calvary', 'infantry'].forEach((unit) => {
+  let upgradeUnit = document.getElementById('turn-player-upgrade-' + unit)
+  upgradeUnit.addEventListener('click', () => {
+    let upgradeCost = unitUpgradesCost[players[turnPlayer].units[unit] - 1]
+    if (players[turnPlayer].upgrades[unit]) {
+      players[turnPlayer].gold += upgradeCost
+      players[turnPlayer].upgrades[unit] = false
+    } else {
+      if (players[turnPlayer].gold >= upgradeCost) {
+        players[turnPlayer].gold -= upgradeCost
+        players[turnPlayer].upgrades[unit] = true
+      }
+    }
+    updatePlayerUnitUpgrades()
+    updatePlayerGold()
+  })
+})
+
 function applyPlayerGoldIncome() {
   for (let player in players) {
     players[player].goldIncome = 0
@@ -1091,7 +1156,11 @@ function getShortTerritoryUnits(army) {
   if (army.type === 'Neutral') {
     return army.quantity
   } else {
-    return army.quantity + ' ' + army.type.charAt(0).toUpperCase()
+    let text = army.quantity + ' ' + army.type.charAt(0).toUpperCase()
+    if (army.level > 1) {
+      text = text + army.level
+    }
+    return text
   }
 }
 
@@ -1178,6 +1247,8 @@ function changeTurnPlayer() {
   playerInfo.append(endTurnButton)
   // refresh player gold info
   updatePlayerGold()
+  // refresh player unit upgrades
+  updatePlayerUnitUpgrades()
 }
 
 document.getElementById('end-turn').addEventListener('click', changeTurnPlayer)
@@ -1372,7 +1443,16 @@ function applyTurns() {
   // apply gold income before building new mines
   applyPlayerGoldIncome()
 
-  // TODO apply unit upgrades
+  // apply unit upgrades
+  for (let player in players) {
+    ['archers', 'calvary', 'infantry'].forEach((unit) => {
+      if (players[player].upgrades[unit]) {
+        players[player].units[unit] += 1
+        players[player].upgrades[unit] = false
+      }
+    })
+  }
+
 
   // Apply purchases on territories that remain under the same player's
   // control.
@@ -1385,7 +1465,7 @@ function applyTurns() {
         map[node].armies.push({
           quantity: map[node].purchases[unit],
           type: unit.charAt(0).toUpperCase() + unit.slice(1),
-          level: 1,
+          level: players[map[node].player].units[unit],
           id: highestID + 1
         })
         map[node].purchases[unit] = 0
