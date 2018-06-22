@@ -1094,7 +1094,8 @@ function applyTurns() {
             from: node
           })
         } else {
-          // should never be allowed by UI but seems to happen occasionaly
+          // Happens if a player selects some number of armies but does
+          // not choose a valid deployment location.
           console.log('undefined target', d, map[node])
           // undeploy to avoid error
           map[node].deployed = map[node].deployed.filter(d1 => d1 !== d)
