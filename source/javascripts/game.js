@@ -1505,8 +1505,6 @@ function freeForAll(attackingList, defender) {
     } else {
       victor.quantity = Math.floor(victor.quantity)
     }
-  } else {
-    victor.quantity = Math.floor(victor.quantity)
   }
 }
 
