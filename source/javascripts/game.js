@@ -199,7 +199,7 @@ let map = {}
         justTaken: false
       }
       if (node.includes('water')) {
-        map[node].armies[0].quantity = 1000
+        map[node].armies[0].quantity = 800
       }
       if (node.includes('$')) {
         map[node].armies[0].quantity = 50
@@ -211,7 +211,8 @@ let map = {}
       calvary: 0,
       infantry: 0,
       castle: false,
-      mines: 0
+      mines: 0,
+      rams: 0
     }
     map[node].arriving = []
     map[node].deployed = []
@@ -296,7 +297,7 @@ var switchFocusTo = null
     document.getElementById('territory-gold-income').textContent = territoryGoldIncome(node.id)
 
     // purchases
-    ;['archers', 'calvary', 'infantry'].forEach((unit) => {
+    ;['archers', 'calvary', 'infantry', 'rams'].forEach((unit) => {
       let buyUnit = document.getElementById(unit)
       if ((map[node.id].player === turnPlayer) && (map[node.id].castle)) {
         buyUnit.removeAttribute('disabled')
@@ -576,12 +577,16 @@ function stopHighlighting() {
   let buyArchers = document.getElementById('archers')
   let buyCalvary = document.getElementById('calvary')
   let buyInfantry = document.getElementById('infantry')
+  let buyRams = document.getElementById('rams')
 
-  function buyUnit(unit, input) {
+  function buyUnit(unit, input, cost) {
+    if (input.value < 0) {
+      input.value = input.previousValue
+    }
     if ((+input.previousValue) < (+input.value)) {
       let difference = (+input.value) - (+input.previousValue)
-      if (players[turnPlayer].gold >= (20*difference)) {
-        players[turnPlayer].gold -= (20*difference)
+      if (players[turnPlayer].gold >= (cost*difference)) {
+        players[turnPlayer].gold -= (cost*difference)
         map[input.nodeid].purchases[unit] += difference
         input.previousValue = input.value
       } else {
@@ -589,22 +594,26 @@ function stopHighlighting() {
       }
     } else {
       let difference = (+input.previousValue) - (+input.value)
-      players[turnPlayer].gold += (20*difference)
+      players[turnPlayer].gold += (cost*difference)
       map[input.nodeid].purchases[unit] -= difference
       input.previousValue = input.value
     }
   }
 
   buyArchers.addEventListener('change', () => {
-    buyUnit('archers', buyArchers)
+    buyUnit('archers', buyArchers, 20)
     updatePlayerGold()
   })
   buyCalvary.addEventListener('change', () => {
-    buyUnit('calvary', buyCalvary)
+    buyUnit('calvary', buyCalvary, 20)
     updatePlayerGold()
   })
   buyInfantry.addEventListener('change', () => {
-    buyUnit('infantry', buyInfantry)
+    buyUnit('infantry', buyInfantry, 20)
+    updatePlayerGold()
+  })
+  buyRams.addEventListener('change', () => {
+    buyUnit('rams', buyRams, 1500)
     updatePlayerGold()
   })
 
@@ -679,7 +688,8 @@ let players = {};
     units: {
       archers: 1,
       calvary: 1,
-      infantry: 1
+      infantry: 1,
+      rams: 1
     },
     gold: 0,
     goldIncome: 0,
@@ -1043,11 +1053,18 @@ function applyTurns() {
   for (let node in map) {
     if (map[node].deployed.length > 0) {
       map[node].deployed.forEach((d) => {
-        map[d.target].arriving.push({
-          player: map[node].player,
-          army: d.army,
-          from: node
-        })
+        if (d.target) {
+          map[d.target].arriving.push({
+            player: map[node].player,
+            army: d.army,
+            from: node
+          })
+        } else {
+          // should never be allowed by UI but seems to happen occasionaly
+          console.log('undefined target', d, map[node])
+          // undeploy to avoid error
+          map[node].deployed = map[node].deployed.filter(d1 => d1 !== d)
+        }
       })
     }
   }
@@ -1130,9 +1147,29 @@ function applyTurns() {
         })
         console.log('defending unit arrived', map[node].armies, map[node].arriving)
       })
-      // check for any apply wall bonus flags to defenders
-      if (map[node].wall) {
-        map[node].armies.forEach(a => a.insideWall = true)
+      // check if there is a battle for a walled territory
+      if ((map[node].wall) && (map[node].arriving.length > 0)) {
+        // check for a Ram entering the territory which isn't
+        // already dead from an Edge Battle
+        let sieging = map[node].arriving.some((a) => {
+          return (a.army.type === 'Rams') && (a.army.quantity > 0)
+        })
+        // Destroy all Rams attacking this territory
+        let rams = 0
+        map[node].arriving.forEach((a) => {
+          if ((a.army.type === 'Rams') && (a.army.quantity > 0)) {
+            rams += a.army.quantity
+            a.army.quantity = 0
+          }
+        })
+        if (rams > 1) {
+          // if attacking with multiple rams then destroy the wall
+          map[node].wall = false
+        }
+        // apply any wall bonus flags to defenders not under seige
+        if ((map[node].wall) && (!sieging)) {
+          map[node].armies.forEach(a => a.insideWall = true)
+        }
       }
       // perform battle for control of the node
       nOnOneBattle(map[node].arriving, map[node].armies)
@@ -1140,9 +1177,15 @@ function applyTurns() {
         // defenders hold territory, no update needed
       } else if (map[node].arriving.some(a => a.army.quantity > 0)) {
         // refund attempted purchases if there were any
-        ['archers', 'calvary', 'infantry'].forEach(unit => {
+        ;['archers', 'calvary', 'infantry'].forEach(unit => {
           if (map[node].purchases[unit] > 0) {
             players[map[node].player].gold += (20 * map[node].purchases[unit])
+            map[node].purchases[unit] = 0
+          }
+        })
+        ;['rams'].forEach(unit => {
+          if (map[node].purchases[unit] > 0) {
+            players[map[node].player].gold += (1500 * map[node].purchases[unit])
             map[node].purchases[unit] = 0
           }
         })
@@ -1209,7 +1252,7 @@ function applyTurns() {
   // Apply purchases on territories that remain under the same player's
   // control.
   for (let node in map) {
-    ['archers', 'calvary', 'infantry'].forEach(unit => {
+    ['archers', 'calvary', 'infantry', 'rams'].forEach(unit => {
       if (map[node].purchases[unit] > 0) {
         let highestID = map[node].armies.reduce((accumulator, current) => {
           return Math.max(accumulator, current.id)
@@ -1242,9 +1285,13 @@ function applyTurns() {
 
 // Kills the armies battling along the edge till one side loses.
 // Afterward the victor may have to fight defenders at the node.
+// Originating is the deployed outgoing army from this node
+// Incoming is the arriving army along the edge from this node
+// Neither gets any bonus but the armies need to be stripped out
+// for the free for all battle.
 function edgeBattle(originating, incoming) {
   // no defending bonus for either
-  freeForAll([originating, incoming], null)
+  freeForAll([originating.map(d => d.army), incoming.map(a => a.army)], null)
 }
 
 // n on n cannot happen as it is impossible for multiple
@@ -1309,8 +1356,12 @@ function freeForAll(attackingList, defender) {
       break
     }
     // check for any dead armies
-    let deadArmy = armies.find(army => army.quantity === 0)
+    let deadArmy = armies.find(army => (army.quantity === 0) || (army.type === 'Rams'))
     if (deadArmy) {
+      if (deadArmy.type === 'Rams') {
+        // battering rams do not fight, they instantly lose
+        deadArmy.quantity = 0
+      }
       // if army is at 0 then pass onto next
       let counter = attackingArmiesCounters.find((counter) => {
         return counter.armies.includes(deadArmy)

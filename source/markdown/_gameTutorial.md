@@ -4,7 +4,7 @@
 
 This is no longer a forum game, has slight tweaks and nothing to do with Business. Therefore this shall be known as:
 
-## Risky Battles 1.1
+## Risky Conquest 1.1
 
 This game is mostly an automation of the aforementioned forum game ran by Devour on Stickpage forums. The game ran there never finished, but it was both very simple and had lots of strategy so it seemed like a good target to code up. Perhaps on a rerun I might come further than 4th.
 
@@ -16,7 +16,7 @@ Each player commits their actions for the turn. When player 6 ends their turn th
 
 ## Units
 
-Territories are fought over with units which are bought on castles. Castles are indicated by a black dot, and player control by the territory colour. There are 4 types of units, the neutral starting ones and Archers, Calvary and Infantry. Neutral units trade 1 for 1 in battle before dying. A battle of 11 against 10 will leave the former winning with 1 unit left. Each of the otheres are strong against or weak against the other in a rock-paper-scissors system. 1 Archer is worth 2 Infantry, 1 Calvary is worth 2 Archers and 1 Infantry is worth 2 Calvary. Units can also be upgraded which doubles their strength for each level. 1 level 4 Archer is worth 8 neutral units, 4 calvary or 16 infantry. All units start at level 1, and neutral units cannot be purchased or upgraded.
+Territories are fought over with units which are bought on castles. Castles are indicated by a black dot, and player control by the territory colour. There are 4* types of units, the neutral starting ones and Archers, Calvary and Infantry. Neutral units trade 1 for 1 in battle before dying. A battle of 11 against 10 will leave the former winning with 1 unit left. Each of the otheres are strong against or weak against the other in a rock-paper-scissors system. 1 Archer is worth 2 Infantry, 1 Calvary is worth 2 Archers and 1 Infantry is worth 2 Calvary. Units can also be upgraded which doubles their strength for each level. 1 level 4 Archer is worth 8 neutral units, 4 calvary or 16 infantry. All units start at level 1, and neutral units cannot be purchased or upgraded.
 
 > "But Devour, what if my country has 25 archers and 25 cavalry verse 50 infantry?" I hear you ask. Well my man, when you have multiple different units on a territory, they have to take their turns. Think of it like having some units in the front while others wait in the back line. People will have to tell me if they want their Archers in Line 1 and their Cavalry on Line 2. Infantry on Line 3 if they have that too. In this setup, the Cavalry won't fight until all the Archers are dead. I know it's kind of gimmicky but hey, it's the price we pay for simplicity.
 
@@ -38,7 +38,8 @@ Water territories give no gold. Normal territories give 150 gold per turn. The c
 
 A wall costs 1500 gold to build, and is built after all battles. On all future battles the defending units inside gain 1 level of strength. Walls are indicated by grey outlines.
 
-<!-- Battering Rams -->
+### * Battering Rams
+A Battering Ram is a special unit that does not fight. Each unit costs 1500 gold. 1 Battering Ram negates wall defensive bonuses and multiple destroy the attacked wall entirely, in both cases being consumed upon use. Battering Rams can be intercepted or attacked so should always be deployed behind a protective army to keep them alive on their journey to seige the opponent.
 
 ### Castles.
 
@@ -67,3 +68,15 @@ A castle costs 2000 gold to build, and is build after all battles. Castles under
 Player colours chosen using [I want hue](http://tools.medialab.sciences-po.fr/iwanthue/)
 
 The original [forum game](http://forums.stickpage.com/showthread.php?100762-Risky-Business-Forum-Game)
+
+## Differences to original
+
+- Battering Rams can destroy walls when multiple are present.
+- Units can only be upgraded at most one level per turn.
+- Water territories are 800 Neutral units instead of 2000.
+- Multiple army battles may not be the same algorithm as in the original. The original never had a scenario when 3+ armies fought at once.
+- You cannot order your units without deploying them to another territory (this is not intended to stay)
+- The order of resolving battles/purchases/upgrades may be different to the original. It was never explicitly stated.
+
+<!-- - Aggressive start does not get first capital at half cost. Instead it gets 1000 Gold free to pay for one.
+- Scientific has been buffed from the original -->
