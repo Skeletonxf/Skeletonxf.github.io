@@ -85,6 +85,5 @@ The original [forum game](http://forums.stickpage.com/showthread.php?100762-Risk
 - Multiple army battles may not be the same algorithm as in the original. The original never had a scenario when 3+ armies fought at once.
 - You cannot order your units without deploying them to another territory (this is not intended to stay)
 - The order of resolving battles/purchases/upgrades may be different to the original. It was never explicitly stated.
-
-<!-- - Aggressive start does not get first capital at half cost. Instead it gets 1000 Gold free to pay for one.
-- Scientific has been buffed from the original -->
+- Agressive start gets Gold worth half a Castle instead of a discounted Castle.
+- Scientific is buffed to also gain up to 5 level 5 neutral units which still leaves it gaining half in Gold of Defensive and less expansion power than Aggressive. The unit upgrade was mostly arbitary so is fixed to Archers. Scientific now has significant attacking power to make up for the advantages of the other two.
