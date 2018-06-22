@@ -549,3 +549,9 @@ p.id.mid {
 #choose-start.hidden {
   display: none;
 }
+
+#bot-controls {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}

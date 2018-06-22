@@ -1046,6 +1046,14 @@ function changeTurnPlayer() {
   playerInfo.append(endTurnButton)
   // refresh player gold info
   updatePlayerGold()
+
+  if (turnPlayer !== 'p1') {
+    let bot = document.getElementById('automate-player-' + player)
+    if (bot.checked) {
+      botPlayer()
+      changeTurnPlayer()
+    }
+  }
 }
 
 document.getElementById('end-turn').addEventListener('click', changeTurnPlayer)
@@ -1588,6 +1596,91 @@ function startDefensive(player) {
   defensive.addEventListener('click', () => {
     startDefensive(turnPlayer)
   })
+}
+
+function botPlayer() {
+  function buyUnit(castle, unit, quantity) {
+    if (castle.player === turnPlayer) {
+      castle.purchases[unit] += quantity
+      turnPlayer.gold -= quantity * 20
+    }
+  }
+
+  function highestID(armies) {
+    let highestID = armies.reduce((accumulator, current) => {
+      return Math.max(accumulator, current.id)
+    }, 0)
+  }
+
+  function splitArmies(territory, n, targets) {
+    if (territory.player === turnPlayer) {
+      territory.armies.forEach((a) => {
+        if (n === 1) {
+          territory.deployed.push({
+            army: a,
+            target: targets[0]
+          })
+        }
+        if (n === 2) {
+          let quantity = a.quantity
+          a.quantity = Math.ceil(a.quantity / 2)
+          let split = {
+            quantity: quantity - a.quantity,
+            type: a.type,
+            level: a.level,
+            id: 1 + highestID(territory.armies)
+          }
+          territory.armies.push(split)
+          territory.deployed.push({
+            army: a,
+            target: targets[0]
+          })
+          territory.deployed.push({
+            army: split,
+            target: targets[1]
+          })
+        }
+      })
+    }
+  }
+
+  let territory = []
+  for (let node in map) {
+    if (map[node].player === turnPlayer) {
+      territory.push(node)
+    }
+  }
+  // hardcoded opening
+  if (phase === 1) {
+    let base = territory[0]
+    let adjacent = graph[base]
+    let adjacentOuter = adjacent.filter(n => n.includes('outer'))
+    splitArmies(map[base], 2, adjacentOuter)
+    buyUnit(map[base], 'archers', 10)
+  }
+  if (phase === 2) {
+    let base = territory.find(n => n.includes('base'))
+    let outer = territory.filter(n => n.includes('outer'))
+    let middleTargets = graph[outer[0]].filter(n => n.includes('middle'))
+    let middleTarget = null
+    if (Math.random() < 0.5) {
+      middleTarget = middleTargets[1]
+    } else {
+      middleTarget = middleTargets[0]
+    }
+    outer.forEach((n) => {
+      splitArmies(map[n], 1, [middleTarget])
+    })
+    // move purchased unit
+    splitArmies(map[base], 1, [outer[0]])
+  }
+  if (phase === 3) {
+    let outer = territory.filter(n => n.includes('outer'))
+    let middleTargets = graph[outer[0]].filter(n => n.includes('middle'))
+    let outerUnit = outer.filter(n => map[n].armies.length > 0)
+    let missedTarget = middleTargets.find(n => (map[n].player !== turnPlayer))
+    splitArmies(map[outerUnit], 1, [missedTarget])
+  }
 }
 
 function battleTests() {
