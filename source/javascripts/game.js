@@ -1092,11 +1092,10 @@ function applyTurns() {
   // The update function
 
   // default all unchosen players to defensive
-  if (phase === 2) {
-    for (let player in players) {
-      if (players[player].start === null) {
-        startDefensive(player)
-      }
+  for (let player in players) {
+    if (players[player].start === null) {
+      console.log('assigned start automatically')
+      startDefensive(player)
     }
   }
 
@@ -1347,6 +1346,7 @@ function applyTurns() {
 
   // apply end of turn 3 player start bonuses
   if (phase === 4) {
+    console.log('applying start bonuses')
     for (let player in players) {
       // give aggressive players gold
       if (players[player].start === 'aggressive') {
@@ -1546,7 +1546,7 @@ function battleMultiplier(trade, against) {
 
 // the default start
 function startDefensive(player) {
-  if (phase === 1 && players[player].start === null) {
+  if (players[player].start === null) {
     console.log('defensive')
     players[player].start = 'defensive'
     updateArmies(document.getElementById('base' + player.charAt(1)))
