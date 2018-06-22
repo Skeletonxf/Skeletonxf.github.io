@@ -325,6 +325,12 @@ var switchFocusTo = null
   }
 
   function updateArmies(node) {
+    if ((players[turnPlayer].start === null) && (phase === 1)) {
+      document.getElementById('choose-start').classList.remove('hidden')
+    } else {
+      document.getElementById('choose-start').classList.add('hidden')
+    }
+
     let armiesList = document.getElementById('territory-armies-all')
     // clear armies list
     while (armiesList.firstChild) {
@@ -733,7 +739,8 @@ let players = {};
       archers: false,
       calvary: false,
       infantry: false
-    }
+    },
+    start: null
   }
 })
 
@@ -949,7 +956,7 @@ function applyPlayerGoldIncome() {
 }
 
 function getShortTerritoryUnits(army) {
-  if (army.type === 'Neutral') {
+  if ((army.type === 'Neutral') && (army.level === 1)) {
     return army.quantity
   } else {
     let text = army.quantity + ' ' + army.type.charAt(0).toUpperCase()
@@ -1083,6 +1090,14 @@ function updatePlayerGold() {
 function applyTurns() {
   phase = phase += 1
   // The update function
+
+  // default all unchosen players to defensive
+  for (let player in players) {
+    if (players[player].start === null) {
+      console.log('assigned start automatically')
+      startDefensive(player)
+    }
+  }
 
   for (let node in map) {
     if (map[node].deployed.length > 0) {
@@ -1329,6 +1344,38 @@ function applyTurns() {
     }
   }
 
+  // apply end of turn 3 player start bonuses
+  if (phase === 4) {
+    console.log('applying start bonuses')
+    for (let player in players) {
+      // give aggressive players gold
+      if (players[player].start === 'aggressive') {
+        players[player].gold += 1000
+      }
+      // give defensive players walls
+      if (players[player].start === 'defensive') {
+        for (let node in map) {
+          if (map[node].player === player) {
+            map[node].wall = true
+          }
+        }
+      }
+      // give scienfic players level 5 neutral units
+      if (players[player].start === 'scientific') {
+        for (let node in map) {
+          if (map[node].player === player) {
+            map[node].armies.push({
+              quantity: 1,
+              type: 'Neutral',
+              level: 5,
+              id: -1
+            })
+          }
+        }
+      }
+    }
+  }
+
   updateMap()
 }
 
@@ -1495,6 +1542,52 @@ function battleMultiplier(trade, against) {
   }
   return Math.pow(2,
     levelDifference + typeAdvantage[trade.type][against.type])
+}
+
+// the default start
+function startDefensive(player) {
+  if (players[player].start === null) {
+    console.log('defensive')
+    players[player].start = 'defensive'
+    updateArmies(document.getElementById('base' + player.charAt(1)))
+  }
+}
+
+{
+  let aggressive = document.getElementById('aggressive-start')
+  let defensive = document.getElementById('defensive-start')
+  let scientific = document.getElementById('scientific-start')
+
+  aggressive.addEventListener('click', () => {
+    if (phase === 1 && players[turnPlayer].start === null) {
+      console.log('aggressive')
+      players[turnPlayer].start = 'aggressive'
+      for (let node in map) {
+        if (map[node].player === turnPlayer) {
+          map[node].armies.push({
+            quantity: 20,
+            type: 'Neutral',
+            level: 1,
+            id: -1
+          })
+          updateArmies(document.getElementById(node))
+        }
+      }
+      updateMap()
+    }
+  })
+  scientific.addEventListener('click', () => {
+    if (phase === 1 && players[turnPlayer].start === null) {
+      console.log('scientific')
+      players[turnPlayer].start = 'scientific'
+      players[turnPlayer].units.archers += 1
+      updateArmies(document.getElementById('base' + turnPlayer.charAt(1)))
+      updatePlayerUnitUpgrades()
+    }
+  })
+  defensive.addEventListener('click', () => {
+    startDefensive(turnPlayer)
+  })
 }
 
 function battleTests() {

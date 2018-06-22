@@ -470,3 +470,10 @@ p.id.mid {
     margin: auto; }
     #tutorial article p, #tutorial article li {
       text-align: left; }
+
+/* Start selection */
+#choose-start button {
+  width: 100%; }
+
+#choose-start .hidden {
+  display: none; }
