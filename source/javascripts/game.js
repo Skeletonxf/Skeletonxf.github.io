@@ -232,6 +232,10 @@ let fullPlayerNames = {
 let uiState = 'selectFocus'
 let attackFrom = null
 
+let turn = 1
+let phase = 1
+var turnPlayer = 'p0' //needs hoisting
+
 for (let node in graph) {
   let element = document.getElementById(node)
   element.addEventListener('click', (event) => {
@@ -895,6 +899,11 @@ function updatePlayerUnitUpgrades() {
     })
   }
 
+  if (turnPlayer === 'p0') {
+    // being called prematurely
+    return
+  }
+
   let upgradesContainer = document.getElementById('turn-player-unit-upgrades')
   let playerUpgrades = 'p' + turnPlayer.charAt(1) + '-player-info'
   // move upgrades to turn player
@@ -1028,10 +1037,6 @@ applyPlayerGoldIncome()
 
 /* Turns */
 
-let turn = 1
-let phase = 1
-var turnPlayer = 'p0' // needs hoisting
-
 function changeTurnPlayer() {
   let player = +turnPlayer.slice(1)
   player += 1
@@ -1050,8 +1055,6 @@ function changeTurnPlayer() {
   playerInfo.append(endTurnButton)
   // refresh player gold info
   updatePlayerGold()
-  // refresh player unit upgrades
-  updatePlayerUnitUpgrades()
 }
 
 document.getElementById('end-turn').addEventListener('click', changeTurnPlayer)
@@ -1085,6 +1088,8 @@ function updatePlayerGold() {
     let turnPlayerNotice = 'Remaining Gold: ' + players[turnPlayer].gold
     document.getElementById('turn-player-remaining-gold').textContent = turnPlayerNotice
   }
+  // refresh player unit upgrades
+  updatePlayerUnitUpgrades()
 }
 
 function applyTurns() {
