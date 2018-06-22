@@ -14,6 +14,14 @@ There are 6 players positioned equally on a hexagonal map. In the centre is a te
 
 Each player commits their actions for the turn. When player 6 ends their turn the next phase is started and all player's actions take place at once.
 
+## Starts
+
+There are 3 starts you can choose on your first turn. If you do not choose you will get Defensive.
+
+- Defensive: At the end of turn 3 walls are built on every territory you own. You can get 4 walls from this which is worth 6000 Gold.
+- Aggressive: You get 20 extra starting units which helps you expand further and faster than the other players. Starting units will always be a turn ahead of everything else and each territory you'll take gives 150 gold per turn. You also get 1000 gold at the end of turn 3 (you may want to buy a Castle with this).
+- Scientific: You start with level 2 archers (worth 1500 Gold). At the end of turn 3 you get 1 level 5 neutral unit on every territory you own. This gives you up to 5 of the strongest units in the game. Each of these is worth 16 normal units so in trades you can save up to 1600 Gold in units.
+
 ## Units
 
 Territories are fought over with units which are bought on castles. Castles are indicated by a black dot, and player control by the territory colour. There are 4* types of units, the neutral starting ones and Archers, Calvary and Infantry. Neutral units trade 1 for 1 in battle before dying. A battle of 11 against 10 will leave the former winning with 1 unit left. Each of the otheres are strong against or weak against the other in a rock-paper-scissors system. 1 Archer is worth 2 Infantry, 1 Calvary is worth 2 Archers and 1 Infantry is worth 2 Calvary. Units can also be upgraded which doubles their strength for each level. 1 level 4 Archer is worth 8 neutral units, 4 calvary or 16 infantry. All units start at level 1, and neutral units cannot be purchased or upgraded.
