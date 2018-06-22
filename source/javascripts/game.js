@@ -244,6 +244,7 @@ for (let node in graph) {
   })
 }
 
+// gets the full name of a territory by manipulating the id
 function getFullName(id) {
   let fullName = ""
   if (id === "$") {
@@ -318,6 +319,9 @@ var switchFocusTo = null
 
     document.getElementById('build-castle').nodeid = node.id
     updateCastlePurchases()
+
+    document.getElementById('raze-down').nodeid = node.id
+    updateRazeDown()
   }
 
   function updateArmies(node) {
@@ -646,6 +650,19 @@ function stopHighlighting() {
     updatePlayerGold()
     updateWallPurchases()
   })
+
+  let razeDown = document.getElementById('raze-down')
+  razeDown.addEventListener('click', () => {
+    if (map[razeDown.nodeid].player === turnPlayer) {
+      // toggle setting
+      if (map[razeDown.nodeid].raze) {
+        map[razeDown.nodeid].raze = false
+      } else {
+        map[razeDown.nodeid].raze = true
+      }
+    }
+    updateRazeDown()
+  })
 }
 
 function updateCastlePurchases() {
@@ -678,6 +695,24 @@ function updateWallPurchases() {
       if ((players[turnPlayer].gold >= 1500) && (!map[nodeid].wall)) {
         buyWall.removeAttribute('disabled')
       }
+    }
+  }
+}
+
+function updateRazeDown() {
+  let razeDown = document.getElementById('raze-down')
+  let nodeid = razeDown.nodeid
+  razeDown.textContent = 'Raze Down'
+  razeDown.setAttribute('disabled', 'disabled')
+  if ((nodeid) && (map[nodeid].player === turnPlayer)) {
+    if (map[nodeid].raze) {
+      razeDown.textContent = 'Cancel Raze'
+      razeDown.removeAttribute('disabled')
+    }
+    // check that there is something to raze down
+    if (map[nodeid].capital || map[nodeid].castle || map[nodeid].mines > 0 ||
+    map[nodeid].wall) {
+      razeDown.removeAttribute('disabled')
     }
   }
 }
@@ -747,7 +782,6 @@ function updateMinePurchases() {
   let label = document.getElementById('build-mines-label')
   let nodeid = buyMines.nodeid
   if (nodeid) {
-    console.log('mines', map[nodeid].mines, map[nodeid].purchases.mines)
     if (map[nodeid].player === turnPlayer) {
       buyMines.removeAttribute('disabled')
       let mineLevel = map[nodeid].mines + map[nodeid].purchases.mines
@@ -1205,6 +1239,9 @@ function applyTurns() {
             map[nodeid].purchases.mines -= 1
           }
         }
+        if (map[node].raze) {
+          map[node].raze = false
+        }
         // attackers win and take territory
         map[node].player = map[node].arriving.find(a => a.army.quantity > 0).player
         // surviving armies remain in territory
@@ -1233,6 +1270,17 @@ function applyTurns() {
   // Remove wall bonus flags.
   for (let node in map) {
     map[node].armies.forEach(a => a.insideWall = null)
+  }
+
+  // Raze down any territories
+  for (let node in map) {
+    if (map[node].raze) {
+      map[node].raze = false
+      map[node].capital = false
+      map[node].castle = false
+      map[node].mines = 0
+      map[node].wall = false
+    }
   }
 
   // apply gold income before building new mines
