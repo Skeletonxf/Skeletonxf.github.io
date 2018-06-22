@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset = "UTF-8">
+  <meta name = "viewport" content = "width = device-width">
+  <!-- Use the title from a page's frontmatter if it has one -->
+  <title>Skeletonxf.github.io</title>
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
+  <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+  <link rel = "stylesheet" href = "stylesheets/game.css">
+  <script src = "javascripts/game.js"></script>
+</head>
+<body>
+  <div class = "page">
+    <header>
+  <nav>
+    <ul>
+      <li>
+        <p><a href = "index.html">Index</a></p>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<h1 class = "center" id = "title">
+  A game eventually
+</h1>
+<div id = "flex-wrapper">
+  <div id = "armies">
+    <div>
+      <p id = "turn-player-remaining-gold">Remaining Gold: </p>
+    </div>
+    <div id = "armies-all">
+      <h2>Available</h2>
+      <ol id = "territory-armies-all"></ol>
+    </div>
+    <div id = "armies-selected">
+      <h2>Selected</h2>
+      <ol id = "territory-armies-selected"></ol>
+    </div>
+    <div id = "armies-attack"></div>
+    <div id = "attacks">
+      <h2>Orders</h2>
+      <ol id = "territory-attacks"></ol>
+    </div>
+  </div>
+  <div id = "map">
+    <div id = "territories">
+        <div id = "section0" class="section">
+          <div class="container">
+            <ol class="even nothing-up face-to-face-down">
+              <li class='hex base' id='base1'>
+                <div class="content info">
+                  <p class='id'>1</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd face-to-face-up point-to-point-down">
+              <li class='hex' id='outer1'>
+                <div class="content info">
+                  <p class='id'>1</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='outer2'>
+                <div class="content info">
+                  <p class='id'>2</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up face-to-face-down">
+              <li class='hex' id='middle1'>
+                <div class="content info">
+                  <p class='id'>1</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='middle2'>
+                <div class="content info">
+                  <p class='id'>2</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even face-to-face-up point-to-point-down">
+              <li class='hex inner' id='inner1'>
+                <div class="content info">
+                  <p class='id'>1</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even point-to-point-up nothing-down">
+              <li class='hex blank'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section1" class="section">
+          <div class="container">
+            <ol class="odd nothing-up point-to-point-down">
+              <li class='hex water', id='water1'>
+                <div class="content info">
+                  <p class='id'>1</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex blank half'></li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex' id='middle3'>
+                <div class="content info">
+                  <p class='id'>3</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex inner' id='inner2'>
+                <div class="content info">
+                  <p class='id'>2</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up nothing-down">
+              <li class='hex blank half'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section2" class="section">
+          <div class="container">
+            <ol class="even nothing-up face-to-face-down">
+              <li class='hex base' id='base2'>
+                <div class="content info">
+                  <p class='id'>2</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd face-to-face-up point-to-point-down">
+              <li class='hex' id='outer3'>
+                <div class="content info">
+                  <p class='id'>3</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='outer4'>
+                <div class="content info">
+                  <p class='id'>4</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up face-to-face-down">
+              <li class='hex' id='middle4'>
+                <div class="content info">
+                  <p class='id'>4</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='middle5'>
+                <div class="content info">
+                  <p class='id'>5</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even face-to-face-up point-to-point-down">
+              <li class='hex inner' id='inner3'>
+                <div class="content info">
+                  <p class='id'>3</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even point-to-point-up nothing-down">
+              <li class='hex blank'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section3" class="section">
+          <div class="container">
+            <ol class="odd nothing-up point-to-point-down">
+              <li class='hex water', id='water2'>
+                <div class="content info">
+                  <p class='id'>2</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex blank half'></li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex' id='middle6'>
+                <div class="content info">
+                  <p class='id'>6</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex inner' id='inner4'>
+                <div class="content info">
+                  <p class='id'>4</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up nothing-down">
+              <li class='hex blank half'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section4" class="section">
+          <div class="container">
+            <ol class="even nothing-up face-to-face-down">
+              <li class='hex base' id='base3'>
+                <div class="content info">
+                  <p class='id'>3</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd face-to-face-up point-to-point-down">
+              <li class='hex' id='outer5'>
+                <div class="content info">
+                  <p class='id'>5</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='outer6'>
+                <div class="content info">
+                  <p class='id'>6</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up face-to-face-down">
+              <li class='hex' id='middle7'>
+                <div class="content info">
+                  <p class='id'>7</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='middle8'>
+                <div class="content info">
+                  <p class='id'>8</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even face-to-face-up point-to-point-down">
+              <li class='hex inner' id='inner5'>
+                <div class="content info">
+                  <p class='id'>5</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even point-to-point-up nothing-down">
+              <li class='hex blank'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section5" class="section">
+          <div class="container">
+            <ol class="odd nothing-up point-to-point-down">
+              <li class='hex water', id='water3'>
+                <div class="content info">
+                  <p class='id'>3</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex blank half'></li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex' id='middle9'>
+                <div class="content info">
+                  <p class='id'>9</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex inner' id='inner6'>
+                <div class="content info">
+                  <p class='id'>6</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up nothing-down">
+              <li class='hex blank half'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section6" class="section">
+          <div class="container">
+            <ol class="even nothing-up face-to-face-down">
+              <li class='hex base' id='base4'>
+                <div class="content info">
+                  <p class='id'>4</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd face-to-face-up point-to-point-down">
+              <li class='hex' id='outer7'>
+                <div class="content info">
+                  <p class='id'>7</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='outer8'>
+                <div class="content info">
+                  <p class='id'>8</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up face-to-face-down">
+              <li class='hex' id='middle10'>
+                <div class="content info">
+                  <p class='id'>10</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='middle11'>
+                <div class="content info">
+                  <p class='id'>11</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even face-to-face-up point-to-point-down">
+              <li class='hex inner' id='inner7'>
+                <div class="content info">
+                  <p class='id'>7</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even point-to-point-up nothing-down">
+              <li class='hex blank'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section7" class="section">
+          <div class="container">
+            <ol class="odd nothing-up point-to-point-down">
+              <li class='hex water', id='water4'>
+                <div class="content info">
+                  <p class='id'>4</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex blank half'></li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex' id='middle12'>
+                <div class="content info">
+                  <p class='id'>12</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex inner' id='inner8'>
+                <div class="content info">
+                  <p class='id'>8</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up nothing-down">
+              <li class='hex blank half'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section8" class="section">
+          <div class="container">
+            <ol class="even nothing-up face-to-face-down">
+              <li class='hex base' id='base5'>
+                <div class="content info">
+                  <p class='id'>5</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd face-to-face-up point-to-point-down">
+              <li class='hex' id='outer9'>
+                <div class="content info">
+                  <p class='id'>9</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='outer10'>
+                <div class="content info">
+                  <p class='id'>10</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up face-to-face-down">
+              <li class='hex' id='middle13'>
+                <div class="content info">
+                  <p class='id'>13</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='middle14'>
+                <div class="content info">
+                  <p class='id'>14</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even face-to-face-up point-to-point-down">
+              <li class='hex inner' id='inner9'>
+                <div class="content info">
+                  <p class='id'>9</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even point-to-point-up nothing-down">
+              <li class='hex blank'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section9" class="section">
+          <div class="container">
+            <ol class="odd nothing-up point-to-point-down">
+              <li class='hex water', id='water5'>
+                <div class="content info">
+                  <p class='id'>5</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex blank half'></li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex' id='middle15'>
+                <div class="content info">
+                  <p class='id'>15</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex inner' id='inner10'>
+                <div class="content info">
+                  <p class='id'>10</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up nothing-down">
+              <li class='hex blank half'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section10" class="section">
+          <div class="container">
+            <ol class="even nothing-up face-to-face-down">
+              <li class='hex base' id='base6'>
+                <div class="content info">
+                  <p class='id'>6</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd face-to-face-up point-to-point-down">
+              <li class='hex' id='outer11'>
+                <div class="content info">
+                  <p class='id'>11</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='outer12'>
+                <div class="content info">
+                  <p class='id'>12</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up face-to-face-down">
+              <li class='hex' id='middle16'>
+                <div class="content info">
+                  <p class='id'>16</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='middle17'>
+                <div class="content info">
+                  <p class='id'>17</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even face-to-face-up point-to-point-down">
+              <li class='hex inner' id='inner11'>
+                <div class="content info">
+                  <p class='id'>11</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even point-to-point-up nothing-down">
+              <li class='hex blank'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section11" class="section">
+          <div class="container">
+            <ol class="odd nothing-up point-to-point-down">
+              <li class='hex water', id='water6'>
+                <div class="content info">
+                  <p class='id'>6</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex blank half'></li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex' id='middle18'>
+                <div class="content info">
+                  <p class='id'>18</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex inner' id='inner12'>
+                <div class="content info">
+                  <p class='id'>12</p>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up nothing-down">
+              <li class='hex blank half'></li>
+            </ol>
+          </div>
+        </div>
+      <div id="section12" class="center section">
+        <div class="container">
+          <ol class="center odd nothing-up nothing-down">
+            <li class="center hex" id='$'>
+              <div class="content info">
+                <p class='id mid'>$</p>
+              </div>
+              <div class="content units"></div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+    <svg id="paths"></svg>
+    <svg id="walls"></svg>
+    <svg id="mines"></svg>
+    <svg id="castles"></svg>
+  </div>
+  <div id = "info">
+    <h2 id = "territory-name"></h2>
+    <h3>Control</h3>
+    <p id = "territory-controller"></p>
+    <h3>Structures</h3>
+    <p id = "territory-mines"></p>
+    <p id = "territory-wall"></p>
+    <p id = "territory-castle"></p>
+    <h3>Gold Income</h3>
+    <p id = "territory-gold-income"></p>
+    <div id="info-build-units">
+      <h3>Buy Units</h3>
+      <h4>20 Gold</h4>
+      <div class="buy">
+        <label for="archers">Archers</label>
+        <input type="number" id="archers"></input>
+      </div>
+      <div class="buy">
+        <label for="calvary">Calvary</label>
+        <input type="number" id="calvary"></input>
+      </div>
+      <div class="buy">
+        <label for="infantry">Infantry</label>
+        <input type="number" id="infantry"></input>
+      </div>
+      <h4>1500 Gold</h4>
+      <div class="buy">
+        <label for="rams">Battering Ram</label>
+        <input type="number" id="rams"></input>
+      </div>
+    </div>
+    <div id="info-buttons">
+      <h4>Territory Upgrades</h4>
+      <div class="buy">
+        <label for="build-mines" id="build-mines-label">Mines +1: 200</label>
+        <input type="number" id="build-mines"></input>
+      </div>
+      <button id="build-wall">Build Wall (1500)</button>
+      <button id="build-castle">Build Castle (2000)</button>
+      <button id="raze-down">Raze Down</button>
+    </div>
+  </div>
+  <div id = "players">
+    <ul>
+      <li id = "p1-player-info" class="p1 player-info">
+        <h2>Player 1</h2>
+        <p id = "p1-gold"></p>
+        <p id = "p1-archers-level"></p>
+        <p id = "p1-calvary-level"></p>
+        <p id = "p1-infantry-level"></p>
+        <div id = "turn-player-unit-upgrades">
+          <button id = "turn-player-upgrade-archers">Upgrade Archers</button>
+          <button id = "turn-player-upgrade-calvary">Upgrade Calvary</button>
+          <button id = "turn-player-upgrade-infantry">Upgrade Infantry</button>
+        </div>
+        <button id="end-turn">End Turn</button>
+      </li>
+      <li id = "p2-player-info" class="p2 player-info">
+        <h2>Player 2</h2>
+        <p id = "p2-gold"></p>
+        <p id = "p2-archers-level"></p>
+        <p id = "p2-calvary-level"></p>
+        <p id = "p2-infantry-level"></p>
+      </li>
+      <li id = "p3-player-info" class="p3 player-info">
+        <h2>Player 3</h2>
+        <p id = "p3-gold"></p>
+        <p id = "p3-archers-level"></p>
+        <p id = "p3-calvary-level"></p>
+        <p id = "p3-infantry-level"></p>
+      </li>
+      <li id = "p4-player-info" class="p4 player-info">
+        <h2>Player 4</h2>
+        <p id = "p4-gold"></p>
+        <p id = "p4-archers-level"></p>
+        <p id = "p4-calvary-level"></p>
+        <p id = "p4-infantry-level"></p>
+      </li>
+      <li id = "p5-player-info" class="p5 player-info">
+        <h2>Player 5</h2>
+        <p id = "p5-gold"></p>
+        <p id = "p5-archers-level"></p>
+        <p id = "p5-calvary-level"></p>
+        <p id = "p5-infantry-level"></p>
+      </li>
+      <li id = "p6-player-info" class="p6 player-info">
+        <h2>Player 6</h2>
+        <p id = "p6-gold"></p>
+        <p id = "p6-archers-level"></p>
+        <p id = "p6-calvary-level"></p>
+        <p id = "p6-infantry-level"></p>
+      </li>
+    </ul>
+  </div>
+</div>
+<div id = "mine-gold-income">
+  <h2>Mine gold income levels</h2>
+  <ol id = "mine-gold-income-list"></ol>
+</div>
+<div id = "tutorial">
+  <article>
+    <h1>Preamble</h1>
+
+<h2>Risky Business [Forum Game]</h2>
+
+<p>This is no longer a forum game, has slight tweaks and nothing to do with Business. Therefore this shall be known as:</p>
+
+<h2>Risky Conquest 1.1</h2>
+
+<p>This game is mostly an automation of the aforementioned forum game ran by Devour on Stickpage forums. The game ran there never finished, but it was both very simple and had lots of strategy so it seemed like a good target to code up. Perhaps on a rerun I might come further than 4th.</p>
+
+<h1>Tutorial</h1>
+
+<p>There are 6 players positioned equally on a hexagonal map. In the centre is a territory with 50 neutral units that must be defeated to take. When a player takes control of it they gain 2000 gold immediately, and still 600 gold each turn after. The game ends when one player has become unstoppable, probably by permanent control of the centre. Detecting this automatically is left as an excerise to the reader.</p>
+
+<p>Each player commits their actions for the turn. When player 6 ends their turn the next phase is started and all player&rsquo;s actions take place at once.</p>
+
+<h2>Units</h2>
+
+<p>Territories are fought over with units which are bought on castles. Castles are indicated by a black dot, and player control by the territory colour. There are 4* types of units, the neutral starting ones and Archers, Calvary and Infantry. Neutral units trade 1 for 1 in battle before dying. A battle of 11 against 10 will leave the former winning with 1 unit left. Each of the otheres are strong against or weak against the other in a rock-paper-scissors system. 1 Archer is worth 2 Infantry, 1 Calvary is worth 2 Archers and 1 Infantry is worth 2 Calvary. Units can also be upgraded which doubles their strength for each level. 1 level 4 Archer is worth 8 neutral units, 4 calvary or 16 infantry. All units start at level 1, and neutral units cannot be purchased or upgraded.</p>
+
+<blockquote>
+<p>&ldquo;But Devour, what if my country has 25 archers and 25 cavalry verse 50 infantry?&rdquo; I hear you ask. Well my man, when you have multiple different units on a territory, they have to take their turns. Think of it like having some units in the front while others wait in the back line. People will have to tell me if they want their Archers in Line 1 and their Cavalry on Line 2. Infantry on Line 3 if they have that too. In this setup, the Cavalry won&rsquo;t fight until all the Archers are dead. I know it&rsquo;s kind of gimmicky but hey, it&rsquo;s the price we pay for simplicity.</p>
+</blockquote>
+
+<p>Unit upgrades do not apply to the units you already have, you have to spawn new ones.</p>
+
+<h2>Gold</h2>
+
+<p>Each unit costs 20 gold. This spawns one new unit on a Castle after all battles take place, if you retain control of that territory. All failed purchases like this refund in full.</p>
+
+<h3>Mines</h3>
+
+<p>Mine costs and levels are listed above this article. Mines produce extra gold from a territory. The extra gold per turn diminishes sharply with further levels. Mines are indicated by 0-6 gold dots.</p>
+
+<h3>Territory Gold</h3>
+
+<p>Water territories give no gold. Normal territories give 150 gold per turn. The centre gives 2000 gold on taking and 600 gold after. Each player&rsquo;s starting territory is a Capital which gives 400 gold per turn. Capitals cannot be created, but can be taken from other players.</p>
+
+<h3>Walls</h3>
+
+<p>A wall costs 1500 gold to build, and is built after all battles. On all future battles the defending units inside gain 1 level of strength. Walls are indicated by grey outlines.</p>
+
+<h3>* Battering Rams</h3>
+
+<p>A Battering Ram is a special unit that does not fight. Each unit costs 1500 gold. 1 Battering Ram negates wall defensive bonuses and multiple destroy the attacked wall entirely, in both cases being consumed upon use. Battering Rams can be intercepted or attacked so should always be deployed behind a protective army to keep them alive on their journey to seige the opponent.</p>
+
+<h3>Castles.</h3>
+
+<p>A castle costs 2000 gold to build, and is build after all battles. Castles under your control are the only territory you can spawn units on. No castles, no new units! Castles are indicated by black dots.</p>
+
+<!-- Razing territories down -->
+
+<!-- Aggressive/Defensive/Scientific -->
+
+<h1>I don&rsquo;t have 6 players</h1>
+
+<ul>
+<li>1 player: ☹️ Wait for me to add AI players</li>
+<li>2 players: Form 2 teams each
+
+<ul>
+<li>p1,p2,p3 vs p4,p5,p6</li>
+<li>p1,p3,p5 vs p2,p4,p6 (probably more interesting)</li>
+</ul></li>
+<li>3 players: Form 2 teams each
+
+<ul>
+<li>p1,p2 vs p3,p4 vs p5,p6</li>
+<li>p1, p4 vs p2,p5 vs p3,p6 (probably more interesting)</li>
+</ul></li>
+<li>4 players: rotate control of two opposite non player players
+
+<ul>
+<li>p2 vs p3 vs p5 vs p6 vs p1[rotating control through p2,p3,p5,p6] vs p4[rotating p5,p6,p2,p3]</li>
+</ul></li>
+<li>5 players: rotate control of last non player player
+
+<ul>
+<li>p1 vs p2 vs p3 vs p4 vs p5 vs p6[rotating]</li>
+</ul></li>
+<li>6 players: ☺️ Full game</li>
+</ul>
+
+<h1>Notes</h1>
+
+<p>Player colours chosen using <a href="http://tools.medialab.sciences-po.fr/iwanthue/">I want hue</a></p>
+
+<p>The original <a href="http://forums.stickpage.com/showthread.php?100762-Risky-Business-Forum-Game">forum game</a></p>
+
+<h2>Differences to original</h2>
+
+<ul>
+<li>Battering Rams can destroy walls when multiple are present.</li>
+<li>Units can only be upgraded at most one level per turn.</li>
+<li>Water territories are 800 Neutral units instead of 2000.</li>
+<li>Multiple army battles may not be the same algorithm as in the original. The original never had a scenario when 3+ armies fought at once.</li>
+<li>You cannot order your units without deploying them to another territory (this is not intended to stay)</li>
+<li>The order of resolving battles/purchases/upgrades may be different to the original. It was never explicitly stated.</li>
+</ul>
+
+<!-- - Aggressive start does not get first capital at half cost. Instead it gets 1000 Gold free to pay for one.
+- Scientific has been buffed from the original -->
+
+  </article>
+</div>
+
+  </div>
+  <footer>
+  <p>My content on this site is licensed under Creative Commons By Attribution <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></p>
+  <p>This site's source code is licensed under the MIT license <a href="https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code">https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code</a></p>
+  </footer>
+</body>
+</html>
