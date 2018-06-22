@@ -475,5 +475,5 @@ p.id.mid {
 #choose-start button {
   width: 100%; }
 
-#choose-start .hidden {
+#choose-start.hidden {
   display: none; }
