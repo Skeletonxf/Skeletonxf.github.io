@@ -643,7 +643,6 @@ function stopHighlighting() {
       }
     }
     updatePlayerGold()
-    updateCastlePurchases()
   })
 
   let buyWall = document.getElementById('build-wall')
@@ -658,7 +657,6 @@ function stopHighlighting() {
       }
     }
     updatePlayerGold()
-    updateWallPurchases()
   })
 
   let razeDown = document.getElementById('raze-down')
@@ -852,21 +850,17 @@ document.getElementById('build-mines').addEventListener('change', () => {
         totalMines = mines + map[nodeid].purchases.mines
       }
       buyMines.previousValue = buyMines.value
-      updateMinePurchases()
       updatePlayerGold()
       return
     }
     // purchase next level
     if (buyMines.value > totalMines) {
       while ((+buyMines.value) > totalMines) {
-        console.log('purchasing')
         let costToPurchase = mineUpgradeCost[totalMines]
         if (players[turnPlayer].gold < costToPurchase) {
           // stop if run out of money
-          console.log('no money')
           buyMines.value = totalMines
           buyMines.previousValue = totalMines
-          updateMinePurchases()
           updatePlayerGold()
           return
         }
@@ -875,7 +869,6 @@ document.getElementById('build-mines').addEventListener('change', () => {
         totalMines = mines + map[nodeid].purchases.mines
       }
       buyMines.previousValue = buyMines.value
-      updateMinePurchases()
       updatePlayerGold()
       return
     }
@@ -903,7 +896,6 @@ function updatePlayerUnitUpgrades() {
     // being called prematurely
     return
   }
-
   let upgradesContainer = document.getElementById('turn-player-unit-upgrades')
   let playerUpgrades = 'p' + turnPlayer.charAt(1) + '-player-info'
   // move upgrades to turn player
@@ -943,7 +935,6 @@ function updatePlayerUnitUpgrades() {
         players[turnPlayer].upgrades[unit] = true
       }
     }
-    updatePlayerUnitUpgrades()
     updatePlayerGold()
   })
 })
@@ -1090,6 +1081,10 @@ function updatePlayerGold() {
   }
   // refresh player unit upgrades
   updatePlayerUnitUpgrades()
+  // refresh territory upgrades
+  updateCastlePurchases()
+  updateWallPurchases()
+  updateMinePurchases()
 }
 
 function applyTurns() {
