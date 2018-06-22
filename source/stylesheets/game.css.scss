@@ -537,3 +537,15 @@ p.id.mid {
     }
   }
 }
+
+/* Start selection */
+
+#choose-start {
+  button {
+    width: 100%;
+  }
+}
+
+#choose-start .hidden {
+  display: none;
+}
