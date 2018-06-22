@@ -1225,8 +1225,8 @@ function applyTurns() {
       nOnOneBattle(map[node].arriving, map[node].armies)
       if (map[node].armies.some(army => army.quantity > 0)) {
         // defenders hold territory, no update needed
-      } else if (map[node].arriving.some(a => a.army.quantity > 0)) {
-        // refund attempted purchases if there were any
+      } else {
+        // Territory lost: refund attempted purchases if there were any.
         ;['archers', 'calvary', 'infantry'].forEach(unit => {
           if (map[node].purchases[unit] > 0) {
             players[map[node].player].gold += (20 * map[node].purchases[unit])
@@ -1258,21 +1258,23 @@ function applyTurns() {
         if (map[node].raze) {
           map[node].raze = false
         }
-        // attackers win and take territory
-        map[node].player = map[node].arriving.find(a => a.army.quantity > 0).player
-        // surviving armies remain in territory
-        map[node].armies = map[node].arriving.filter(a => a.army.quantity > 0).map(a => a.army)
-        map[node].justTaken = true
-      } else {
-        // territory turns neutral
-        map[node].armies = []
-        // if only one player attacked this neutral territory
-        // then they gain control of it anyway
-        if ((map[node].player === 'neutral') &&
-        (new Set(map[node].arriving.map(a => a.player))).size === 1) {
-          map[node].player = map[node].arriving[0].player
+        if (map[node].arriving.some(a => a.army.quantity > 0)) {
+          // attackers win and take territory
+          map[node].player = map[node].arriving.find(a => a.army.quantity > 0).player
+          // surviving armies remain in territory
+          map[node].armies = map[node].arriving.filter(a => a.army.quantity > 0).map(a => a.army)
+          map[node].justTaken = true
         } else {
-          map[node].player = 'neutral'
+          // territory turns neutral
+          map[node].armies = []
+          // if only one player attacked this neutral territory
+          // then they gain control of it anyway
+          if ((map[node].player === 'neutral') &&
+          (new Set(map[node].arriving.map(a => a.player))).size === 1) {
+            map[node].player = map[node].arriving[0].player
+          } else {
+            map[node].player = 'neutral'
+          }
         }
       }
     }
