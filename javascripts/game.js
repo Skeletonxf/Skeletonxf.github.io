@@ -604,7 +604,16 @@ function stopHighlighting() {
         map[input.nodeid].purchases[unit] += difference
         input.previousValue = input.value
       } else {
-        input.value = input.previousValue
+        // buy as many as possible
+        let maxValue = (+input.previousValue) + Math.floor(players[turnPlayer].gold / (cost))
+        // difference cannot be less than 0
+        let difference = maxValue - (+input.previousValue)
+        // bring player up to max value that they can buy
+        // (which is less than input.value)
+        players[turnPlayer].gold -= (cost*difference)
+        map[input.nodeid].purchases[unit] += difference
+        input.value = maxValue
+        input.previousValue = maxValue
       }
     } else {
       let difference = (+input.previousValue) - (+input.value)
