@@ -385,10 +385,23 @@ var switchFocusTo = null
     }
     updateButton()
 
-    // setup army deployment UI for this territory
-    map[node.id].armies.forEach(listArmy)
+    // Setup army deployment UI for this territory.
+    // List deployed first to order UI as for deployments.
+    let listed = []
+    map[node.id].deployed.forEach((d) => {
+      listArmy(d.army)
+      listed.push(d.army)
+    })
+    map[node.id].armies.forEach((army) => {
+      if (!listed.includes(army)) {
+        // avoid listing twice
+        listArmy(army)
+      }
+    })
 
     function listArmy(army) {
+      console.log('armies order', map[node.id].armies, map[node.id].deployed)
+
       let li = document.createElement('li')
       let checkbox = document.createElement('input')
       checkbox.setAttribute('type', 'checkbox')
@@ -419,7 +432,7 @@ var switchFocusTo = null
           // find all armies of this type in this territory
           let splitArmies = map[node.id].armies.filter(a => a.type === army.type)
           // find the highest id
-          let highestID = getHighestID(splitArmies)
+          let highestID = getHighestID(map[node.id].armies)
           army.quantity = left
           let splitArmy = {
             quantity: right,
@@ -1611,7 +1624,7 @@ function startDefensive(player) {
 // Finds the highest id of any army in the list of armies
 // This plus one is a unique id for adding armies to the list
 function getHighestID(armies) {
-  let highestID = armies.reduce((accumulator, current) => {
+  return armies.reduce((accumulator, current) => {
     return Math.max(accumulator, current.id)
   }, 0)
 }
