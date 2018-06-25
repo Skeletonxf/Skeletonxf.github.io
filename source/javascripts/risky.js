@@ -3,6 +3,11 @@ window.addEventListener('load', () => {
 
 let game = document.getElementById('map')
 
+const UNIT_COST = 20
+const CASTLE_COST = 2000
+const WALL_COST = 1500
+const RAM_COST = 1500
+
 let drawLine = null;
 let drawWall = null;
 let drawMine = null;
@@ -414,9 +419,7 @@ var switchFocusTo = null
           // find all armies of this type in this territory
           let splitArmies = map[node.id].armies.filter(a => a.type === army.type)
           // find the highest id
-          let highestID = splitArmies.reduce((accumulator, current) => {
-            return Math.max(accumulator, current.id)
-          }, 0)
+          let highestID = getHighestID(splitArmies)
           army.quantity = left
           let splitArmy = {
             quantity: right,
@@ -624,30 +627,30 @@ function stopHighlighting() {
   }
 
   buyArchers.addEventListener('change', () => {
-    buyUnit('archers', buyArchers, 20)
+    buyUnit('archers', buyArchers, UNIT_COST)
     updatePlayerGold()
   })
   buyCalvary.addEventListener('change', () => {
-    buyUnit('calvary', buyCalvary, 20)
+    buyUnit('calvary', buyCalvary, UNIT_COST)
     updatePlayerGold()
   })
   buyInfantry.addEventListener('change', () => {
-    buyUnit('infantry', buyInfantry, 20)
+    buyUnit('infantry', buyInfantry, UNIT_COST)
     updatePlayerGold()
   })
   buyRams.addEventListener('change', () => {
-    buyUnit('rams', buyRams, 1500)
+    buyUnit('rams', buyRams, RAM_COST)
     updatePlayerGold()
   })
 
   let buyCastle = document.getElementById('build-castle')
   buyCastle.addEventListener('click', () => {
     if (map[buyCastle.nodeid].purchases.castle) {
-      players[turnPlayer].gold += 2000
+      players[turnPlayer].gold += CASTLE_COST
       map[buyCastle.nodeid].purchases.castle = false
     } else {
-      if (buyCastle.nodeid && players[turnPlayer].gold >= 2000) {
-        players[turnPlayer].gold -= 2000
+      if (buyCastle.nodeid && players[turnPlayer].gold >= CASTLE_COST) {
+        players[turnPlayer].gold -= CASTLE_COST
         map[buyCastle.nodeid].purchases.castle = true
       }
     }
@@ -657,11 +660,11 @@ function stopHighlighting() {
   let buyWall = document.getElementById('build-wall')
   buyWall.addEventListener('click', () => {
     if (map[buyWall.nodeid].purchases.wall) {
-      players[turnPlayer].gold += 1500
+      players[turnPlayer].gold += WALL_COST
       map[buyWall.nodeid].purchases.wall = false
     } else {
-      if (buyWall.nodeid && players[turnPlayer].gold >= 1500) {
-        players[turnPlayer].gold -= 1500
+      if (buyWall.nodeid && players[turnPlayer].gold >= WALL_COST) {
+        players[turnPlayer].gold -= WALL_COST
         map[buyWall.nodeid].purchases.wall = true
       }
     }
@@ -692,7 +695,7 @@ function updateCastlePurchases() {
       buyCastle.textContent = 'Cancel Castle'
       buyCastle.removeAttribute('disabled')
     } else {
-      if ((players[turnPlayer].gold >= 2000) && (!map[nodeid].castle)) {
+      if ((players[turnPlayer].gold >= CASTLE_COST) && (!map[nodeid].castle)) {
         buyCastle.removeAttribute('disabled')
       }
     }
@@ -709,7 +712,7 @@ function updateWallPurchases() {
       buyWall.textContent = 'Cancel Wall'
       buyWall.removeAttribute('disabled')
     } else {
-      if ((players[turnPlayer].gold >= 1500) && (!map[nodeid].wall)) {
+      if ((players[turnPlayer].gold >= WALL_COST) && (!map[nodeid].wall)) {
         buyWall.removeAttribute('disabled')
       }
     }
@@ -1246,23 +1249,23 @@ function applyTurns() {
         // Territory lost: refund attempted purchases if there were any.
         ;['archers', 'calvary', 'infantry'].forEach(unit => {
           if (map[node].purchases[unit] > 0) {
-            players[map[node].player].gold += (20 * map[node].purchases[unit])
+            players[map[node].player].gold += (UNIT_COST * map[node].purchases[unit])
             map[node].purchases[unit] = 0
           }
         })
         ;['rams'].forEach(unit => {
           if (map[node].purchases[unit] > 0) {
-            players[map[node].player].gold += (1500 * map[node].purchases[unit])
+            players[map[node].player].gold += (RAM_COST * map[node].purchases[unit])
             map[node].purchases[unit] = 0
           }
         })
         if (map[node].purchases.castle) {
           map[node].purchases.castle = false
-          players[map[node].player].gold += 2000
+          players[map[node].player].gold += CASTLE_COST
         }
         if (map[node].purchases.wall) {
           map[node].purchases.wall = false
-          players[map[node].player].wall += 1500
+          players[map[node].player].wall += WALL_COST
         }
         if (map[node].purchases.mines > 0) {
           while (map[node].purchases.mines > 0) {
@@ -1337,9 +1340,7 @@ function applyTurns() {
   for (let node in map) {
     ['archers', 'calvary', 'infantry', 'rams'].forEach(unit => {
       if (map[node].purchases[unit] > 0) {
-        let highestID = map[node].armies.reduce((accumulator, current) => {
-          return Math.max(accumulator, current.id)
-        }, 0)
+        let highestID = getHighestID(map[node].armies)
         map[node].armies.push({
           quantity: map[node].purchases[unit],
           type: unit.charAt(0).toUpperCase() + unit.slice(1),
@@ -1387,7 +1388,7 @@ function applyTurns() {
               quantity: 1,
               type: 'Neutral',
               level: 5,
-              id: -1
+              id: getHighestID(map[node].armies) + 1
             })
           }
         }
@@ -1585,7 +1586,7 @@ function startDefensive(player) {
             quantity: 20,
             type: 'Neutral',
             level: 1,
-            id: -1
+            id: getHighestID(map[node].armies) + 1
           })
           updateArmies(document.getElementById(node))
         }
@@ -1607,21 +1608,90 @@ function startDefensive(player) {
   })
 }
 
+// Finds the highest id of any army in the list of armies
+// This plus one is a unique id for adding armies to the list
+function getHighestID(armies) {
+  let highestID = armies.reduce((accumulator, current) => {
+    return Math.max(accumulator, current.id)
+  }, 0)
+}
+
+
+function findPath(from, to) {
+  let includeWater = from.includes('water') || to.includes('water')
+
+  // Breadth first search to find the path
+  // from the first node to the second.
+  // This result is then cached as the graph does not change.
+  // Ideally this would be A* but BFS is performant enough.
+
+  // set of visited nodes
+  let visited = {}
+  // treat this as a queue using pop/unshift so it is FIFO
+  let open = []
+  // path built by traversal of graph
+  let path = {}
+
+  open.push(from)
+
+  while (open.length > 0) {
+    let node = open.pop()
+    visited[node] = true
+    if (node === to) {
+      // found it
+      break
+    }
+    let neighours = graph[node]
+    neighours.filter(n => !visited[n]).forEach((n) => {
+      if (!open.includes(n)) {
+        // do not traverse water territories unless
+        // they are no longer 800 neutral units or
+        // they need to be traveresed
+        if (!n.includes('water') || includeWater ||
+        map[n].player !== 'neutral' || map[n].armies.length === 0) {
+          path[n] = node
+          open.unshift(n)
+        }
+      }
+    })
+  }
+
+  return path
+}
+
+function distanceTo(from, to) {
+  // trace the path to find the distance
+  let path = findPath(from, to)
+  let node = to
+  let distance = 0
+  while (node !== from) {
+    node = path[node]
+    distance += 1
+  }
+  return distance
+}
+
 function botPlayer() {
   function buyUnit(castle, unit, quantity) {
     if (castle.player === turnPlayer) {
       castle.purchases[unit] += quantity
-      turnPlayer.gold -= quantity * 20
+      turnPlayer.gold -= quantity * UNIT_COST
     }
   }
 
-  function highestID(armies) {
-    let highestID = armies.reduce((accumulator, current) => {
-      return Math.max(accumulator, current.id)
-    }, 0)
+  function buyUpgrade(node, upgrade) {
+    if (map[node].player === turnPlayer) {
+      if (upgrade === 'castle') {
+        if ((players[turnPlayer].gold >= CASTLE_COST) && (!map[node].castle)) {
+          players[turnPlayer].gold -= CASTLE_COST
+          map[node].purchases[upgrade] = true
+        }
+      }
+    }
   }
 
-  function splitArmies(territory, n, targets) {
+  function splitArmies(node, n, targets) {
+    let territory = map[node]
     if (territory.player === turnPlayer) {
       territory.armies.forEach((a) => {
         if (n === 1) {
@@ -1637,7 +1707,7 @@ function botPlayer() {
             quantity: quantity - a.quantity,
             type: a.type,
             level: a.level,
-            id: 1 + highestID(territory.armies)
+            id: 1 + getHighestID(territory.armies)
           }
           territory.armies.push(split)
           territory.deployed.push({
@@ -1653,46 +1723,165 @@ function botPlayer() {
     }
   }
 
-  let territory = []
+  let territories = []
   for (let node in map) {
     if (map[node].player === turnPlayer) {
-      territory.push(node)
+      territories.push(node)
     }
   }
   // hardcoded opening
   if (phase === 1) {
-    let base = territory[0]
+    let base = territories[0]
     let adjacent = graph[base]
     let adjacentOuter = adjacent.filter(n => n.includes('outer'))
-    splitArmies(map[base], 2, adjacentOuter)
+    splitArmies(base, 2, adjacentOuter)
     buyUnit(map[base], 'archers', 10)
+    return
   }
   if (phase === 2) {
-    let base = territory.find(n => n.includes('base'))
-    let outer = territory.filter(n => n.includes('outer'))
-    let middleTargets = graph[outer[0]].filter(n => n.includes('middle'))
-    let middleTarget = null
-    if (Math.random() < 0.5) {
-      middleTarget = middleTargets[1]
+    let base = territories.find(n => n.includes('base'))
+    let outer = territories.filter(n => n.includes('outer'))
+    if (outer.length > 0) {
+      let middleTargets = graph[outer[0]].filter(n => n.includes('middle'))
+      let middleTarget = null
+      if (Math.random() < 0.5) {
+        middleTarget = middleTargets[1]
+      } else {
+        middleTarget = middleTargets[0]
+      }
+      outer.forEach((n) => {
+        splitArmies(n, 1, [middleTarget])
+      })
+      // move purchased unit
+      splitArmies(base, 1, [outer[0]])
+      return
     } else {
-      middleTarget = middleTargets[0]
+      if (map[base].armies.length > 0) {
+        let adjacent = graph[base]
+        let adjacentOuter = adjacent.filter(n => n.includes('outer'))
+        splitArmies(base, 2, adjacentOuter)
+        return
+      }
     }
-    outer.forEach((n) => {
-      splitArmies(map[n], 1, [middleTarget])
-    })
-    // move purchased unit
-    splitArmies(map[base], 1, [outer[0]])
   }
   if (phase === 3) {
-    let outer = territory.filter(n => n.includes('outer'))
-    let middleTargets = graph[outer[0]].filter(n => n.includes('middle'))
-    let outerUnit = outer.filter(n => map[n].armies.length > 0)
-    let missedTarget = middleTargets.find(n => (map[n].player !== turnPlayer))
-    splitArmies(map[outerUnit], 1, [missedTarget])
+    let outer = territories.filter(n => n.includes('outer'))
+    if (outer.length > 0) {
+      let middleTargets = graph[outer[0]].filter(n => n.includes('middle'))
+      let outerUnit = outer.find(n => map[n].armies.length > 0)
+      let missedTarget = middleTargets.find(n => (map[n].player !== turnPlayer))
+      if (outerUnit && missedTarget) {
+        splitArmies(outerUnit, 1, [missedTarget])
+        return
+      }
+    }
+  }
+  if (phase === 4) {
+    let middle = territories.filter(n => n.includes('middle'))
+    if (middle.length > 0) {
+      let castle = Math.floor((Math.random() * (middle.length)))
+      buyUpgrade(middle[castle], 'castle')
+      return
+    }
+  }
+  // General case
+  let neighours = []
+  let secondNeighbours = []
+  let thirdNeighbours = []
+  territories.forEach((territory) => {
+    graph[territory].forEach((node) => {
+      if ((map[node].player !== turnPlayer) && (!neighours.includes(node))) {
+        neighours.push(node)
+      }
+    })
+  })
+  neighours.forEach((n1) => {
+    graph[n1].forEach((n2) => {
+      if (map[n2].player !== turnPlayer) {
+        if ((!neighours.includes(n2)) && (!secondNeighbours.includes(n2))) {
+          secondNeighbours.push(n2)
+        }
+      }
+    })
+  })
+  secondNeighbours.forEach((n2) => {
+    graph[n2].forEach((n3) => {
+      if (map[n3].player !== turnPlayer) {
+        if ((!neighours.includes(n3)) && (!secondNeighbours.includes(n3))) {
+          if (!thirdNeighbours.includes(n3)) {
+            thirdNeighbours.push(n3)
+          }
+        }
+      }
+    })
+  })
+  let near = neighours.concat(secondNeighbours, thirdNeighbours)
+  let unitsSeen = {
+    Archers: 0,
+    Calvary: 0,
+    Infantry: 0,
+    Neutral: 0,
+    Rams: 0
+  }
+  near.forEach((node) => {
+    map[node].armies.forEach((a) => {
+      unitsSeen[a.type] += a.quantity
+    })
+  })
+  console.log(unitsSeen)
+  let mostUpgradedUnit = 'archers'
+  let mostUpgrades = players[turnPlayer].units.archers
+  if (players[turnPlayer].units.calvary > mostUpgrades) {
+    mostUpgradedUnit = 'calvary'
+    mostUpgrades = players[turnPlayer].units.calvary
+  }
+  if (players[turnPlayer].units.infantry > mostUpgrades) {
+    mostUpgradedUnit = 'infantry'
+    mostUpgrades = players[turnPlayer].units.infantry
+  }
+
+  let unitsSeenWeighted = [
+    unitsSeen['Archers'] / players[turnPlayer].units.archers,
+    unitsSeen['Calvary'] / players[turnPlayer].units.calvary,
+    unitsSeen['Infantry'] / players[turnPlayer].units.infantry
+  ]
+
+  let highest = unitsSeenWeighted.reduce((accumulator, quantity) => {
+    return Math.max(accumulator, quantity)
+  })
+  let unitPriority = unitsSeenWeighted.indexOf(highest)
+  let unitCounter = (unitPriority + 1) % 3
+  let unitToBuy = {
+    '0': 'archers',
+    '1': 'calvary',
+    '2': 'infantry'
+  }
+  let unitBuying = unitToBuy[unitCounter]
+  console.log('buying', unitBuying)
+
+  let halfIncome = Math.floor(players[turnPlayer].goldIncome / 2)
+  let castles = territories.filter(n => map[n].castle)
+  let base = territories.find(n => map[n].capital)
+  if (castles.length > 0 && base) {
+    let spawnAt = castles[0]
+    let furthestDistance = 0
+    let distanceFromBase = {}
+    castles.forEach((n) => {
+      distanceFromBase[n] = distanceTo(base, n)
+    })
+    castles.forEach((n) => {
+      if (distanceFromBase[n] > furthestDistance) {
+        spawnAt = n
+        furthestDistance = distanceFromBase[n]
+      }
+    })
+    let unitsBought = Math.floor(players[turnPlayer].goldIncome / (2 * UNIT_COST))
+    map[spawnAt].purchases[unitBuying] += unitsBought
+    players[turnPlayer].gold -= unitsBought * UNIT_COST
   }
 }
 
-function battleTests() {
+function tests() {
   console.log('A4 against I2 multiplier (8)', battleMultiplier({
     type: 'Archers',
     level: 4
@@ -1713,8 +1902,12 @@ function battleTests() {
   }
   freeForAll([[attackers], [defenders]], 1)
   console.log('FFA result', attackers, defenders)
+
+  console.log('testing path function', distanceTo('base1', '$'))
+  console.log('testing path function', distanceTo('base1', 'base2'))
+  console.log('testing path function', distanceTo('base1', 'water1'))
 }
-//battleTests()
+//tests()
 
 console.log("done")
 })
