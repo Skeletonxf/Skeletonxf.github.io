@@ -547,46 +547,46 @@ function attackTarget(to, from) {
   let targetArmies = map[from.id].deployed.filter((d) => {
     return d.target === to.id
   })
-  let types = []
-  let typeRepeats = []
+  // Consider unique types where level also distinguishes armies.
+  let uniqueTypes = []
+  let repeats = []
   // find any repeated types going to the same target
   targetArmies.forEach((d) => {
-    if (types.includes(d.army.type)) {
-      if (!typeRepeats.includes(d.army.type)) {
-        typeRepeats.push(d.army.type)
+    if (uniqueTypes.includes(d.army.type + d.army.level)) {
+      if (!repeats.includes(d.army.type + d.army.level)) {
+        repeats.push(d.army.type + d.army.level)
       }
     } else {
-      types.push(d.army.type)
+      uniqueTypes.push(d.army.type + d.army.level)
     }
   })
-  typeRepeats.forEach((type) => {
+  repeats.forEach((type) => {
     // for each repeated type to a target identify all armies of that type
     let repeatedTypesForTarget = targetArmies.filter((d) => {
-      return d.army.type === type
+      return (d.army.type + d.army.level) === type
     })
     let first = repeatedTypesForTarget[0]
     // merge these together
     if (first) {
-      let totalQuantity = repeatedTypesForTarget.reduce(
-        (accumulator, current) => {
-          return accumulator + current.army.quantity
-      }, 0)
-      console.log('before change', map[from.id].armies)
+      let totalQuantity = getTotalQuantity(repeatedTypesForTarget.map(d => d.army))
       // raise quantity on remaining one
       first.army.quantity = totalQuantity
+      // remove the others
+      let removals = []
+      map[from.id].deployed = map[from.id].deployed.filter((d) => {
+        let keep = d.army.type !== first.army.type ||
+        d.target !== first.target ||
+        d.army === first.army ||
+        d.army.level !== first.army.level
+        if (!keep) {
+          removals.push(d.army)
+        }
+        return keep
+      })
+      map[from.id].armies = map[from.id].armies.filter((army) => {
+        return !removals.includes(army)
+      })
     }
-    // remove the others
-    let removals = []
-    map[from.id].deployed = map[from.id].deployed.filter((d) => {
-      let keep = d.army.type !== first.army.type || d.target !== first.target || d.army === first.army
-      if (!keep) {
-        removals.push(d.army)
-      }
-      return keep
-    })
-    map[from.id].armies = map[from.id].armies.filter((army) => {
-      return !removals.includes(army)
-    })
   })
   console.log('done', map[from.id].armies)
   // stay focused on the current node as the player
@@ -1377,6 +1377,11 @@ function applyTurns() {
     }
   }
 
+  // Merge units of same type and level.
+  for (let node in map) {
+    mergeDuplicateArmies(node)
+  }
+
   // apply end of turn 3 player start bonuses
   if (phase === 4) {
     console.log('applying start bonuses')
@@ -1629,6 +1634,47 @@ function getHighestID(armies) {
   }, 0)
 }
 
+// Merges duplicate armies at this node.
+function mergeDuplicateArmies(node) {
+  let armies = map[node].armies
+  // combine types and levels
+  let uniqueTypes = []
+  let repeats = []
+  // Find any repeated types
+  armies.forEach((army) => {
+    if (uniqueTypes.includes(army.type + army.level)) {
+      if (!repeats.includes(army.type + army.level)) {
+        repeats.push(army.type + army.level)
+      }
+    } else {
+      uniqueTypes.push(army.type + army.level)
+    }
+  })
+  repeats.forEach((uniqueType) => {
+    // Identity all armies of this type
+    let repeatedTypeArmies = armies.filter(a => (a.type + a.level) === uniqueType)
+    let first = repeatedTypeArmies[0]
+    if (first) {
+      let totalQuantity = getTotalQuantity(repeatedTypeArmies)
+      // retain first army
+      first.quantity = totalQuantity
+      // remove the other armies
+      console.log('before removal', map[node].armies)
+      map[node].armies = map[node].armies.filter((a) => {
+        return ((a.type + a.level) !== uniqueType) || (a === first)
+      })
+      console.log('after removal', map[node].armies)
+    }
+  })
+}
+
+// Returns the sum of all armies in the list.
+function getTotalQuantity(armies) {
+  return armies.reduce(
+    (accumulator, army) => {
+      return accumulator + army.quantity
+  }, 0)
+}
 
 function findPath(from, to) {
   let includeWater = from.includes('water') || to.includes('water')
