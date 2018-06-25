@@ -400,8 +400,6 @@ var switchFocusTo = null
     })
 
     function listArmy(army) {
-      console.log('armies order', map[node.id].armies, map[node.id].deployed)
-
       let li = document.createElement('li')
       let checkbox = document.createElement('input')
       checkbox.setAttribute('type', 'checkbox')
@@ -543,52 +541,7 @@ function attackTarget(to, from) {
   uiState = 'selectFocus'
   document.getElementById('end-turn').removeAttribute('disabled')
   stopHighlighting()
-  // find all armies for this target
-  let targetArmies = map[from.id].deployed.filter((d) => {
-    return d.target === to.id
-  })
-  // Consider unique types where level also distinguishes armies.
-  let uniqueTypes = []
-  let repeats = []
-  // find any repeated types going to the same target
-  targetArmies.forEach((d) => {
-    if (uniqueTypes.includes(d.army.type + d.army.level)) {
-      if (!repeats.includes(d.army.type + d.army.level)) {
-        repeats.push(d.army.type + d.army.level)
-      }
-    } else {
-      uniqueTypes.push(d.army.type + d.army.level)
-    }
-  })
-  repeats.forEach((type) => {
-    // for each repeated type to a target identify all armies of that type
-    let repeatedTypesForTarget = targetArmies.filter((d) => {
-      return (d.army.type + d.army.level) === type
-    })
-    let first = repeatedTypesForTarget[0]
-    // merge these together
-    if (first) {
-      let totalQuantity = getTotalQuantity(repeatedTypesForTarget.map(d => d.army))
-      // raise quantity on remaining one
-      first.army.quantity = totalQuantity
-      // remove the others
-      let removals = []
-      map[from.id].deployed = map[from.id].deployed.filter((d) => {
-        let keep = d.army.type !== first.army.type ||
-        d.target !== first.target ||
-        d.army === first.army ||
-        d.army.level !== first.army.level
-        if (!keep) {
-          removals.push(d.army)
-        }
-        return keep
-      })
-      map[from.id].armies = map[from.id].armies.filter((army) => {
-        return !removals.includes(army)
-      })
-    }
-  })
-  console.log('done', map[from.id].armies)
+  mergeDuplicateDeployments(from.id, to.id)
   // stay focused on the current node as the player
   // may want to deploy additional units
   // let this refresh the UI to show the new attacks
@@ -1228,7 +1181,6 @@ function applyTurns() {
         map[node].arriving = map[node].arriving.filter((a) => {
           return a !== arrivingDefending
         })
-        console.log('defending unit arrived', map[node].armies, map[node].arriving)
       })
       // check if there is a battle for a walled territory
       if ((map[node].wall) && (map[node].arriving.length > 0)) {
@@ -1453,7 +1405,6 @@ function nOnOneBattle(attacking, defending) {
     attackers.push(playerAttackingArmies)
   })
   attackers.push(defending)
-  console.log('attackers', attackers, attackers.length)
   freeForAll(attackers, attackers.length - 1)
 }
 
@@ -1486,7 +1437,6 @@ function freeForAll(attackingList, defender) {
       }
     })
     if (armies.length <= 1) {
-      console.log('battle over', armies)
       break
     }
     // check for any dead armies
@@ -1659,20 +1609,74 @@ function mergeDuplicateArmies(node) {
       // retain first army
       first.quantity = totalQuantity
       // remove the other armies
-      console.log('before removal', map[node].armies)
       map[node].armies = map[node].armies.filter((a) => {
         return ((a.type + a.level) !== uniqueType) || (a === first)
       })
-      console.log('after removal', map[node].armies)
     }
   })
 }
+
+function mergeDuplicateDeployments(node, to) {
+  // find all armies for this target
+  let targetArmies = map[node].deployed.filter((d) => {
+    return d.target === to
+  })
+  // Consider unique types where level also distinguishes armies.
+  let uniqueTypes = []
+  let repeats = []
+  // find any repeated types going to the same target
+  targetArmies.forEach((d) => {
+    if (uniqueTypes.includes(d.army.type + d.army.level)) {
+      if (!repeats.includes(d.army.type + d.army.level)) {
+        repeats.push(d.army.type + d.army.level)
+      }
+    } else {
+      uniqueTypes.push(d.army.type + d.army.level)
+    }
+  })
+  repeats.forEach((type) => {
+    // for each repeated type to a target identify all armies of that type
+    let repeatedTypesForTarget = targetArmies.filter((d) => {
+      return (d.army.type + d.army.level) === type
+    })
+    let first = repeatedTypesForTarget[0]
+    // merge these together
+    if (first) {
+      let totalQuantity = getTotalQuantity(repeatedTypesForTarget.map(d => d.army))
+      // raise quantity on remaining one
+      first.army.quantity = totalQuantity
+      // remove the others
+      let removals = []
+      map[node].deployed = map[node].deployed.filter((d) => {
+        let keep = d.army.type !== first.army.type ||
+        d.target !== first.target ||
+        d.army === first.army ||
+        d.army.level !== first.army.level
+        if (!keep) {
+          removals.push(d.army)
+        }
+        return keep
+      })
+      map[node].armies = map[node].armies.filter((army) => {
+        return !removals.includes(army)
+      })
+    }
+  })
+}
+
 
 // Returns the sum of all armies in the list.
 function getTotalQuantity(armies) {
   return armies.reduce(
     (accumulator, army) => {
       return accumulator + army.quantity
+  }, 0)
+}
+
+function getTotalLevelWeightedQuantity(armies) {
+  return armies.reduce(
+    (accumulator, army) => {
+      return accumulator + (army.quantity * army.level)
   }, 0)
 }
 
@@ -1700,8 +1704,8 @@ function findPath(from, to) {
       // found it
       break
     }
-    let neighours = graph[node]
-    neighours.filter(n => !visited[n]).forEach((n) => {
+    let neighbours = graph[node]
+    neighbours.filter(n => !visited[n]).forEach((n) => {
       if (!open.includes(n)) {
         // do not traverse water territories unless
         // they are no longer 800 neutral units or
@@ -1730,6 +1734,70 @@ function distanceTo(from, to) {
   return distance
 }
 
+function splitArmies(node, splits, targets) {
+  let territory = map[node]
+  if (territory.player === turnPlayer) {
+    if (splits === 1) {
+      territory.armies.forEach((a) => {
+        if (targets[0] !== node) {
+          territory.deployed.push({
+            army: a,
+            target: targets[0]
+          })
+        }
+      })
+    } else {
+      territory.armies.forEach((a) => {
+        let n = splits
+        let quantity = a.quantity
+        while (Math.floor(quantity / n) < 1) {
+          n -= 1
+        }
+        // can't split armies if too few
+        if (n > 1) {
+          for (let i = 0; i < (n-1); i++) {
+            let split = {
+              quantity: Math.floor(quantity / n),
+              type: a.type,
+              level: a.level,
+              id: 1 + getHighestID(territory.armies)
+            }
+            territory.armies.push(split)
+            if (targets[i+1] !== node) {
+              territory.deployed.push({
+                army: split,
+                target: targets[i+1]
+              })
+            }
+          }
+          a.quantity = Math.floor(quantity / n)
+          if (targets[0] !== node) {
+            territory.deployed.push({
+              army: a,
+              target: targets[0]
+            })
+          }
+          // check if rounding meant some units were left
+          let deployedQuantity = (n) * Math.floor(quantity / n)
+          let remainder = quantity - deployedQuantity
+          if (remainder > 0) {
+            let leftOver = {
+              quantity: remainder,
+              type: a.type,
+              level: a.level,
+              id: 1 + getHighestID(territory.armies)
+            }
+            territory.armies.push(leftOver)
+          }
+        }
+      })
+    }
+    targets.forEach((target) => {
+      mergeDuplicateDeployments(node, target)
+    })
+  }
+}
+
 function botPlayer() {
   function buyUnit(castle, unit, quantity) {
     if (castle.player === turnPlayer) {
@@ -1749,39 +1817,6 @@ function botPlayer() {
     }
   }
 
-  function splitArmies(node, n, targets) {
-    let territory = map[node]
-    if (territory.player === turnPlayer) {
-      territory.armies.forEach((a) => {
-        if (n === 1) {
-          territory.deployed.push({
-            army: a,
-            target: targets[0]
-          })
-        }
-        if (n === 2) {
-          let quantity = a.quantity
-          a.quantity = Math.ceil(a.quantity / 2)
-          let split = {
-            quantity: quantity - a.quantity,
-            type: a.type,
-            level: a.level,
-            id: 1 + getHighestID(territory.armies)
-          }
-          territory.armies.push(split)
-          territory.deployed.push({
-            army: a,
-            target: targets[0]
-          })
-          territory.deployed.push({
-            army: split,
-            target: targets[1]
-          })
-        }
-      })
-    }
-  }
-
   let territories = []
   for (let node in map) {
     if (map[node].player === turnPlayer) {
@@ -1790,6 +1825,7 @@ function botPlayer() {
   }
   // hardcoded opening
   if (phase === 1) {
+    console.log('phase 1 move')
     let base = territories[0]
     let adjacent = graph[base]
     let adjacentOuter = adjacent.filter(n => n.includes('outer'))
@@ -1844,21 +1880,25 @@ function botPlayer() {
     }
   }
   // General case
-  let neighours = []
+  let neighbours = []
   let secondNeighbours = []
   let thirdNeighbours = []
   territories.forEach((territory) => {
     graph[territory].forEach((node) => {
-      if ((map[node].player !== turnPlayer) && (!neighours.includes(node))) {
-        neighours.push(node)
+      if ((map[node].player !== turnPlayer) && (!neighbours.includes(node))) {
+        if (!node.includes('water') || map[node].player !== 'neutral') {
+          neighbours.push(node)
+        }
       }
     })
   })
-  neighours.forEach((n1) => {
+  neighbours.forEach((n1) => {
     graph[n1].forEach((n2) => {
       if (map[n2].player !== turnPlayer) {
-        if ((!neighours.includes(n2)) && (!secondNeighbours.includes(n2))) {
-          secondNeighbours.push(n2)
+        if ((!neighbours.includes(n2)) && (!secondNeighbours.includes(n2))) {
+          if (!n2.includes('water') || map[n2].player !== 'neutral') {
+            secondNeighbours.push(n2)
+          }
         }
       }
     })
@@ -1866,15 +1906,17 @@ function botPlayer() {
   secondNeighbours.forEach((n2) => {
     graph[n2].forEach((n3) => {
       if (map[n3].player !== turnPlayer) {
-        if ((!neighours.includes(n3)) && (!secondNeighbours.includes(n3))) {
+        if ((!neighbours.includes(n3)) && (!secondNeighbours.includes(n3))) {
           if (!thirdNeighbours.includes(n3)) {
-            thirdNeighbours.push(n3)
+            if (!n3.includes('water') || map[n3].player !== 'neutral') {
+              thirdNeighbours.push(n3)
+            }
           }
         }
       }
     })
   })
-  let near = neighours.concat(secondNeighbours, thirdNeighbours)
+  let near = neighbours.concat(secondNeighbours, thirdNeighbours)
   let unitsSeen = {
     Archers: 0,
     Calvary: 0,
@@ -1887,7 +1929,6 @@ function botPlayer() {
       unitsSeen[a.type] += a.quantity
     })
   })
-  console.log(unitsSeen)
   let mostUpgradedUnit = 'archers'
   let mostUpgrades = players[turnPlayer].units.archers
   if (players[turnPlayer].units.calvary > mostUpgrades) {
@@ -1921,6 +1962,13 @@ function botPlayer() {
   let halfIncome = Math.floor(players[turnPlayer].goldIncome / 2)
   let castles = territories.filter(n => map[n].castle)
   let base = territories.find(n => map[n].capital)
+
+  if (castles.length === 0) {
+    // TODO Spawn a castle somewhere
+  }
+
+  // Should spawn at castles near where need units and able
+  // to spawn at multiple castles
   if (castles.length > 0 && base) {
     let spawnAt = castles[0]
     let furthestDistance = 0
@@ -1938,6 +1986,133 @@ function botPlayer() {
     map[spawnAt].purchases[unitBuying] += unitsBought
     players[turnPlayer].gold -= unitsBought * UNIT_COST
   }
+
+  castles.forEach((castle) => {
+    let castleUnitsLevel = getTotalLevelWeightedQuantity(map[castle].armies)
+    console.log('castle level', castleUnitsLevel)
+    let threats = -castleUnitsLevel
+    neighbours.forEach((node) => {
+      if (map[node].player !== 'neutral') {
+        console.log('threat of ', node, getTotalLevelWeightedQuantity(map[node].armies))
+        threats += getTotalLevelWeightedQuantity(map[node].armies)
+      }
+    })
+    console.log('immediate threats', threats)
+    // first neighbours cannot be responded to in time
+    if (threats < 0) {
+      let threats = -castleUnitsLevel
+      secondNeighbours.forEach((node) => {
+        if (map[node].player !== 'neutral') {
+          console.log('threat of ', node, getTotalLevelWeightedQuantity(map[node].armies))
+          threats += getTotalLevelWeightedQuantity(map[node].armies)
+        }
+      })
+      console.log('incomming threats', threats)
+      if (threats > 0) {
+        // buy units to defend castle with
+        let defend = Math.min(players[turnPlayer].gold * 20, threats)
+        console.log('defensive spending', defend, castle)
+        map[castle].purchases[unitBuying] += defend
+        players[turnPlayer].gold -= defend * UNIT_COST
+      }
+    }
+  })
+
+  territories.forEach((territory) => {
+    if (map[territory].armies.length > 0) {
+      let nodeScores = {}
+      let next = graph[territory]
+      // also consider staying put
+      next.push(territory)
+      next.forEach((n) => {
+        let score = 0
+        // give slight score for moving away from spawning castles
+        castles.forEach((c) => {
+          score += distanceTo(c, n) / 10
+        })
+        // prioritise moving towards important areas of the map
+        for (let node in map) {
+          let distance = null
+          if ((map[node].castle) && (map[node].player !== turnPlayer)) {
+            if (!distance) {
+              distance = distanceTo(n, node)
+            }
+            score += 2 / (distance + 1)
+          }
+          if (map[node].capital) {
+            if (!distance) {
+              distance = distanceTo(n, node)
+            }
+            if (map[node].player !== turnPlayer) {
+              score += 5 / (distance + 1)
+            } else {
+              score += 1 / (distance + 1)
+            }
+          }
+          if (node === '$') {
+            if (!distance) {
+              distance = distanceTo(n, node)
+            }
+            if (map[node].player !== turnPlayer) {
+              score += 6 / (distance + 1)
+            } else {
+              score += 5 / (distance + 1)
+            }
+          }
+        }
+        if (n.includes('water') && (getTotalQuantity(map[n].armies) > 400)) {
+          // penalise water territories
+          score -= 20
+        }
+        // try to take territories that are easily taken
+        if (map[n].player !== turnPlayer) {
+          let territoryLevel = getTotalLevelWeightedQuantity(map[territory].armies)
+          let nodeLevel = getTotalLevelWeightedQuantity(map[n].armies)
+          if (nodeLevel < territoryLevel) {
+            score += 15
+          }
+          if (graph[n].some(n2 => {
+            return ((getTotalLevelWeightedQuantity(map[n2].armies) + nodeLevel) < territoryLevel) &&
+            (map[n2].player !== turnPlayer)
+          })) {
+            score += 10
+          }
+        }
+        nodeScores[n] = score
+      })
+      let averageScore = 0
+      console.log('node scores', nodeScores)
+      {
+        for (let node in nodeScores) {
+          averageScore += nodeScores[node]
+        }
+        averageScore /= next.length
+      }
+      let aboveAverageNodes = []
+      let bestNode = null
+      let bestScore = -10
+      for (let node in nodeScores) {
+        if (nodeScores[node] > averageScore) {
+          aboveAverageNodes.push(node)
+        }
+        if (nodeScores[node] > bestScore) {
+          bestNode = node
+          bestScore = nodeScores[node]
+        }
+      }
+      let bestNodes = []
+      bestNodes.push(bestNode)
+      let score = bestScore
+      for (let node in nodeScores) {
+        if (nodeScores[node] > bestScore - 3) {
+          bestNodes.push(node)
+        }
+      }
+      console.log('best node', bestNode, bestScore)
+      // move territories into targets
+      splitArmies(territory, bestNodes.length, bestNodes)
+    }
+  })
 }
 
 function tests() {
