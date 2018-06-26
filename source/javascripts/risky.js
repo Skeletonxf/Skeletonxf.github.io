@@ -1926,7 +1926,7 @@ function botPlayer() {
   }
   near.forEach((node) => {
     map[node].armies.forEach((a) => {
-      unitsSeen[a.type] += a.quantity
+      unitsSeen[a.type] += (a.quantity * a.level)
     })
   })
   let mostUpgradedUnit = 'archers'
@@ -1963,8 +1963,40 @@ function botPlayer() {
   let castles = territories.filter(n => map[n].castle)
   let base = territories.find(n => map[n].capital)
 
-  if (castles.length === 0) {
+  if ((castles.length === 0) || (territories.length > (castles.length * 4))) {
     // TODO Spawn a castle somewhere
+    console.log('going to buy a castle')
+    let safe = territories.filter(n => !map[n].castle).filter(n => (n) => {
+      let nLevel = getTotalLevelWeightedQuantity(map[n].armies)
+      let threats = 0
+      graph[n].forEach((n1) => {
+        if ((map[n1].player !== 'neutral') && (map[n1].player !== turnPlayer)) {
+          threats += getTotalLevelWeightedQuantity(map[n1].armies)
+        }
+      })
+      return nLevel > threats
+    })
+    let comparisonFunction = (n1, n2) => {
+      let n1Level =  getTotalLevelWeightedQuantity(map[n1].armies)
+      let n2Level =  getTotalLevelWeightedQuantity(map[n2].armies)
+      let n1NextToCastle = graph[n1].some(
+        n => (map[n].castle) && (map[n].player === turnPlayer)) ? -250 : 0
+      let n2NextToCastle = graph[n2].some(
+        n => (map[n].castle) && (map[n].player === turnPlayer)) ? -250 : 0
+      // if less than 0 n1 comes first
+      return ((n2Level + map[n2].mines - n2NextToCastle)
+      - (n1Level + map[n1].mines - n1NextToCastle))
+    }
+    if (safe.length > 1) {
+      let choice = safe.sort(comparisonFunction)[0]
+      buyUpgrade(choice, 'castle')
+    } else {
+      if (territories.filter(n => !map[n].castle).length > 0) {
+        let choice = territories.filter(
+          n => !map[n].castle).sort(comparisonFunction)[0]
+        buyUpgrade(choice, 'castle')
+      }
+    }
   }
 
   // Should spawn at castles near where need units and able
