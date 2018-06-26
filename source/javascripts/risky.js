@@ -1239,7 +1239,7 @@ function applyTurns() {
             let totalMines = map[node].mines + map[node].purchases.mines
             let costOfPurchase = mineUpgradeCost[totalMines - 1]
             players[map[node].player].gold += costOfPurchase
-            map[nodeid].purchases.mines -= 1
+            map[node].purchases.mines -= 1
           }
         }
         if (map[node].raze) {
