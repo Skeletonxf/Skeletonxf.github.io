@@ -1680,6 +1680,30 @@ function getTotalLevelWeightedQuantity(armies) {
   }, 0)
 }
 
+// Gets the approximate defending power of the node.
+function getDefence(node) {
+  if (map[node].wall) {
+    return getTotalLevelWeightedQuantity(map[node].armies) * 2
+  } else {
+    return getTotalLevelWeightedQuantity(map[node].armies)
+  }
+}
+
+// Gets the approximate attacking power of the node.
+function getAttack(node) {
+  return getTotalLevelWeightedQuantity(map[node].armies)
+}
+
+// Determines if a node is not the turn player or neutral.
+function isHostile(node) {
+  return (map[node].player !== turnPlayer) && (map[node].player !== 'neutral')
+}
+
+// Checks if a node has a ram present
+function hasRam(node) {
+  return map[node].armies.some(a => a.type === 'Rams')
+}
+
 function findPath(from, to) {
   let includeWater = from.includes('water') || to.includes('water')
 
@@ -1963,42 +1987,6 @@ function botPlayer() {
   let castles = territories.filter(n => map[n].castle)
   let base = territories.find(n => map[n].capital)
 
-  if ((castles.length === 0) || (territories.length > (castles.length * 4))) {
-    // TODO Spawn a castle somewhere
-    console.log('going to buy a castle')
-    let safe = territories.filter(n => !map[n].castle).filter(n => (n) => {
-      let nLevel = getTotalLevelWeightedQuantity(map[n].armies)
-      let threats = 0
-      graph[n].forEach((n1) => {
-        if ((map[n1].player !== 'neutral') && (map[n1].player !== turnPlayer)) {
-          threats += getTotalLevelWeightedQuantity(map[n1].armies)
-        }
-      })
-      return nLevel > threats
-    })
-    let comparisonFunction = (n1, n2) => {
-      let n1Level =  getTotalLevelWeightedQuantity(map[n1].armies)
-      let n2Level =  getTotalLevelWeightedQuantity(map[n2].armies)
-      let n1NextToCastle = graph[n1].some(
-        n => (map[n].castle) && (map[n].player === turnPlayer)) ? -250 : 0
-      let n2NextToCastle = graph[n2].some(
-        n => (map[n].castle) && (map[n].player === turnPlayer)) ? -250 : 0
-      // if less than 0 n1 comes first
-      return ((n2Level + map[n2].mines - n2NextToCastle)
-      - (n1Level + map[n1].mines - n1NextToCastle))
-    }
-    if (safe.length > 1) {
-      let choice = safe.sort(comparisonFunction)[0]
-      buyUpgrade(choice, 'castle')
-    } else {
-      if (territories.filter(n => !map[n].castle).length > 0) {
-        let choice = territories.filter(
-          n => !map[n].castle).sort(comparisonFunction)[0]
-        buyUpgrade(choice, 'castle')
-      }
-    }
-  }
-
   // Should spawn at castles near where need units and able
   // to spawn at multiple castles
   if (castles.length > 0 && base) {
@@ -2019,38 +2007,109 @@ function botPlayer() {
     players[turnPlayer].gold -= unitsBought * UNIT_COST
   }
 
+  // Spawn defending units at castles using reseve gold if under threat
   castles.forEach((castle) => {
-    let castleUnitsLevel = getTotalLevelWeightedQuantity(map[castle].armies)
-    console.log('castle level', castleUnitsLevel)
-    let threats = -castleUnitsLevel
-    neighbours.forEach((node) => {
-      if (map[node].player !== 'neutral') {
-        console.log('threat of ', node, getTotalLevelWeightedQuantity(map[node].armies))
-        threats += getTotalLevelWeightedQuantity(map[node].armies)
+    const defence = getDefence(castle)
+    let threats = {}
+    graph[castle].forEach((node) => {
+      if (isHostile(node)) {
+        console.log('threat of ', node, getAttack(node))
+        threats[node] = getAttack(node)
       }
     })
-    console.log('immediate threats', threats)
-    // first neighbours cannot be responded to in time
-    if (threats < 0) {
-      let threats = -castleUnitsLevel
-      secondNeighbours.forEach((node) => {
-        if (map[node].player !== 'neutral') {
-          console.log('threat of ', node, getTotalLevelWeightedQuantity(map[node].armies))
-          threats += getTotalLevelWeightedQuantity(map[node].armies)
-        }
+    console.log('immediate threats', threats, castle)
+    let totalThreats = 0
+    let ramPresent = false
+    for (let node in threats) {
+      totalThreats += threats[node]
+      if (hasRam(node)) {
+        ramPresent = true
+      }
+    }
+    // Remove wall defensive bonus.
+    let effectiveDefence = defence
+    if (ramPresent && map[castle].wall) {
+      effectiveDefence /= 2
+    }
+    // If immediate neighbours are capable of taking the castle
+    // then assume it will be taken anyway.
+    if ((effectiveDefence - totalThreats <= 0)) {
+      graph[castle].forEach((n) => {
+        graph[n].forEach((node) => {
+          if (isHostile(node)) {
+            let attack = getAttack(node)
+            // factor in loss on reaching the castle
+            if (map[node].player !== map[n].player) {
+              let lossOnTransit = getDefence(n)
+              attack -= lossOnTransit
+            }
+            attack = Math.max(attack, 0)
+            console.log('threat of ', node, attack)
+            if (threats[node]) {
+              // Update threat so the highest threat path
+              // to the castle is considered.
+              if (attack > threats[node]) {
+                threats[node] = attack
+              }
+            } else {
+              threats[node] = attack
+            }
+          }
+        })
       })
-      console.log('incomming threats', threats)
-      if (threats > 0) {
-        // buy units to defend castle with
-        let defend = Math.min(players[turnPlayer].gold * 20, threats)
+      let totalThreats = 0
+      for (let node in threats) {
+        totalThreats += threats[node]
+        if (hasRam(node)) {
+          ramPresent = true
+        }
+      }
+      // Remove wall defensive bonus.
+      let effectiveDefence = defence
+      if (ramPresent && map[castle].wall) {
+        effectiveDefence /= 2
+      }
+      console.log('incomming threats', totalThreats)
+      if ((totalThreats - effectiveDefence) > 0) {
+        // Buy units to defend castle with.
+        let defend = Math.ceil(totalThreats * 1.1)
+        // Do not spend past available money.
+        defend = Math.min(players[turnPlayer].gold * 20, defend)
         console.log('defensive spending', defend, castle)
         map[castle].purchases[unitBuying] += defend
         players[turnPlayer].gold -= defend * UNIT_COST
       }
+    } else {
+      console.log('unrespondable threat or no threat at', castle)
     }
   })
 
-  territories.forEach((territory) => {
+  // Filter for territories that should deploy units.
+  // Returns false when the units are needed for defending.
+  function shouldDefendCastle(node) {
+    if (!map[node].castle) {
+      return true
+    }
+    let threats = 0
+    graph[node].forEach((n) => {
+      if (isHostile(n)) {
+        threats += getAttack(n)
+      }
+    })
+    let defence = getDefence(node)
+    if (graph[node].some(n => hasRam(n)) && (map[node].wall)) {
+      defence /= 2
+    }
+    if (((threats * 0.8) > defence) || (threats < (defence * 0.5))) {
+      // Either castle is doomed anyway or
+      // defence is far stronger than threats.
+      return true
+    }
+    // Units need to defend the castle and not move.
+    return false
+  }
+
+  territories.filter(shouldDefendCastle).forEach((territory) => {
     if (map[territory].armies.length > 0) {
       let nodeScores = {}
       let next = graph[territory]
@@ -2145,6 +2204,43 @@ function botPlayer() {
       splitArmies(territory, bestNodes.length, bestNodes)
     }
   })
+
+  // Buy new castles if too few
+  if ((castles.length === 0) || (territories.length > (castles.length * 4))) {
+    console.log('going to buy a castle')
+    let safe = territories.filter(n => !map[n].castle).filter(n => (n) => {
+      let nLevel = getTotalLevelWeightedQuantity(map[n].armies)
+      let threats = 0
+      graph[n].forEach((n1) => {
+        if ((map[n1].player !== 'neutral') && (map[n1].player !== turnPlayer)) {
+          threats += getTotalLevelWeightedQuantity(map[n1].armies)
+        }
+      })
+      return nLevel > threats
+    })
+    console.log('safe castle options', safe.length)
+    let comparisonFunction = (n1, n2) => {
+      let n1Level = getDefence(n1)
+      let n2Level = getDefence(n2)
+      let n1NextToCastle = graph[n1].some(
+        n => (map[n].castle) && (map[n].player === turnPlayer)) ? -250 : 0
+      let n2NextToCastle = graph[n2].some(
+        n => (map[n].castle) && (map[n].player === turnPlayer)) ? -250 : 0
+      // if less than 0 n1 comes first
+      return (((n1Level + map[n1].mines) - n1NextToCastle) - ((n2Level + map[n2].mines) - n2NextToCastle))
+    }
+    console.log('ordering', safe.sort(comparisonFunction))
+    if (safe.length > 1) {
+      let choice = safe.sort(comparisonFunction)[0]
+      buyUpgrade(choice, 'castle')
+    } else {
+      if (territories.filter(n => !map[n].castle).length > 0) {
+        let choice = territories.filter(
+          n => !map[n].castle).sort(comparisonFunction)[0]
+        buyUpgrade(choice, 'castle')
+      }
+    }
+  }
 }
 
 function tests() {
