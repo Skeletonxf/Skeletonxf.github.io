@@ -1147,7 +1147,6 @@ function applyTurns() {
         // in each direction there can only be 1 player attacking
         // so all incoming armies from this direction is the single opponent
         let incoming = arriving.filter(a => a.from === n)
-        console.log('edge battle', originating, incoming)
         edgeBattle(originating, incoming)
       })
       // surviving armies need to then attack/defend on the node
@@ -1824,9 +1823,12 @@ function splitArmies(node, splits, targets) {
 
 function botPlayer() {
   function buyUnit(castle, unit, quantity) {
-    if (castle.player === turnPlayer) {
-      castle.purchases[unit] += quantity
-      turnPlayer.gold -= quantity * UNIT_COST
+    if ((map[castle].player === turnPlayer) &&
+    (players[turnPlayer].gold >= (quantity * UNIT_COST))) {
+      map[castle].purchases[unit] += quantity
+      players[turnPlayer].gold -= quantity * UNIT_COST
+    } else {
+      console.log('error trying to buy', castle, unit, quantity)
     }
   }
 
@@ -1849,12 +1851,11 @@ function botPlayer() {
   }
   // hardcoded opening
   if (phase === 1) {
-    console.log('phase 1 move')
     let base = territories[0]
     let adjacent = graph[base]
     let adjacentOuter = adjacent.filter(n => n.includes('outer'))
     splitArmies(base, 2, adjacentOuter)
-    buyUnit(map[base], 'archers', 10)
+    buyUnit(base, 'archers', 10)
     return
   }
   if (phase === 2) {
@@ -1981,9 +1982,7 @@ function botPlayer() {
     '2': 'infantry'
   }
   let unitBuying = unitToBuy[unitCounter]
-  console.log('buying', unitBuying)
 
-  let halfIncome = Math.floor(players[turnPlayer].goldIncome / 2)
   let castles = territories.filter(n => map[n].castle)
   let base = territories.find(n => map[n].capital)
 
@@ -2003,8 +2002,7 @@ function botPlayer() {
       }
     })
     let unitsBought = Math.floor(players[turnPlayer].goldIncome / (2 * UNIT_COST))
-    map[spawnAt].purchases[unitBuying] += unitsBought
-    players[turnPlayer].gold -= unitsBought * UNIT_COST
+    buyUnit(spawnAt, unitBuying, unitsBought)
   }
 
   // Spawn defending units at castles using reseve gold if under threat
@@ -2013,11 +2011,9 @@ function botPlayer() {
     let threats = {}
     graph[castle].forEach((node) => {
       if (isHostile(node)) {
-        console.log('threat of ', node, getAttack(node))
         threats[node] = getAttack(node)
       }
     })
-    console.log('immediate threats', threats, castle)
     let totalThreats = 0
     let ramPresent = false
     for (let node in threats) {
@@ -2044,7 +2040,6 @@ function botPlayer() {
               attack -= lossOnTransit
             }
             attack = Math.max(attack, 0)
-            console.log('threat of ', node, attack)
             if (threats[node]) {
               // Update threat so the highest threat path
               // to the castle is considered.
@@ -2069,18 +2064,24 @@ function botPlayer() {
       if (ramPresent && map[castle].wall) {
         effectiveDefence /= 2
       }
-      console.log('incomming threats', totalThreats)
       if ((totalThreats - effectiveDefence) > 0) {
+        console.log('money before', players[turnPlayer].gold)
         // Buy units to defend castle with.
         let defend = Math.ceil(totalThreats * 1.1)
-        // Do not spend past available money.
-        defend = Math.min(players[turnPlayer].gold * 20, defend)
+        if (totalThreats < 0) {
+          console.log('negative threats!', castle, threats)
+        }
+        if (players[turnPlayer].gold < 0) {
+          console.log('negative money!', players[turnPlayer].gold)
+        }
+        // Do not spend past available money on defending units.
+        defend = Math.min(
+          Math.floor(players[turnPlayer].gold / UNIT_COST), defend)
         console.log('defensive spending', defend, castle)
         map[castle].purchases[unitBuying] += defend
         players[turnPlayer].gold -= defend * UNIT_COST
+        console.log('money after', players[turnPlayer].gold)
       }
-    } else {
-      console.log('unrespondable threat or no threat at', castle)
     }
   })
 
@@ -2109,6 +2110,7 @@ function botPlayer() {
     return false
   }
 
+  // Move units.
   territories.filter(shouldDefendCastle).forEach((territory) => {
     if (map[territory].armies.length > 0) {
       let nodeScores = {}
@@ -2172,7 +2174,6 @@ function botPlayer() {
         nodeScores[n] = score
       })
       let averageScore = 0
-      console.log('node scores', nodeScores)
       {
         for (let node in nodeScores) {
           averageScore += nodeScores[node]
@@ -2199,7 +2200,6 @@ function botPlayer() {
           bestNodes.push(node)
         }
       }
-      console.log('best node', bestNode, bestScore)
       // move territories into targets
       splitArmies(territory, bestNodes.length, bestNodes)
     }
@@ -2207,7 +2207,6 @@ function botPlayer() {
 
   // Buy new castles if too few
   if ((castles.length === 0) || (territories.length > (castles.length * 4))) {
-    console.log('going to buy a castle')
     let safe = territories.filter(n => !map[n].castle).filter(n => (n) => {
       let nLevel = getTotalLevelWeightedQuantity(map[n].armies)
       let threats = 0
@@ -2218,7 +2217,6 @@ function botPlayer() {
       })
       return nLevel > threats
     })
-    console.log('safe castle options', safe.length)
     let comparisonFunction = (n1, n2) => {
       let n1Level = getDefence(n1)
       let n2Level = getDefence(n2)
@@ -2229,7 +2227,6 @@ function botPlayer() {
       // if less than 0 n1 comes first
       return (((n1Level + map[n1].mines) - n1NextToCastle) - ((n2Level + map[n2].mines) - n2NextToCastle))
     }
-    console.log('ordering', safe.sort(comparisonFunction))
     if (safe.length > 1) {
       let choice = safe.sort(comparisonFunction)[0]
       buyUpgrade(choice, 'castle')
