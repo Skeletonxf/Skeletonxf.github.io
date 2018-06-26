@@ -1074,6 +1074,9 @@ function updatePlayerGold() {
 }
 
 function applyTurns() {
+  // Reset pathing each turn.
+  foundPaths = {}
+
   phase = phase += 1
   // The update function
 
@@ -1703,7 +1706,13 @@ function hasRam(node) {
   return map[node].armies.some(a => a.type === 'Rams')
 }
 
+// Cache paths for the turn.
+let foundPaths = {}
 function findPath(from, to) {
+  if (foundPaths[from] && foundPaths[from][to]) {
+    return foundPaths[from][to]
+  }
+
   let includeWater = from.includes('water') || to.includes('water')
 
   // Breadth first search to find the path
@@ -1742,10 +1751,19 @@ function findPath(from, to) {
     })
   }
 
+  // Cache result for repeated queries.
+  if (!foundPaths[from]) {
+    foundPaths[from] = {}
+  }
+  foundPaths[from][to] = path
+
   return path
 }
 
 function distanceTo(from, to) {
+  if (from === to) {
+    return 0
+  }
   // trace the path to find the distance
   let path = findPath(from, to)
   let node = to
