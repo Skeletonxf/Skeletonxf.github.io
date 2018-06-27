@@ -1272,6 +1272,14 @@ function applyTurns() {
     map[node].arriving = []
   }
 
+  // Kill partially dead armies after all fights
+  for (let node in map) {
+    map[node].armies.forEach((army) => {
+      army.quantity = Math.floor(army.quantity)
+    })
+    map[node].armies = map[node].armies.filter(a => a.quantity >= 1)
+  }
+
   // Remove wall bonus flags.
   for (let node in map) {
     map[node].armies.forEach(a => a.insideWall = null)
@@ -2006,21 +2014,50 @@ function botPlayer() {
 
   // Should spawn at castles near where need units and able
   // to spawn at multiple castles
-  if (castles.length > 0 && base) {
-    let spawnAt = castles[0]
-    let furthestDistance = 0
-    let distanceFromBase = {}
-    castles.forEach((n) => {
-      distanceFromBase[n] = distanceTo(base, n)
+  if (castles.length > 0) {
+    let priorityCastles = castles.filter((castle) => {
+      console.log('filtering for castle', castle)
+      // consider all paths from third neighbours to the castle
+      let canIntercept = true
+      secondNeighbours.forEach((n) => {
+        let canInterceptNode = false
+        if ((canIntercept) && (!canInterceptNode)) {
+          let pathToCastle = findPath(castle, n)
+          let node = n
+          // trace path
+          while ((node !== castle) && (castle !== n)) {
+            let nodeIsCastle = ((map[node].castle) &&
+            (map[node].player === turnPlayer))
+            let neighbourIsCastle = graph[node].some(
+              n => (n !== castle) &&
+              (map[n].castle) &&
+              (map[n].player === turnPlayer))
+            if (nodeIsCastle || neighbourIsCastle) {
+              // can intercept opponents via this castle instead
+              canInterceptNode = true
+              break
+            }
+            node = pathToCastle[node]
+          }
+        }
+        if (!canInterceptNode) {
+          // found a third neighbour with no intercepting route
+          canIntercept = false
+        }
+      })
+      // prioritise castles which are not behind other castles
+      return !canIntercept
     })
-    castles.forEach((n) => {
-      if (distanceFromBase[n] > furthestDistance) {
-        spawnAt = n
-        furthestDistance = distanceFromBase[n]
-      }
-    })
-    let unitsBought = Math.floor(players[turnPlayer].goldIncome / (2 * UNIT_COST))
-    buyUnit(spawnAt, unitBuying, unitsBought)
+
+    let spawnAt = priorityCastles
+    if (priorityCastles.length === 0) {
+      spawnAt = castles
+    }
+
+    let unitsToBuy = Math.floor(
+      players[turnPlayer].goldIncome / (2 * UNIT_COST * spawnAt.length))
+    console.log('spawning at', spawnAt)
+    spawnAt.forEach(castle => buyUnit(castle, unitBuying, unitsToBuy))
   }
 
   // Spawn defending units at castles using reseve gold if under threat
