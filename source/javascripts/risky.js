@@ -1859,10 +1859,27 @@ function botPlayer() {
   }
 
   function buyUpgrade(node, upgrade) {
+    if (upgrade === 'archers' || upgrade === 'calvary' || upgrade === 'infantry') {
+      if (players[turnPlayer].units[upgrade] < 4) {
+        let upgradeCost = unitUpgradesCost[players[turnPlayer].units[upgrade] - 1]
+        if (players[turnPlayer].gold >= upgradeCost) {
+          console.log(turnPlayer, 'upgraded', upgrade)
+          players[turnPlayer].upgrades[upgrade] = true
+          players[turnPlayer].gold -= upgradeCost
+        }
+      }
+      return
+    }
     if (map[node].player === turnPlayer) {
       if (upgrade === 'castle') {
         if ((players[turnPlayer].gold >= CASTLE_COST) && (!map[node].castle)) {
           players[turnPlayer].gold -= CASTLE_COST
+          map[node].purchases[upgrade] = true
+        }
+      }
+      if (upgrade === 'wall') {
+        if ((players[turnPlayer].gold >= WALL_COST) && (!map[node].wall)) {
+          players[turnPlayer].gold -= WALL_COST
           map[node].purchases[upgrade] = true
         }
       }
@@ -2060,6 +2077,7 @@ function botPlayer() {
     spawnAt.forEach(castle => buyUnit(castle, unitBuying, unitsToBuy))
   }
 
+  let doomedCastles = []
   // Spawn defending units at castles using reseve gold if under threat
   castles.forEach((castle) => {
     const defence = getDefence(castle)
@@ -2137,6 +2155,8 @@ function botPlayer() {
         players[turnPlayer].gold -= defend * UNIT_COST
         console.log('money after', players[turnPlayer].gold)
       }
+    } else {
+      doomedCastles.push(castle)
     }
   })
 
@@ -2290,6 +2310,46 @@ function botPlayer() {
         let choice = territories.filter(
           n => !map[n].castle).sort(comparisonFunction)[0]
         buyUpgrade(choice, 'castle')
+      }
+    }
+  }
+
+  // buy walls on unwalled castles
+  for (let node in map) {
+    if (map[node].player === turnPlayer) {
+      if ((map[node].castle) && (!map[node].wall)) {
+        if (!doomedCastles.includes(node)) {
+          // leave money in reserve for defence
+          if (players[turnPlayer].gold > (WALL_COST * 1.5)) {
+            buyUpgrade(node, 'wall')
+          }
+        }
+      }
+    }
+  }
+
+  {
+    let archersLevel = players[turnPlayer].units.archers
+    let calvaryLevel = players[turnPlayer].units.calvary
+    let infantryLevel = players[turnPlayer].units.infantry
+    let bestUpgrade = 'archers'
+    let bestLevel = archersLevel
+    if ((calvaryLevel < bestLevel) ||
+    ((calvaryLevel === bestLevel) && (unitBuying === 'calvary'))) {
+      bestLevel = calvaryLevel
+      bestUpgrade = 'calvary'
+    }
+    if ((infantryLevel < bestLevel) ||
+    ((infantryLevel === bestLevel) && (unitBuying === 'infantry'))) {
+      bestLevel = infantryLevel
+      bestUpgrade = 'infantry'
+    }
+    if (bestLevel < 4) {
+      // subtract 1 to going into 0-2 indexing for 2-4 levels
+      let upgradeCost = unitUpgradesCost[bestLevel - 1]
+      // leave money in reserve for defence
+      if (players[turnPlayer].gold > (upgradeCost + 500)) {
+        buyUpgrade(null, bestUpgrade)
       }
     }
   }
