@@ -57,8 +57,15 @@ A castle costs 2000 gold to build, and is build after all battles. Castles under
 
 <!-- Aggressive/Defensive/Scientific -->
 
-# I don't have 6 players
-- 1 player: ☹️ Wait for me to add AI players
+# Players
+
+## I have no players
+Play with the bots :D  
+Good luck! (And no they do not cheat)
+
+## I don't have 6 players
+2+ players: toggle off the [bots](#bot-controls) below
+
 - 2 players: Form 2 teams each
   - p1,p2,p3 vs p4,p5,p6
   - p1,p3,p5 vs p2,p4,p6 (probably more interesting)
@@ -70,6 +77,8 @@ A castle costs 2000 gold to build, and is build after all battles. Castles under
 - 5 players: rotate control of last non player player
     - p1 vs p2 vs p3 vs p4 vs p5 vs p6[rotating]
 - 6 players: ☺️ Full game
+
+You could also toggle the bots on for the otherwise rotating players above but the bots are unlikely to seem fair mixed with humans. They will frequently attack only one of their neighbours when they have an arbitary choice.
 
 # Notes
 
