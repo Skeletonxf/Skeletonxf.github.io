@@ -501,8 +501,6 @@ var switchFocusTo = null
           label.appendChild(text)
 
           updateButton()
-
-          console.log(map[node.id].deployed)
         })
 
         button.addEventListener('click', () => {
@@ -1038,7 +1036,6 @@ function changeTurnPlayer() {
   }
   if (victor !== false) {
     // Game over
-    console.log('victor', victor)
     title.textContent = 'Player ' + victor.slice(1) + ' Wins!'
     endTurnButton.setAttribute('disabled', 'disabled')
     return
@@ -1107,7 +1104,6 @@ function applyTurns() {
   // default all unchosen players to defensive
   for (let player in players) {
     if (players[player].start === null) {
-      console.log('assigned start automatically')
       startDefensive(player)
     }
   }
@@ -1124,7 +1120,6 @@ function applyTurns() {
         } else {
           // Happens if a player selects some number of armies but does
           // not choose a valid deployment location.
-          console.log('undefined target', d, map[node])
           // undeploy to avoid error
           map[node].deployed = map[node].deployed.filter(d1 => d1 !== d)
         }
@@ -1370,7 +1365,6 @@ function applyTurns() {
 
   // apply end of turn 3 player start bonuses
   if (phase === 4) {
-    console.log('applying start bonuses')
     for (let player in players) {
       // give aggressive players gold
       if (players[player].start === 'aggressive') {
@@ -1567,7 +1561,6 @@ function battleMultiplier(trade, against) {
 // the default start
 function startDefensive(player) {
   if (players[player].start === null) {
-    console.log('defensive')
     players[player].start = 'defensive'
     updateArmies(document.getElementById('base' + player.charAt(1)))
   }
@@ -1575,7 +1568,6 @@ function startDefensive(player) {
 
 function startAggressive(player) {
   if (players[player].start === null) {
-    console.log('aggressive')
     players[player].start = 'aggressive'
     for (let node in map) {
       if (map[node].player === player) {
@@ -1594,7 +1586,6 @@ function startAggressive(player) {
 
 function startScientific(player) {
   if (players[player].start === null) {
-    console.log('scientific')
     players[player].start = 'scientific'
     players[player].units.archers += 1
     updateArmies(document.getElementById('base' + player.charAt(1)))
@@ -1828,7 +1819,7 @@ function splitArmies(node, splits, targets) {
             })
           }
         } else {
-          console.log('skipped already deployed')
+          //console.log('skipped already deployed')
         }
       })
     } else {
@@ -1877,7 +1868,7 @@ function splitArmies(node, splits, targets) {
             }
           }
         } else {
-          console.log('skipped already deployed')
+          //console.log('skipped already deployed')
         }
       })
     }
@@ -1894,7 +1885,7 @@ function botPlayer() {
       map[castle].purchases[unit] += quantity
       players[turnPlayer].gold -= quantity * UNIT_COST
     } else {
-      console.log('error trying to buy', castle, unit, quantity)
+      //console.log('error trying to buy', castle, unit, quantity)
     }
   }
 
@@ -1903,7 +1894,6 @@ function botPlayer() {
       if (players[turnPlayer].units[upgrade] < 4) {
         let upgradeCost = unitUpgradesCost[players[turnPlayer].units[upgrade] - 1]
         if (players[turnPlayer].gold >= upgradeCost) {
-          console.log(turnPlayer, 'upgraded', upgrade)
           players[turnPlayer].upgrades[upgrade] = true
           players[turnPlayer].gold -= upgradeCost
         }
@@ -1946,7 +1936,6 @@ function botPlayer() {
     if (Math.random() < 0.35) {
       if (Math.random() < 0.6) {
         players[turnPlayer].scientificStrat = 'rush-mid'
-        console.log('rushing mid')
       } else {
         players[turnPlayer].scientificStrat = 'rush-neighbour'
       }
@@ -2084,9 +2073,7 @@ function botPlayer() {
         let middle = territories.filter(n => n.includes('middle'))
         let base = territories.find(n => n.includes('base'))
         if (base) {
-          console.log('checking middle castles', middle)
           middle = middle.filter(n => distanceTo(n, base) < 4)
-          console.log('after filter', middle)
         }
         // should only be 1
         let castle = middle.find(n => ((map[n].castle) && (!map[n].wall)))
@@ -2184,7 +2171,6 @@ function botPlayer() {
   // to spawn at multiple castles
   if (castles.length > 0) {
     let priorityCastles = castles.filter((castle) => {
-      console.log('filtering for castle', castle)
       // consider all paths from third neighbours to the castle
       let canIntercept = true
       secondNeighbours.forEach((n) => {
@@ -2224,7 +2210,6 @@ function botPlayer() {
 
     let unitsToBuy = Math.floor(
       players[turnPlayer].goldIncome / (2 * UNIT_COST * spawnAt.length))
-    console.log('spawning at', spawnAt)
     spawnAt.forEach(castle => buyUnit(castle, unitBuying, unitsToBuy))
   }
 
@@ -2289,22 +2274,14 @@ function botPlayer() {
         effectiveDefence /= 2
       }
       if ((totalThreats - effectiveDefence) > 0) {
-        console.log('money before', players[turnPlayer].gold)
         // Buy units to defend castle with.
         let defend = Math.ceil(totalThreats * 1.1)
-        if (totalThreats < 0) {
-          console.log('negative threats!', castle, threats)
-        }
-        if (players[turnPlayer].gold < 0) {
-          console.log('negative money!', players[turnPlayer].gold)
-        }
         // Do not spend past available money on defending units.
         defend = Math.min(
           Math.floor(players[turnPlayer].gold / UNIT_COST), defend)
-        console.log('defensive spending', defend, castle)
+        //console.log('defensive spending', defend, castle)
         map[castle].purchases[unitBuying] += defend
         players[turnPlayer].gold -= defend * UNIT_COST
-        console.log('money after', players[turnPlayer].gold)
       }
     } else {
       doomedCastles.push(castle)
@@ -2562,5 +2539,5 @@ function tests() {
 }
 //tests()
 
-console.log("done")
+console.log("Game JS loaded")
 })
