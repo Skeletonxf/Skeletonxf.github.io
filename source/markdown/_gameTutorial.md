@@ -82,7 +82,7 @@ You could also toggle the bots on for the otherwise rotating players above but t
 
 # Notes
 
-Player colours chosen using [I want hue](http://tools.medialab.sciences-po.fr/iwanthue/)
+Player colours chosen using [I want hue](http://tools.medialab.sciences-po.fr/iwanthue/) for optimally distinct colors considering colourblindness.
 
 The original [forum game](http://forums.stickpage.com/showthread.php?100762-Risky-Business-Forum-Game)
 
@@ -96,3 +96,11 @@ The original [forum game](http://forums.stickpage.com/showthread.php?100762-Risk
 - The order of resolving battles/purchases/upgrades may be different to the original. It was never explicitly stated.
 - Agressive start gets Gold worth half a Castle instead of a discounted Castle.
 - Scientific is buffed to also gain up to 5 level 5 neutral units which still leaves it gaining half in Gold of Defensive and less expansion power than Aggressive. The unit upgrade was mostly arbitary so is fixed to Archers. Scientific now has significant attacking power to make up for the advantages of the other two.
+- Terminology changes: province -> territory, turn -> phase, messaging actions to Devour -> turn.
+
+## Single Player Challenges
+- Win with Defensive
+- Win with Scientific
+- Win with Aggressive
+- Win without buying Infantry
+- Skip your first two turns (except start) and still win
