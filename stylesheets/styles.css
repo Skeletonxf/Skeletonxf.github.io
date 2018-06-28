@@ -31,7 +31,13 @@ body {
           justify-content: center;
 }
 
+/* Chrome (tested v67) doesn't auto expand display: flex */
 footer {
+  display: inline-block;
+}
+
+/* Nest in footer with actual layout div */
+.footer {
   text-align: center;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -45,8 +51,33 @@ footer {
           justify-content: center;
   padding-bottom: 1em;
   padding-top: 1em;
+  margin-top: auto;
   border-top: 1px solid black;
+  font-size: 12px;
 }
+
+/*
+ * Chrome (tested v67) doesn't automatically line break long links
+ * that overflow on mobile
+ */
+.footer p {
+  /* https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/ */
+  /* These are technically the same, but use both */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
+  -ms-word-break: break-all;
+  /* This is the dangerous one in WebKit, as it breaks things wherever */
+  /* word-break: break-all; */
+  /* Instead use this non-standard one: */
+  word-break: break-word;
+
+  /* Adds a hyphen where the word breaks, if supported (No Blink) */
+  -ms-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
 
 nav {
   width: 100%;

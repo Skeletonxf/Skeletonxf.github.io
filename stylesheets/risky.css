@@ -321,7 +321,7 @@ ol.center {
   width: 5em;
   height: 8.5em;
   border-radius: 0.8em;
-  background: darkorange;
+  background: gold;
   margin: auto; }
 
 /* Game info */
@@ -477,3 +477,13 @@ p.id.mid {
 
 #choose-start.hidden {
   display: none; }
+
+#bot-controls {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  text-align: center; }
