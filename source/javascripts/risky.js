@@ -1549,37 +1549,45 @@ function startDefensive(player) {
   }
 }
 
+function startAggressive(player) {
+  if (players[player].start === null) {
+    console.log('aggressive')
+    players[player].start = 'aggressive'
+    for (let node in map) {
+      if (map[node].player === player) {
+        map[node].armies.push({
+          quantity: 20,
+          type: 'Neutral',
+          level: 1,
+          id: getHighestID(map[node].armies) + 1
+        })
+        updateArmies(document.getElementById(node))
+      }
+    }
+    updateMap()
+  }
+}
+
+function startScientific(player) {
+  if (players[player].start === null) {
+    console.log('scientific')
+    players[player].start = 'scientific'
+    players[player].units.archers += 1
+    updateArmies(document.getElementById('base' + player.charAt(1)))
+    updatePlayerUnitUpgrades()
+  }
+}
+
 {
   let aggressive = document.getElementById('aggressive-start')
   let defensive = document.getElementById('defensive-start')
   let scientific = document.getElementById('scientific-start')
 
   aggressive.addEventListener('click', () => {
-    if (phase === 1 && players[turnPlayer].start === null) {
-      console.log('aggressive')
-      players[turnPlayer].start = 'aggressive'
-      for (let node in map) {
-        if (map[node].player === turnPlayer) {
-          map[node].armies.push({
-            quantity: 20,
-            type: 'Neutral',
-            level: 1,
-            id: getHighestID(map[node].armies) + 1
-          })
-          updateArmies(document.getElementById(node))
-        }
-      }
-      updateMap()
-    }
+    startAggressive(turnPlayer)
   })
   scientific.addEventListener('click', () => {
-    if (phase === 1 && players[turnPlayer].start === null) {
-      console.log('scientific')
-      players[turnPlayer].start = 'scientific'
-      players[turnPlayer].units.archers += 1
-      updateArmies(document.getElementById('base' + turnPlayer.charAt(1)))
-      updatePlayerUnitUpgrades()
-    }
+    startScientific(turnPlayer)
   })
   defensive.addEventListener('click', () => {
     startDefensive(turnPlayer)
@@ -1788,56 +1796,64 @@ function splitArmies(node, splits, targets) {
   if (territory.player === turnPlayer) {
     if (splits === 1) {
       territory.armies.forEach((a) => {
-        if (targets[0] !== node) {
-          territory.deployed.push({
-            army: a,
-            target: targets[0]
-          })
-        }
-      })
-    } else {
-      territory.armies.forEach((a) => {
-        let n = splits
-        let quantity = a.quantity
-        while (Math.floor(quantity / n) < 1) {
-          n -= 1
-        }
-        // can't split armies if too few
-        if (n > 1) {
-          for (let i = 0; i < (n-1); i++) {
-            let split = {
-              quantity: Math.floor(quantity / n),
-              type: a.type,
-              level: a.level,
-              id: 1 + getHighestID(territory.armies)
-            }
-            territory.armies.push(split)
-            if (targets[i+1] !== node) {
-              territory.deployed.push({
-                army: split,
-                target: targets[i+1]
-              })
-            }
-          }
-          a.quantity = Math.floor(quantity / n)
+        if (!territory.deployed.some(d => d.army === a)) {
           if (targets[0] !== node) {
             territory.deployed.push({
               army: a,
               target: targets[0]
             })
           }
-          // check if rounding meant some units were left
-          let deployedQuantity = (n) * Math.floor(quantity / n)
-          let remainder = quantity - deployedQuantity
-          if (remainder > 0) {
-            let leftOver = {
-              quantity: remainder,
-              type: a.type,
-              level: a.level,
-              id: 1 + getHighestID(territory.armies)
-            }
-            territory.armies.push(leftOver)
+        } else {
+          console.log('skipped already deployed')
+        }
+      })
+    } else {
+      territory.armies.forEach((a) => {
+        if (!territory.deployed.some(d => d.army === a)) {
+          let n = splits
+          let quantity = a.quantity
+          while (Math.floor(quantity / n) < 1) {
+            n -= 1
           }
+          // can't split armies if too few
+          if (n > 1) {
+            for (let i = 0; i < (n-1); i++) {
+              let split = {
+                quantity: Math.floor(quantity / n),
+                type: a.type,
+                level: a.level,
+                id: 1 + getHighestID(territory.armies)
+              }
+              territory.armies.push(split)
+              if (targets[i+1] !== node) {
+                territory.deployed.push({
+                  army: split,
+                  target: targets[i+1]
+                })
+              }
+            }
+            a.quantity = Math.floor(quantity / n)
+            if (targets[0] !== node) {
+              territory.deployed.push({
+                army: a,
+                target: targets[0]
+              })
+            }
+            // check if rounding meant some units were left
+            let deployedQuantity = (n) * Math.floor(quantity / n)
+            let remainder = quantity - deployedQuantity
+            if (remainder > 0) {
+              let leftOver = {
+                quantity: remainder,
+                type: a.type,
+                level: a.level,
+                id: 1 + getHighestID(territory.armies)
+              }
+              territory.armies.push(leftOver)
+            }
+          }
+        } else {
+          console.log('skipped already deployed')
         }
       })
     }
@@ -1894,11 +1910,28 @@ function botPlayer() {
   }
   // hardcoded opening
   if (phase === 1) {
+    if (Math.random() < 0.35) {
+      if (Math.random() < 0.6) {
+        players[turnPlayer].scientificStrat = 'rush-mid'
+        console.log('rushing mid')
+      } else {
+        players[turnPlayer].scientificStrat = 'rush-neighbour'
+      }
+      startScientific(turnPlayer)
+    }
     let base = territories[0]
     let adjacent = graph[base]
     let adjacentOuter = adjacent.filter(n => n.includes('outer'))
-    splitArmies(base, 2, adjacentOuter)
-    buyUnit(base, 'archers', 10)
+    if (players[turnPlayer].scientificStrat === 'rush-mid') {
+      splitArmies(base, 1, [adjacentOuter[0]])
+    } else {
+      splitArmies(base, 2, adjacentOuter)
+    }
+    if (players[turnPlayer].start === 'scientific') {
+      buyUnit(base, 'archers', 20)
+    } else {
+      buyUnit(base, 'archers', 10)
+    }
     return
   }
   if (phase === 2) {
@@ -1915,8 +1948,19 @@ function botPlayer() {
       outer.forEach((n) => {
         splitArmies(n, 1, [middleTarget])
       })
-      // move purchased unit
-      splitArmies(base, 1, [outer[0]])
+      if (players[turnPlayer].scientificStrat === 'rush-mid') {
+        // take second outer on second turn for rush
+        let outerNotTaken = graph[base].filter(
+          n => (n.includes('outer') && !(territories.includes(n))))
+        if (outerNotTaken) {
+          splitArmies(base, 1, [outerNotTaken])
+        } else {
+          splitArmies(base, 1, [outer[0]])
+        }
+      } else {
+        // move purchased units
+        splitArmies(base, 1, [outer[0]])
+      }
       return
     } else {
       if (map[base].armies.length > 0) {
@@ -1928,6 +1972,14 @@ function botPlayer() {
     }
   }
   if (phase === 3) {
+    if (players[turnPlayer].scientificStrat === 'rush-mid') {
+      let middle = territories.filter(n => n.includes('middle'))
+      let middleUnits = middle.find(n => map[n].armies.length > 0)
+      if (middleUnits) {
+        let inner = graph[middleUnits].find(n => n.includes('inner'))
+        splitArmies(middleUnits, 1, [inner])
+      }
+    }
     let outer = territories.filter(n => n.includes('outer'))
     if (outer.length > 0) {
       let middleTargets = graph[outer[0]].filter(n => n.includes('middle'))
@@ -1940,11 +1992,77 @@ function botPlayer() {
     }
   }
   if (phase === 4) {
-    let middle = territories.filter(n => n.includes('middle'))
-    if (middle.length > 0) {
-      let castle = Math.floor((Math.random() * (middle.length)))
-      buyUpgrade(middle[castle], 'castle')
-      return
+    if (players[turnPlayer].scientificStrat === 'rush-mid') {
+      let middle = territories.filter(
+        n => (n.includes('middle')) && (map[n].armies.length > 0))
+      if (middle.length > 0) {
+        let inner = graph[middle[0]].find(n => n.includes('inner'))
+        middle.forEach((n) => {
+          splitArmies(n, 1, [inner])
+        })
+      }
+      let inner = territories.find(n => n.includes('inner'))
+      if (inner) {
+        let innersNextToMid = graph[inner].filter(n => n.includes('inner'))
+        let innerTarget = innersNextToMid[
+          Math.floor(Math.random() * innersNextToMid.length)]
+        splitArmies(inner, 1, [innerTarget])
+        buyUpgrade(inner, 'castle')
+      }
+    } else {
+      let middle = territories.filter(n => n.includes('middle'))
+      if (middle.length > 0) {
+        let castle = Math.floor((Math.random() * (middle.length)))
+        buyUpgrade(middle[castle], 'castle')
+      }
+    }
+  }
+  if (players[turnPlayer].start === 'scientific') {
+    if (players[turnPlayer].scientificStrat === 'rush-mid') {
+      if (phase === 5) {
+        let innerNextToMid = territories.find(
+          n => graph[n].includes('$'))
+        if (innerNextToMid) {
+          let innerCastle = territories.find(
+            n => (map[n].castle) && (n.includes('inner')))
+          if (innerCastle) {
+            splitArmies(innerCastle, 1, [innerNextToMid])
+          }
+        }
+      }
+      if (phase === 6) {
+        let innerNextToMid = territories.find(
+          n => graph[n].includes('$'))
+        if (innerNextToMid) {
+          splitArmies(innerNextToMid, 1, ['$'])
+        }
+        let innerCastle = territories.find(
+          n => (map[n].castle) && (n.includes('inner')))
+        if (innerCastle) {
+          if (!map[innerCastle].wall) {
+            if (players[turnPlayer].gold >= CASTLE_COST) {
+              buyUpgrade(innerCastle, 'wall')
+            }
+          }
+        }
+      }
+    } else {
+      if ((phase === 5) || (phase === 6)) {
+        let middle = territories.filter(n => n.includes('middle'))
+        let base = territories.find(n => n.includes('base'))
+        if (base) {
+          console.log('checking middle castles', middle)
+          middle = middle.filter(n => distanceTo(n, base) < 4)
+          console.log('after filter', middle)
+        }
+        // should only be 1
+        let castle = middle.find(n => ((map[n].castle) && (!map[n].wall)))
+        if (castle) {
+          if (players[turnPlayer].gold >= CASTLE_COST) {
+            buyUpgrade(castle, 'wall')
+          }
+        }
+      }
     }
   }
   // General case
