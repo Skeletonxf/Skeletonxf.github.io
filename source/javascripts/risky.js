@@ -360,6 +360,7 @@ var switchFocusTo = null
     }
     let button = document.createElement('button')
     button.textContent = 'Attack/Transfer'
+    button.title = 'Move the selected units to the adjacent territory, battling on the way'
     attackContainer.appendChild(button)
 
     if (map[node.id].player === turnPlayer) {

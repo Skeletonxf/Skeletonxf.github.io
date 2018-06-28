@@ -25,9 +25,9 @@ layout: risky
       <ol id = "territory-attacks"></ol>
     </div>
     <div id = "choose-start">
-      <button id="aggressive-start">Aggressive</button>
-      <button id="defensive-start">Defensive</button>
-      <button id="scientific-start">Scientific</button>
+      <button id="aggressive-start" title="Start with extra units and gain 1000 gold at the end of phase 3 to expand quicker than your opponents">Aggressive</button>
+      <button id="defensive-start" title="Build defensive walls on all your territories at the end of phase 3 to dig in and hold your ground">Defensive</button>
+      <button id="scientific-start" title="Control the strongest units in the game by starting with level 2 archers and spawning level 5 neutral units at the end of phase 3">Scientific</button>
     </div>
   </div>
   <div id = "map">
@@ -157,41 +157,41 @@ layout: risky
     <h3>Control</h3>
     <p id = "territory-controller"></p>
     <h3>Structures</h3>
-    <p id = "territory-mines"></p>
-    <p id = "territory-wall"></p>
-    <p id = "territory-castle"></p>
+    <p id = "territory-mines" title="Mines increase gold income"></p>
+    <p id = "territory-wall" title="Walls double the strength of defending units"></p>
+    <p id = "territory-castle" title="Castles can spawn units"></p>
     <h3>Gold Income</h3>
-    <p id = "territory-gold-income"></p>
+    <p id = "territory-gold-income" title="The gold this territory gives per turn"></p>
     <div id="info-build-units">
       <h3>Buy Units</h3>
       <h4>20 Gold</h4>
       <div class="buy">
-        <label for="archers">Archers</label>
+        <label for="archers" title="Weak to Calvary">Archers</label>
         <input type="number" id="archers"></input>
       </div>
       <div class="buy">
-        <label for="calvary">Calvary</label>
+        <label for="calvary" title="Weak to Infantry">Calvary</label>
         <input type="number" id="calvary"></input>
       </div>
       <div class="buy">
-        <label for="infantry">Infantry</label>
+        <label for="infantry" title="Weak to Archers">Infantry</label>
         <input type="number" id="infantry"></input>
       </div>
       <h4>1500 Gold</h4>
       <div class="buy">
-        <label for="rams">Battering Ram</label>
+        <label for="rams" title="Negate Wall bonuses and destroy Walls in multiples (consumed on use)">Battering Ram</label>
         <input type="number" id="rams"></input>
       </div>
     </div>
     <div id="info-buttons">
       <h4>Territory Upgrades</h4>
       <div class="buy">
-        <label for="build-mines" id="build-mines-label">Mines +1: 200</label>
+        <label for="build-mines" id="build-mines-label" title="Gain more Gold from this territory">Mines +1: 200</label>
         <input type="number" id="build-mines"></input>
       </div>
-      <button id="build-wall">Build Wall (1500)</button>
-      <button id="build-castle">Build Castle (2000)</button>
-      <button id="raze-down">Raze Down</button>
+      <button id="build-wall" title="Doubles the strength of your defending units">Build Wall (1500)</button>
+      <button id="build-castle" title="Spawn units">Build Castle (2000)</button>
+      <button id="raze-down" title="Remove all Mines, Walls and Castles (no refund)">Raze Down</button>
     </div>
   </div>
   <div id = "players">
@@ -203,9 +203,9 @@ layout: risky
         <p id = "p1-calvary-level"></p>
         <p id = "p1-infantry-level"></p>
         <div id = "turn-player-unit-upgrades">
-          <button id = "turn-player-upgrade-archers">Upgrade Archers</button>
-          <button id = "turn-player-upgrade-calvary">Upgrade Calvary</button>
-          <button id = "turn-player-upgrade-infantry">Upgrade Infantry</button>
+          <button id = "turn-player-upgrade-archers" title="Double the strength of newly spawned Archers">Upgrade Archers</button>
+          <button id = "turn-player-upgrade-calvary" title="Double the strength of newly spawned Calvary">Upgrade Calvary</button>
+          <button id = "turn-player-upgrade-infantry" title="Double the strength of newly spawned Infantry">Upgrade Infantry</button>
         </div>
         <button id="end-turn">End Turn</button>
       </li>
