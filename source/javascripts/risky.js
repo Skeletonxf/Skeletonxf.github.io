@@ -1899,6 +1899,15 @@ function botPlayer() {
           map[node].purchases[upgrade] = true
         }
       }
+      if (upgrade === 'mine') {
+        if (map[node].mines < 6) {
+          let upgradeCost = mineUpgradeCost[map[node].mines]
+          if (players[turnPlayer].gold >= upgradeCost) {
+            map[node].purchases.mines += 1
+            players[turnPlayer].gold -= upgradeCost
+          }
+        }
+      }
     }
   }
 
@@ -1908,7 +1917,7 @@ function botPlayer() {
       territories.push(node)
     }
   }
-  // hardcoded opening
+  // hardcoded openings
   if (phase === 1) {
     if (Math.random() < 0.35) {
       if (Math.random() < 0.6) {
@@ -2468,6 +2477,34 @@ function botPlayer() {
       // leave money in reserve for defence
       if (players[turnPlayer].gold > (upgradeCost + 500)) {
         buyUpgrade(null, bestUpgrade)
+      }
+    }
+  }
+
+  {
+    // collect all territory 1 away from neighbours
+    // with no mines
+    let safeishTerritory = territories.filter((node) => {
+      return !neighbours.some(n => graph[n] === node)
+    }).filter((node) => {
+      return map[node].mines === 0
+    })
+    let bases = territories.filter(n => n.includes('base'))
+    if (bases.length > 0) {
+      safeishTerritory.sort((n1, n2) => {
+        let n1Distance = 0
+        bases.forEach(base => n1Distance += distanceTo(base, n1))
+        let n2Distance = 0
+        bases.forEach(base => n2Distance += distanceTo(base, n2))
+        // sort by closeness to bases
+        return n1Distance > n2Distance
+      })
+      if (safeishTerritory[0]) {
+        // mines take a long time to pay back
+        // so only buy when lots of spare money
+        if (players[turnPlayer].gold > 2000) {
+          buyUpgrade(safeishTerritory[0], 'mine')
+        }
       }
     }
   }
