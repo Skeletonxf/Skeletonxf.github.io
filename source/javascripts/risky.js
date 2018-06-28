@@ -1019,8 +1019,31 @@ function changeTurnPlayer() {
 
   let title = document.getElementById('title')
   title.textContent = 'Player ' + player + "'s Turn - Phase: " + phase
+
   let playerInfo = document.getElementById('p' + player + '-player-info')
   let endTurnButton = document.getElementById('end-turn')
+
+  // Detect if someone has won
+  victor = null
+  for (let node in map) {
+    if (victor === null) {
+      victor = map[node].player
+    } else {
+      if (map[node].player !== 'neutral') {
+        if (map[node].player !== victor) {
+          victor = false
+        }
+      }
+    }
+  }
+  if (victor !== false) {
+    // Game over
+    console.log('victor', victor)
+    title.textContent = 'Player ' + victor.slice(1) + ' Wins!'
+    endTurnButton.setAttribute('disabled', 'disabled')
+    return
+  }
+
   // move end turn button to the next player
   playerInfo.append(endTurnButton)
   // refresh player gold info
