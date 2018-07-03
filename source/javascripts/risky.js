@@ -1366,10 +1366,6 @@ function applyTurns() {
   // apply end of turn 3 player start bonuses
   if (phase === 4) {
     for (let player in players) {
-      // give aggressive players gold
-      if (players[player].start === 'aggressive') {
-        players[player].gold += 1000
-      }
       // give defensive players walls
       if (players[player].start === 'defensive') {
         for (let node in map) {
@@ -1580,6 +1576,9 @@ function startAggressive(player) {
         updateArmies(document.getElementById(node))
       }
     }
+    // give aggressive players extra starting gold
+    players[player].gold += 1000
+    updatePlayerGold()
     updateMap()
   }
 }
