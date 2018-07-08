@@ -57,14 +57,14 @@ A castle costs 2000 gold to build, and is build after all battles. Castles under
 
 <!-- Aggressive/Defensive/Scientific -->
 
-# Players
+# Number of players
 
-## I have no players
-Play with the bots :D  
+## I have no friends
+Play with the bots instead ☺️  
 Good luck! (And no they do not cheat)
 
-## I don't have 6 players
-2+ players: toggle off the [bots](#bot-controls) below
+## I have some friends
+2+ players: toggle off the [bots](#bot-controls) below before starting
 
 - 2 players: Form 2 teams each
   - p1,p2,p3 vs p4,p5,p6
@@ -72,10 +72,10 @@ Good luck! (And no they do not cheat)
 - 3 players: Form 2 teams each
   - p1,p2 vs p3,p4 vs p5,p6
   - p1, p4 vs p2,p5 vs p3,p6 (probably more interesting)
-- 4 players: rotate control of two opposite non player players
+- 4 players: rotate control of two opposite non player players (so everyone has 1 as a neighbour)
   - p2 vs p3 vs p5 vs p6 vs p1[rotating control through p2,p3,p5,p6] vs p4[rotating p5,p6,p2,p3]
 - 5 players: rotate control of last non player player
-    - p1 vs p2 vs p3 vs p4 vs p5 vs p6[rotating]
+    - p1 vs p2 vs p3 vs p4 vs p5 vs p6[rotating p5,p1,p2,p3,p4]
 - 6 players: ☺️ Full game
 
 You could also toggle the bots on for the otherwise rotating players above but the bots are unlikely to seem fair mixed with humans. They will frequently attack only one of their neighbours when they have an arbitary choice.
@@ -103,4 +103,4 @@ The original [forum game](http://forums.stickpage.com/showthread.php?100762-Risk
 - Win with Scientific
 - Win with Aggressive
 - Win without buying Infantry
-- Skip your first two turns (except start) and still win
+- Skip your first two turns (except start choice) and still win
