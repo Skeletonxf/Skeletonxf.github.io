@@ -457,6 +457,9 @@ p.id.mid {
   }
   input[type='number'] {
     width: 30%;
+    box-sizing: border-box;
+    height: 1.5em;
+    border: 2px solid silver;
   }
   padding: 5px;
 }
