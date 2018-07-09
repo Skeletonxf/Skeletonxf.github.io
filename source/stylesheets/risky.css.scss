@@ -456,10 +456,11 @@ p.id.mid {
     margin: 5px 0;
   }
   input[type='number'] {
-    width: 30%;
+    width: 60px;
     box-sizing: border-box;
-    height: 1.5em;
     border: 2px solid silver;
+    margin: 2px;
+    padding: 2px;
   }
   padding: 5px;
 }
@@ -473,6 +474,9 @@ p.id.mid {
 #armies {
   display: flex;
   flex-direction: column;
+  ol {
+    padding-left: 25px;
+  }
 }
 
 #armies, #info {
