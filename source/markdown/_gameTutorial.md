@@ -18,9 +18,9 @@ Each player commits their actions for the turn. When player 6 ends their turn th
 
 There are 3 starts you can choose on your first turn. If you do not choose you will get Defensive.
 
-- Defensive: At the end of turn 3 walls are built on every territory you own. You can get 4 walls from this which is worth 6000 Gold.
-- Aggressive: You get 20 extra starting units which helps you expand further and faster than the other players. Starting units will always be a turn ahead of everything else and each territory you'll take gives 150 gold per turn. You also get 1000 gold at the end of turn 3 (you may want to buy a Castle with this).
-- Scientific: You start with level 2 archers (worth 1500 Gold). At the end of turn 3 you get 1 level 5 neutral unit on every territory you own. This gives you up to 5 of the strongest units in the game. Each of these is worth 16 normal units so in trades you can save up to 1600 Gold in units.
+- Defensive: At the end of phase 3 walls are built on every territory you own. You can get 4** walls from this which is worth 6000 Gold.
+- Aggressive: You get 20 extra starting units and 1000 gold immediately which helps you expand further and faster than the other players. Starting units will always be a turn ahead of everything else.
+- Scientific: You start with level 2 archers (worth 1500 Gold). At the end of phase 3 you get 1 level 5 neutral unit on every territory you own. This gives you up to 5** of the strongest units in the game. Each of these is worth 16 normal units so in trades you can save up to 1600 Gold in units.
 
 ## Units
 
@@ -53,9 +53,9 @@ A Battering Ram is a special unit that does not fight. Each unit costs 1500 gold
 
 A castle costs 2000 gold to build, and is build after all battles. Castles under your control are the only territory you can spawn units on. No castles, no new units! Castles are indicated by black dots.
 
-<!-- Razing territories down -->
+## Razing down
 
-<!-- Aggressive/Defensive/Scientific -->
+You can attempt to raze down a territory removing all mines, walls and castles on it. This is useful if you took opponent's territory and don't expect to hold it for long. A razed down Capital never comes back!
 
 # Number of players
 
@@ -78,7 +78,7 @@ Good luck! (And no they do not cheat)
     - p1 vs p2 vs p3 vs p4 vs p5 vs p6[rotating p5,p1,p2,p3,p4]
 - 6 players: ☺️ Full game
 
-You could also toggle the bots on for the otherwise rotating players above but the bots are unlikely to seem fair mixed with humans. They will frequently attack only one of their neighbours when they have an arbitary choice.
+You could also toggle the bots on for the otherwise rotating players above but the bots are unlikely to seem fair mixed with humans. They will attack only one of their neighbours when they have an arbitary choice.
 
 # Notes
 
@@ -92,11 +92,13 @@ The original [forum game](http://forums.stickpage.com/showthread.php?100762-Risk
 - Units can only be upgraded at most one level per turn.
 - Water territories are 800 Neutral units instead of 2000.
 - Multiple army battles may not be the same algorithm as in the original. The original never had a scenario when 3+ armies fought at once.
-- You cannot order your units without deploying them to another territory (this is not intended to stay)
+- You cannot order your units without deploying them to another territory (lack of UI, bots do not do this either to be fair, not intended to remain unavailable)
 - The order of resolving battles/purchases/upgrades may be different to the original. It was never explicitly stated.
 - Agressive start gets Gold worth half a Castle instead of a discounted Castle.
-- Scientific is buffed to also gain up to 5 level 5 neutral units which still leaves it gaining half in Gold of Defensive and less expansion power than Aggressive. The unit upgrade was mostly arbitary so is fixed to Archers. Scientific now has significant attacking power to make up for the advantages of the other two.
+- Scientific is buffed to also gain up to 5** level 5 neutral units which still leaves it gaining half in Gold of Defensive and less expansion power than Aggressive. The unit upgrade was mostly arbitary so is fixed to Archers. Scientific now has significant attacking power to make up for the advantages of the other two.
 - Terminology changes: province -> territory, turn -> phase, messaging actions to Devour -> turn.
+
+** Turns out you can get 6 territories by the end of phase 3 instead of 5. One variant of an aggressive start bot does this.
 
 ## Single Player Challenges
 - Win with Defensive
