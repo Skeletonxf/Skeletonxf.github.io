@@ -378,7 +378,13 @@ p.id.mid {
   #armies h2, #armies h3, #armies h4, #armies ol, #info h2, #info h3, #info h4, #info ol, #players h2, #players h3, #players h4, #players ol, #mine-gold-income h2, #mine-gold-income h3, #mine-gold-income h4, #mine-gold-income ol {
     margin: 5px 0; }
   #armies input[type='number'], #info input[type='number'], #players input[type='number'], #mine-gold-income input[type='number'] {
-    width: 30%; }
+    width: 60px;
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+    border: 2px solid lightgrey;
+    border-radius: 4px;
+    margin: 2px;
+    padding: 2px; }
 
 #flex-wrapper {
   display: -webkit-box;
@@ -398,6 +404,8 @@ p.id.mid {
   -webkit-box-direction: normal;
       -ms-flex-direction: column;
           flex-direction: column; }
+  #armies ol {
+    padding-left: 25px; }
 
 #armies, #info {
   width: 200px; }

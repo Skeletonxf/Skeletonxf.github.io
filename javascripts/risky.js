@@ -1036,7 +1036,8 @@ function changeTurnPlayer() {
   }
   if (victor !== false) {
     // Game over
-    title.textContent = 'Player ' + victor.slice(1) + ' Wins!'
+    title.textContent = 'Player ' + victor.slice(1) + ' Wins!' +
+    ' Phase: ' + phase
     endTurnButton.setAttribute('disabled', 'disabled')
     return
   }
