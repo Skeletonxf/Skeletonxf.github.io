@@ -28,9 +28,7 @@
     <article>
       <h2>Problems with multiple inheritance</h2>
 
-<p>To quote from the Programming in Lua book &ldquo;<a href="https://www.lua.org/pil/16.3.html">objects are not primitive in Lua</a>&rdquo;.</p>
-
-<p>That page of the book covers multiple inheritance, showing a general function to create a class from many at runtime.</p>
+<p>First I will go over why one of the reasons why Java doesn&rsquo;t have multiple inheritance and then how this informs multiple inheritance in Lua (where one can do classes and objects however one likes because &ldquo;<a href="https://www.lua.org/pil/16.3.html">objects are not primitive</a>&rdquo;).</p>
 
 <p>A crucial problem with multiple inheritance is ambiguity when multiple subclasses have the same method or field. If this were legal java the following snippet shows the issue.</p>
 <div class="highlight"><pre class="highlight java"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Entity</span> <span class="o">{</span>
@@ -90,7 +88,7 @@
 
 <h2>Implementations</h2>
 
-<p>The scenario I had was somewhat similar to the simplified examples in Java above. I had an object which was a box2d body/shape/fixture, and I wanted to give it other methods for handling AI logic. In this scenario, the library you are  using has given your object a metatable for box2d updates, and you want to also be able to call your logic code on it.</p>
+<p>The scenario I had was somewhat similar to the simplified examples in Java above. I had an object which was a box2d body/shape/fixture, and I wanted to give it other methods for handling AI logic. The library I was using had already given my object a metatable for box2d updates and I want to also call my logic on it.</p>
 <div class="highlight"><pre class="highlight lua"><code><span class="c1">-- 'class' table</span>
 <span class="kd">local</span> <span class="n">Pathfinder</span> <span class="o">=</span> <span class="p">{</span>
   <span class="c1">-- methods of the class to be called on instances</span>
@@ -119,7 +117,7 @@
   <span class="k">end</span>
 <span class="k">end</span> <span class="p">})</span>
 </code></pre></div>
-<p>PIL goes through a more generalised version of this. However this approach can be extended even further, if we want to call both methods of the same name, in some order.</p>
+<p><a href="https://www.lua.org/pil/16.3.html">PIL</a> goes through a function to generate a class from multiple classes. However this approach can be extended even further if we want to do additional logic for some methods such as call both in some order.</p>
 <div class="highlight"><pre class="highlight lua"><code><span class="kd">local</span> <span class="n">PathfindingEntity</span> <span class="o">=</span> <span class="p">{</span>
   <span class="n">__index</span> <span class="o">=</span> <span class="k">function</span><span class="p">(</span><span class="n">object</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">"update"</span> <span class="k">then</span>
@@ -147,7 +145,7 @@
 </code></pre></div>
 <p><a href="code-snippets/pathfindingEntity.lua">Full code snippet</a></p>
 
-<p>Each ambiguity is handled by explicit logic in the <code>__index</code> function, with non ambiguous methods simply called as normal. If composition works instead though, that&rsquo;s probably better.</p>
+<p>Each ambiguity is handled by explicit logic in the <code>__index</code> function, with non ambiguous methods simply called as normal. When composition works instead though, it is probably a better solution in most cases.</p>
 
     </article>
   </div>
