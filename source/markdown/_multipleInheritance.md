@@ -1,8 +1,6 @@
 ## Problems with multiple inheritance
 
-To quote from the Programming in Lua book "[objects are not primitive in Lua](https://www.lua.org/pil/16.3.html)".
-
-That page of the book covers multiple inheritance, showing a general function to create a class from many at runtime.
+First I will go over why one of the reasons why Java doesn't have multiple inheritance and then how this informs multiple inheritance in Lua (where one can do classes and objects however one likes because "[objects are not primitive](https://www.lua.org/pil/16.3.html)").
 
 A crucial problem with multiple inheritance is ambiguity when multiple subclasses have the same method or field. If this were legal java the following snippet shows the issue.
 
@@ -74,7 +72,7 @@ For any method in multiple subclasses, you need to resolve which method to call 
 
 ## Implementations
 
-The scenario I had was somewhat similar to the simplified examples in Java above. I had an object which was a box2d body/shape/fixture, and I wanted to give it other methods for handling AI logic. In this scenario, the library you are  using has given your object a metatable for box2d updates, and you want to also be able to call your logic code on it.
+The scenario I had was somewhat similar to the simplified examples in Java above. I had an object which was a box2d body/shape/fixture, and I wanted to give it other methods for handling AI logic. The library I was using had already given my object a metatable for box2d updates and I want to also call my logic on it.
 
 ```lua
 -- 'class' table
@@ -109,7 +107,7 @@ setmetatable(entity, { __index = function(object, key)
 end })
 ```
 
-PIL goes through a more generalised version of this. However this approach can be extended even further, if we want to call both methods of the same name, in some order.
+[PIL](https://www.lua.org/pil/16.3.html) goes through a function to generate a class from multiple classes. However this approach can be extended even further if we want to do additional logic for some methods such as call both in some order.
 
 ```lua
 local PathfindingEntity = {
@@ -140,4 +138,4 @@ local PathfindingEntity = {
 
 [Full code snippet](/code-snippets/pathfindingEntity.lua)
 
-Each ambiguity is handled by explicit logic in the `__index` function, with non ambiguous methods simply called as normal. If composition works instead though, that's probably better.
+Each ambiguity is handled by explicit logic in the `__index` function, with non ambiguous methods simply called as normal. When composition works instead though, it is probably a better solution in most cases.
