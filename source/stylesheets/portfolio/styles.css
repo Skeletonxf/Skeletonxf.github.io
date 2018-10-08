@@ -1,0 +1,75 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background-color: red;
+  padding: 0.5em;
+  margin-bottom: 1em;
+}
+h1 {
+  margin-top: 0;
+  text-align: center;
+}
+
+#intro {
+  max-width: 40em;
+  text-align: center;
+  margin: auto;
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: auto repeat(3, 400px) auto;
+  grid-template-rows: repeat(2, 300px);
+  grid-template-areas:
+    "left one two three right"
+    "left four five six right";
+}
+
+.item {
+  margin: 1em;
+}
+
+.item h2 {
+  text-align: center;
+  margin: 1em;
+}
+
+.item img {
+  background-color: cyan;
+  width: auto;
+  height: auto;
+}
+
+#one {
+  grid-area: one;
+}
+
+#two {
+  grid-area: two;
+}
+
+#three {
+  grid-area: three;
+}
+
+#four {
+  grid-area: four;
+}
+
+#five {
+  grid-area: five;
+}
+
+#six {
+  grid-area: six;
+}
+
+footer {
+  text-align: center;
+  margin-top: 5px;
+  padding: 2em;
+  background-color: blue;
+}
