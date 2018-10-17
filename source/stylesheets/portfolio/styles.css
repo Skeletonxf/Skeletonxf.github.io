@@ -23,7 +23,9 @@ h1 {
   max-width: 40em;
   text-align: center;
   margin: auto;
-  padding: 0.5em;
+  padding: 0.8em;
+  background-color: white;
+  border-radius: 18px;
 }
 
 #grid {
@@ -77,10 +79,6 @@ h1 {
   grid-area: six;
 }
 
-footer {
-  text-align: center;
-  margin-top: 5px;
-  padding: 2em;
-  background-color: white;
-  border-top: 2px solid black;
+footer .footer {
+  font-size: large;
 }

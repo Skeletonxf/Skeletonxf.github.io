@@ -1,6 +1,8 @@
-## Problems with multiple inheritance
+# Multiple Inheritance in Lua
 
 First I will go over why one of the reasons why Java doesn't have multiple inheritance and then how this informs multiple inheritance in Lua (where one can do classes and objects however one likes because "[objects are not primitive](https://www.lua.org/pil/16.3.html)").
+
+## Problems with multiple inheritance
 
 A crucial problem with multiple inheritance is ambiguity when multiple subclasses have the same method or field. If this were legal java the following snippet shows the issue.
 
@@ -138,4 +140,4 @@ local PathfindingEntity = {
 
 [Full code snippet](/code-snippets/pathfindingEntity.lua)
 
-Each ambiguity is handled by explicit logic in the `__index` function, with non ambiguous methods simply called as normal. When composition works instead though, it is probably a better solution in most cases.
+Each ambiguity is handled by explicit logic in the `__index` function, with non ambiguous methods simply called as normal. When composition works instead though, it is probably a better solution in most cases. I couldn't use composition here because I needed to hand my object to the library that expects its methods at the top level and gives me the object back - at which point I need my methods on that level too.

@@ -1,3 +1,5 @@
+# This is oddly familiar
+
 ## FFI and JSON messaging
 
 I recently started my Dissertation and began building a WebExtension from what was a single JavaScript file. This single JavaScript file is now a content script that my extension injects into the webpage. Unfortunately I don't want the UI the JavaScript file creates to be in the webpage; I want it in my sidebar.

@@ -1,4 +1,16 @@
 /*
+ * Undo the few default styles that clash with the game
+ */
+
+body {
+  background-color: white;
+}
+
+article {
+  padding: 0;
+}
+
+/*
  * Based on the code pen by Elbarto https://codepen.io/elbarto84/pen/wrcob
  */
 
@@ -534,6 +546,8 @@ p.id.mid {
   ol {
     visibility: visible;
   }
+  margin: auto;
+  max-width: 1000px;
 }
 
 #tutorial {
