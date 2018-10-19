@@ -55,6 +55,42 @@ h1 {
   margin: auto;
 }
 
+.expanded {
+  position: static !important;
+  opacity: 1;
+}
+
+.text {
+  transition: opacity 1s;
+}
+
+.hidden {
+  /* don't use display: none; as it will stop screen reader access */
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  opacity: 0;
+}
+
+/* Hide image when showing text */
+
+.hidden + img {
+  position: static !important;
+  opacity: 1;
+}
+
+.expanded.js-works + img {
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  opacity: 0;
+}
+
+.text + img {
+  transition: opacity 1s;
+}
+
+
 #one {
   grid-area: one;
 }
