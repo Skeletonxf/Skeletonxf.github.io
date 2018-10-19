@@ -22,9 +22,9 @@ layout: portfolio
       <img></img>
     </div>
     <div id="three" class="item" tabindex="1">
-      <h2>Reddit Bot Bot</h2>
-      <div class="expanded text" aria-expanded="true">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</div>
-      <img></img>
+      <a href="https://github.com/Skeletonxf/reddit-configurable-reply-bot"><h2>Reddit Bot Bot</h2></a>
+      <div class="expanded text" aria-expanded="true">I had built a simple comment reply based Reddit bot before in Python but found it quite hard to maintain. I decided to make a new bot and separate the Reddit library logic from the comment reply behaviour. I also wanted to learn more Rust and this was the perfect size for a new project, so I developed the bot in Rust and configured its behaviour via a Lua script. Unfortunately the only viable reddit library for Rust was somewhat abandoned and was preventing me from cloning a struct I needed to duplicate (Rust moves values by default and no <code>Clone</code> trait was defined by the lib). I found a fork of the library which had fixed the lack of <code>Clone</code> for a different struct so I forked that fork and pull requested the fix. The bot has been ticking along with minimal maintenance for several months now and I can edit the Lua script to add more reply triggers and actions without having to think about the reddit library calls.</div>
+      <img src="images/reddit-bot-bot.png"></img>
     </div>
     <div id="four" class="item" tabindex="1">
       <h2>Dissertation</h2>
