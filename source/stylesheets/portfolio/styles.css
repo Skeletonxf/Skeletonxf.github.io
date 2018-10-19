@@ -28,13 +28,61 @@ h1 {
   border-radius: 18px;
 }
 
+@media only screen and (max-width: 700px) {
+  #intro {
+    margin: 1em;
+  }
+}
+
 #grid {
   display: grid;
   grid-template-columns: auto repeat(3, 400px) auto;
-  grid-template-rows: repeat(2, auto);
+  grid-template-rows: repeat(2, 350px);
   grid-template-areas:
     "left one two three right"
     "left four five six right";
+}
+
+@media only screen and (max-width: 1268px) {
+  #grid {
+    display: grid;
+    grid-template-columns: auto repeat(2, 400px) auto;
+    grid-template-rows: repeat(3, 350px);
+    grid-template-areas:
+      "left one two right"
+      "left three four right"
+      "left five six right";
+  }
+}
+
+@media only screen and (max-width: 860px) {
+  #grid {
+    display: grid;
+    grid-template-columns: auto repeat(1, 400px) auto;
+    grid-template-rows: repeat(6, 350px);
+    grid-template-areas:
+      "left one right"
+      "left two right"
+      "left three right"
+      "left four right"
+      "left five right"
+      "left six right";
+  }
+}
+
+@media only screen and (max-width: 420px) {
+  #grid {
+    display: grid;
+    grid-template-columns: auto repeat(1, 90%) auto;
+    grid-template-rows: repeat(6, auto);
+    grid-template-areas:
+      "left one right"
+      "left two right"
+      "left three right"
+      "left four right"
+      "left five right"
+      "left six right";
+  }
 }
 
 .item {
@@ -43,6 +91,10 @@ h1 {
   border-radius: 1em;
   padding: 1em;
   background-color: white;
+  /* center vertically */
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 
 .item h2 {
