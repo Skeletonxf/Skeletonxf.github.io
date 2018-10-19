@@ -22,12 +22,14 @@ items.forEach(hide)
 
 document.addEventListener('focusin', (event) => {
   let item = event.target
+  item.classList.add('selected')
   let hidden = item.querySelectorAll('.hidden')
   hidden.forEach(show)
 })
 
 document.addEventListener('focusout', (event) => {
   let item = event.target
+  item.classList.remove('selected')
   let hidden = item.querySelectorAll('.expanded')
   hidden.forEach(hide)
 })

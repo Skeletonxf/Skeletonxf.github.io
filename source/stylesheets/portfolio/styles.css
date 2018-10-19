@@ -96,6 +96,11 @@ h1 {
   align-items: center;
   flex-direction: column;
   min-height: 250px;
+  cursor: pointer;
+}
+
+.item.selected {
+  cursor: auto;
 }
 
 .item h2 {
@@ -106,6 +111,12 @@ h1 {
 .item img {
   display: block;
   margin: auto;
+  max-width: 100%;
+}
+
+.item a {
+  padding: 0.3em;
+  margin: -0.3em;
 }
 
 .expanded {

@@ -17,12 +17,12 @@ layout: portfolio
       <img src="https://www.avatarmc.com/static/img/androidlogo.png"></img>
     </div>
     <div id="two" class="item" tabindex="1">
-      <h2>Web Extensions</h2>
-      <div class="expanded text" aria-expanded="true">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</div>
-      <img></img>
+      <h2>Web Extensions <a href="https://github.com/Skeletonxf/duplicate-tab/">[1]</a> <a href="https://github.com/Skeletonxf/image-extract">[2]</a></h2>
+      <div class="expanded text" aria-expanded="true">At the time of writing my two WebExtensions have a combined user count of 1992. I developed both to improve my workflow, they aid in duplicating tabs and accessing images on a page respectively. I was already familiar with basic control structures in JavaScript so the main challenge of this task was learning the WebExtensions API. Firefox WebExtensions are still quite new so Stackoverflow doesn't have nearly as much content as I would like, but Mozilla's MDN web docs describe all the APIs very well. My WebExtensions recieve feature requests every now and then and something must have gone right to get so many users</div>
+      <img src="images/combined-addons.svg"></img>
     </div>
     <div id="three" class="item" tabindex="1">
-      <a href="https://github.com/Skeletonxf/reddit-configurable-reply-bot"><h2>Reddit Bot Bot</h2></a>
+      <h2><a href="https://github.com/Skeletonxf/reddit-configurable-reply-bot">Reddit Bot Bot</a></h2>
       <div class="expanded text" aria-expanded="true">I had built a simple comment reply based Reddit bot before in Python but found it quite hard to maintain. I decided to make a new bot and separate the Reddit library logic from the comment reply behaviour. I also wanted to learn more Rust and this was the perfect size for a new project, so I developed the bot in Rust and configured its behaviour via a Lua script. Unfortunately the only viable reddit library for Rust was somewhat abandoned and was preventing me from cloning a struct I needed to duplicate (Rust moves values by default and no <code>Clone</code> trait was defined by the lib). I found a fork of the library which had fixed the lack of <code>Clone</code> for a different struct so I forked that fork and pull requested the fix. The bot has been ticking along with minimal maintenance for several months now and I can edit the Lua script to add more reply triggers and actions without having to think about the reddit library calls.</div>
       <img src="images/reddit-bot-bot.png"></img>
     </div>
@@ -33,8 +33,8 @@ layout: portfolio
     </div>
     <div id="five" class="item" tabindex="1">
       <h2>Risky Conquest</h2>
-      <div class="expanded text" aria-expanded="true">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</div>
-      <img></img>
+      <div class="expanded text" aria-expanded="true">At the start of Summer I had a block of time with few commitments and wanted to 0-100 something. There was also a forum game I played a few years prior that was well defined and deliberately really simple that I had enjoyed playing. I decided to turn it into an automated game on the Web, because UI is so easy to design with HTML/CSS compared to desktop applications and a Web format is easily shared. 2500 lines of JavaScript, lots of graph manipulation, lists and maps later and I did it. To my knowledge the code has 0 bugs and once I cached the results of my breadth first search pathing the game updated very quickly. In hindsight I would split the logic into multiple files if I were to do something similar again, though I think the data and function based approach I took worked better than an object orientated one would have - most concerns were cross cutting.</div>
+      <img src="images/risky-conquest.png"></img>
     </div>
     <div id="six" class="item" tabindex="1">
       <h2>Connect 4</h2>
