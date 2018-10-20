@@ -103,6 +103,10 @@ h1 {
   cursor: auto;
 }
 
+.item.no-cursor {
+  cursor: auto;
+}
+
 .item h2 {
   text-align: center;
   margin: 0.3em;
