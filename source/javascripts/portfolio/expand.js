@@ -16,7 +16,6 @@ function show(element) {
 // This way if JS is blocked then the divs are visible by default
 
 items = document.querySelectorAll('.expanded')
-console.log(items)
 items.forEach(i => i.classList.add('js-works'))
 items.forEach(hide)
 
