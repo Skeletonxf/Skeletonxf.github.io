@@ -10,7 +10,7 @@
 </head>
 <body>
   <div class = "page">
-    <header>
+    <header class = "back">
   <nav>
     <ul>
       <li>
@@ -20,13 +20,14 @@
   </nav>
 </header>
 
-<h1 class = "center">
-  This is oddly familiar
+<h1 class = "center title">
+  A blog of sorts
 </h1>
-<div class = "title-line"></div>
-  <div class = "content">
-    <article>
-      <h2>FFI and JSON messaging</h2>
+<div class = "content">
+  <article>
+    <h1>This is oddly familiar</h1>
+
+<h2>FFI and JSON messaging</h2>
 
 <p>I recently started my Dissertation and began building a WebExtension from what was a single JavaScript file. This single JavaScript file is now a content script that my extension injects into the webpage. Unfortunately I don&rsquo;t want the UI the JavaScript file creates to be in the webpage; I want it in my sidebar.</p>
 
@@ -42,8 +43,7 @@
 
 <p>1 - Making a new button in my sidebar and removing the original isn&rsquo;t just moving it because the scope where the old was defined that it used to trigger actions didn&rsquo;t move with my button. It stayed in the content script. My new button can only interact over the interface I build around the JSON messaging and has no access to the data/functions the old one could call freely.</p>
 
-    </article>
-  </div>
+  </article>
 </div>
 
   </div>

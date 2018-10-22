@@ -1,4 +1,16 @@
 /*
+ * Undo the few default styles that clash with the game
+ */
+body {
+  background-color: white; }
+
+article {
+  padding: 0; }
+
+.title {
+  border-bottom: none; }
+
+/*
  * Based on the code pen by Elbarto https://codepen.io/elbarto84/pen/wrcob
  */
 /* ----------------------------------------- */
@@ -468,7 +480,9 @@ p.id.mid {
           flex-direction: column; }
 
 #mine-gold-income {
-  text-align: center; }
+  text-align: center;
+  margin: auto;
+  max-width: 1000px; }
   #mine-gold-income ol {
     visibility: visible; }
 

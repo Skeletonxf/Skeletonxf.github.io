@@ -16,6 +16,7 @@ body {
   -webkit-box-pack: justify;
       -ms-flex-pack: justify;
           justify-content: space-between;
+  background-color: whitesmoke;
 }
 
 .content, header {
@@ -31,9 +32,24 @@ body {
           justify-content: center;
 }
 
+.back {
+  background-color: white;
+}
+
+.title {
+  background-color: white;
+  border-bottom: 2px solid black;
+  margin-top: 0;
+  padding-top: 0.7em;
+  padding-bottom: 0.7em;
+}
+
 /* Chrome (tested v67) doesn't auto expand display: flex */
 footer {
   display: inline-block;
+  background-color: white;
+  border-top: 2px solid black;
+  margin-top: 1em;
 }
 
 /* Nest in footer with actual layout div */
@@ -52,7 +68,6 @@ footer {
   padding-bottom: 1em;
   padding-top: 1em;
   margin-top: auto;
-  border-top: 1px solid black;
   font-size: 12px;
 }
 
@@ -111,6 +126,29 @@ nav ul li p.date {
 article {
   width: 40em;
   max-width: 95%;
+  background-color: white;
+  border-radius: 24px;
+  padding: 1.5em;
+}
+
+.content article h1:first-child, .content article h2:first-child {
+  margin-top: 0;
+}
+
+@media only screen and (max-width: 768px) {
+  article {
+    margin: 0;
+    border-radius: unset;
+    width: 100%;
+  }
+
+  .title {
+    margin-bottom: 0;
+  }
+
+  footer {
+    margin-top: 0;
+  }
 }
 
 article h1 {
@@ -137,8 +175,8 @@ article img {
 /* Tweaking */
 
 a {
-  padding: 1em;
-  margin: -1em; /* keep layout the same */
+  padding: 0.7em;
+  margin: -0.7em; /* keep layout the same */
 }
 
 p {
@@ -146,7 +184,6 @@ p {
 }
 
 .title-line {
-  border-top: 1px solid black;
   height: 1em;
 }
 
@@ -154,7 +191,24 @@ p {
   text-align: center;
 }
 
+div.highlight {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
 #wrapper {
   display: block;
   margin: 0 auto;
+}
+
+.links {
+  max-width: 50em;
+}
+
+.links ul li {
+  background-color: white;
+  margin-top: 0.6em;
+  margin-bottom: 0.6em;
+  padding-top: 0.3em;
+  border-radius: 18px;
 }
