@@ -79,6 +79,8 @@
 </code></pre></div>
 <p>Java can deal with this problem via interfaces, but in Lua you can ducktype composition quite easily.</p>
 <div class="highlight"><pre class="highlight lua"><code><span class="kd">local</span> <span class="n">list</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="c1">-- ie List = { add = function(self, element) self[#self+1] = element end }</span>
+<span class="nb">setmetatable</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">List</span><span class="p">)</span>
 <span class="n">list</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">entity</span><span class="p">.</span><span class="n">new</span><span class="p">())</span>
 <span class="n">list</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">pathfindingEntity</span><span class="p">.</span><span class="n">new</span><span class="p">())</span>
 <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">list</span><span class="p">)</span> <span class="k">do</span>

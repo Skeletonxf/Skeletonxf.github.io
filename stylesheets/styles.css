@@ -138,8 +138,13 @@ article {
 @media only screen and (max-width: 768px) {
   article {
     margin: 0;
+    padding: 0;
     border-radius: unset;
     width: 100%;
+  }
+
+  body {
+    background-color: white;
   }
 
   .title {

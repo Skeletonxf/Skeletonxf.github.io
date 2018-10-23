@@ -3,25 +3,28 @@ document.addEventListener('DOMContentLoaded', () => {
 function hide(element) {
   element.classList.remove('expanded')
   element.classList.add('hidden')
-  element.setAttribute('aria-expanded', 'false')
 }
 
 function show(element) {
   element.classList.add('expanded')
   element.classList.remove('hidden')
-  element.setAttribute('aria-expanded', 'true')
 }
 
 // Hide all expanded divs
 // This way if JS is blocked then the divs are visible by default
 
-items = document.querySelectorAll('.expanded')
-items.forEach(i => i.classList.add('js-works'))
-items.forEach(hide)
+texts = document.querySelectorAll('.expanded')
+texts.forEach(e => e.classList.add('js-works'))
+texts.forEach(hide)
+items = document.querySelectorAll('.item:not(.no-cursor)')
+items.forEach(e => e.setAttribute('aria-expanded', 'false'))
 
 document.addEventListener('focusin', (event) => {
   let item = event.target
   item.classList.add('selected')
+  if (!item.classList.contains('no-cursor')) {
+    item.setAttribute('aria-expanded', 'true')
+  }
   let hidden = item.querySelectorAll('.hidden')
   hidden.forEach(show)
 })
@@ -29,8 +32,11 @@ document.addEventListener('focusin', (event) => {
 document.addEventListener('focusout', (event) => {
   let item = event.target
   item.classList.remove('selected')
-  let hidden = item.querySelectorAll('.expanded')
-  hidden.forEach(hide)
+  if (!item.classList.contains('no-cursor')) {
+    item.setAttribute('aria-expanded', 'false')
+  }
+  let shown = item.querySelectorAll('.expanded')
+  shown.forEach(hide)
 })
 
 })
