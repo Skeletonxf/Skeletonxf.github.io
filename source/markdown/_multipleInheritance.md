@@ -63,6 +63,8 @@ Java can deal with this problem via interfaces, but in Lua you can ducktype comp
 
 ```lua
 local list = {}
+-- ie List = { add = function(self, element) self[#self+1] = element end }
+setmetatable(list, List)
 list.add(entity.new())
 list.add(pathfindingEntity.new())
 for k, v in ipairs(list) do
