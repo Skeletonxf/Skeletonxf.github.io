@@ -87,6 +87,10 @@ class Sphere {
     let position = this.getPosition()
     return ((position.x - x) ** 2) + ((position.y - y) ** 2) <= (radius ** 2)
   }
+
+  shrink() {
+    this.size = this.size * 0.99
+  }
 }
 
 platforms.Sphere = Sphere

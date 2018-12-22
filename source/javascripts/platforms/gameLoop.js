@@ -98,7 +98,8 @@ function game(canvas, ctx, draw) {
   gameState.spheres.forEach(s => s.update(speed))
   gameState.spheres.forEach(s => s.draw(canvas, ctx, draw))
 
-  gameState.player.update(gameState.spheres)
+  touched = gameState.player.update(gameState.spheres)
+  ;[...touched].forEach(s => s.shrink())
   gameState.player.draw(canvas, ctx, draw)
 }
 

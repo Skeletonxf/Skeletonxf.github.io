@@ -46,14 +46,26 @@ class Player {
     })
   }
 
+  /*
+   * Updates the player and returns the set Spheres
+   * the player touched out of the array of Spheres
+   * given.
+   */
   update(spheres) {
+    let touching = new Set()
     // check if the right size of the player is touching any Spheres
     let touchingRight = false
-    for (let i = -10; i < 10; i++) {
-      touchingRight = touchingRight || spheres.some(
-        s => s.touching(
-          this.x + SIZE / 2,
-          this.y + (i * (SIZE / 30))))
+    for (let i = -100; i < 100; i++) {
+      for (let sphere of spheres) {
+        if (sphere.touching(
+            this.x + SIZE / 2,
+            this.y + (i * (SIZE / 300)))) {
+          // don't stop the search now because we still
+          // need to identify all spheres touched
+          touchingRight = true
+          touching.add(sphere)
+        }
+      }
     }
     // convert truthiness to true/false for the keys Map and
     // only go right if we're not touching something on the right
@@ -61,19 +73,27 @@ class Player {
 
     let touchingLeft = false
     for (let i = -100; i < 100; i++) {
-      touchingLeft = touchingLeft || spheres.some(
-        s => s.touching(
-          this.x - SIZE / 2,
-          this.y + (i * (SIZE / 300))))
+      for (let sphere of spheres) {
+        if (sphere.touching(
+            this.x - SIZE / 2,
+            this.y + (i * (SIZE / 300)))) {
+          touchingLeft = true
+          touching.add(sphere)
+        }
+      }
     }
     let left = !!this.keys.get(KEY_CODES.left) && !touchingRight
 
     let touchingDown = false
     for (let i = -100; i < 100; i++) {
-        touchingDown = touchingDown || spheres.some(
-          s => s.touching(
+      for (let sphere of spheres) {
+        if (sphere.touching(
             this.x + (i * (SIZE / 300)),
-            this.y + SIZE / 2))
+            this.y + SIZE / 2)) {
+          touchingDown = true
+          touching.add(sphere)
+        }
+      }
     }
     // don't apply gravity if touching a Sphere
     let fall = !touchingDown
@@ -81,10 +101,14 @@ class Player {
     // check if we have hit a sphere with our head
     let touchingUp = false
     for (let i = -100; i < 100; i++) {
-      touchingUp = touchingUp || spheres.some(
-        s => s.touching(
-          this.x + (i * (SIZE / 300)),
-          this.y - SIZE / 2))
+      for (let sphere of spheres) {
+        if (sphere.touching(
+            this.x + (i * (SIZE / 300)),
+            this.y - SIZE / 2)) {
+          touchingUp = true
+          touching.add(sphere)
+        }
+      }
     }
     let ceiling = touchingUp
 
@@ -136,6 +160,8 @@ class Player {
     this.y = Math.min(Math.max(this.y, 0), HEIGHT)
     this.dx *= FRICTION
     this.dy *= FRICTION
+
+    return touching
   }
 
   draw(canvas, ctx, draw) {
