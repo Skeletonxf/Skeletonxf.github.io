@@ -6,7 +6,8 @@ let gameState = {
   menu: true,
   score: 0,
   paused: false,
-  spheres: []
+  spheres: [],
+  player: null
 }
 
 function drawGradientBackground(canvas, ctx, draw) {
@@ -59,27 +60,28 @@ function menu(canvas, ctx, draw) {
 
 platforms.initialise = function() {
   document.body.addEventListener('keypress', (event) => {
-    var key = event.which || event.keyCode;
-    if (key === 13) { // 13 is enter
+    if (event.key === "Enter") {
       gameState.menu = false
       gameState.score = 0
       {
         gameState.spheres = []
         let root = new platforms.Sphere(null, 0, 100, (angle, speed) => {
-          return (angle + 0.01) % (2 * Math.PI)
+          return (angle + 0.005) % (2 * Math.PI)
         })
         gameState.spheres.push(root)
         let sphere1 = new platforms.Sphere(root, 180, 150, (angle, speed) => {
-          return (angle + 0.03 + (0.001 * Math.sin(angle))) % (2 * Math.PI)
+          return (angle + 0.01 + (0.001 * Math.sin(angle))) % (2 * Math.PI)
         })
         gameState.spheres.push(sphere1)
         let sphere2 = new platforms.Sphere(sphere1, 180, 100, (angle, speed) => {
-          return (angle - 0.03) % (2 * Math.PI)
+          return (angle - 0.01) % (2 * Math.PI)
         })
         gameState.spheres.push(sphere2)
+        gameState.player.reset()
       }
     }
   })
+  gameState.player = new platforms.Player()
 }
 
 function game(canvas, ctx, draw) {
@@ -91,8 +93,13 @@ function game(canvas, ctx, draw) {
   let logScore = Math.floor(5 * Math.log(Math.pow(gameState.score++, 2) + 1))
   draw.text(logScore + '', w / 4, 50, w / 2, 'black')
 
-  gameState.spheres.forEach(s => s.update(0))
+  let speed = 0
+
+  gameState.spheres.forEach(s => s.update(speed))
   gameState.spheres.forEach(s => s.draw(canvas, ctx, draw))
+
+  gameState.player.update(gameState.spheres)
+  gameState.player.draw(canvas, ctx, draw)
 }
 
 platforms.gameLoop = function(canvas, ctx) {

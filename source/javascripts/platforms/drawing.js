@@ -24,6 +24,13 @@ class Draw {
     )
   }
 
+  fillCircle(x, y, r, color) {
+    this.ctx.fillStyle = color
+    this.ctx.beginPath()
+    this.ctx.arc(x, y, r, 0, Math.PI * 2)
+    this.ctx.fill()
+  }
+
   text(msg, x, y, w, color) {
     this.ctx.font = '48px serif'
     this.ctx.textAlign = 'center'
