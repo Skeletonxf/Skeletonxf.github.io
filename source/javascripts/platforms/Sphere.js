@@ -11,6 +11,7 @@ if (platforms === undefined) {
 const WIDTH = 480
 const HEIGHT = 360
 const MAX_SIZE = 23
+const SHRINK_FRAMES = 12
 
 class Sphere {
   constructor(anchor, angle, radius, speedFunction) {
@@ -23,6 +24,7 @@ class Sphere {
     this.x = 0
     this.y = 0
     this.size = 1 // size is the % of full size, ie 1 is 100% of MAX_SIZE
+    this.shrinking = 0
   }
 
   update(speed) {
@@ -57,11 +59,16 @@ class Sphere {
     }
     let position = this.getPosition()
     let radius = this.size * MAX_SIZE * scale.x
+    let lightness = 50 - (10 * ((SHRINK_FRAMES / (this.shrinking + 1))))
+    let color = 'hsl(282, 100%, ' + lightness + '%)'
+    if (this.shrinking > 0) {
+      this.shrinking -= 1
+    }
     draw.fillCircle(
       position.x * scale.x,
       position.y * scale.y,
       radius,
-      'black'
+      color
     )
   }
 
@@ -90,6 +97,7 @@ class Sphere {
 
   shrink() {
     this.size = this.size * 0.99
+    this.shrinking = SHRINK_FRAMES
   }
 }
 

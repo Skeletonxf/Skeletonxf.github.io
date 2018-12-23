@@ -90,7 +90,10 @@ function game(canvas, ctx, draw) {
   draw.clear()
   drawGradientBackground(canvas, ctx, draw)
 
-  let logScore = Math.floor(5 * Math.log(Math.pow(gameState.score++, 2) + 1))
+  if (gameState.player.alive) {
+    gameState.score += 1
+  }
+  let logScore = Math.floor(Math.sqrt(3 * gameState.score))
   draw.text(logScore + '', w / 4, 50, w / 2, 'black')
 
   let speed = 0

@@ -15,6 +15,7 @@ const GRAVITY = 0.5
 const SIDE_ACCEL = 0.7
 const JUMP_VEL = 15
 const FRICTION = 0.93
+const MAX_HEALTH = 15
 
 const KEY_CODES = {
   right: "KeyD",
@@ -30,6 +31,8 @@ class Player {
     this.dx = 0
     this.dy = 0
     this.keys = new Map()
+    this.hp = MAX_HEALTH
+    this.alive = true
   }
 
   constructor() {
@@ -69,7 +72,7 @@ class Player {
     }
     // convert truthiness to true/false for the keys Map and
     // only go right if we're not touching something on the right
-    let right = !!this.keys.get(KEY_CODES.right) && !touchingRight
+    let right = !!this.keys.get(KEY_CODES.right) && !touchingRight && this.alive
 
     let touchingLeft = false
     for (let i = -100; i < 100; i++) {
@@ -82,7 +85,7 @@ class Player {
         }
       }
     }
-    let left = !!this.keys.get(KEY_CODES.left) && !touchingRight
+    let left = !!this.keys.get(KEY_CODES.left) && !touchingRight && this.alive
 
     let touchingDown = false
     for (let i = -100; i < 100; i++) {
@@ -120,14 +123,14 @@ class Player {
     let reboundJump = !touchingUp && (reboundLeft || reboundRight)
 
     // jumping is automatic
-    let jump = touchingDown || reboundJump
+    let jump = (touchingDown || reboundJump)
 
     /*
      * The down key is for faster falling, the up key
      * might be used in the future
      */
-    let up = !!this.keys.get(KEY_CODES.up)
-    let down = !!this.keys.get(KEY_CODES.down) && !touchingDown
+    let up = !!this.keys.get(KEY_CODES.up) && this.alive
+    let down = !!this.keys.get(KEY_CODES.down) && !touchingDown && this.alive
 
     if (right) {
       this.dx += SIDE_ACCEL
@@ -155,9 +158,25 @@ class Player {
     }
     this.x += this.dx
     this.y += this.dy
-    // TODO: Death
-    this.x = Math.min(Math.max(this.x, 0), WIDTH)
-    this.y = Math.min(Math.max(this.y, 0), HEIGHT)
+
+    let clip = {
+      x: Math.min(Math.max(this.x, 0), WIDTH),
+      y: Math.min(Math.max(this.y, 0), HEIGHT)
+    }
+    let hitWall = (clip.x != this.x) || (clip.y != this.y)
+    this.x = clip.x
+    this.y = clip.y
+    if (hitWall) {
+      this.hp -= 1
+      if (this.hp <= 0) {
+        this.alive = false
+      }
+    } else {
+      if (this.hp < MAX_HEALTH) {
+        this.hp += 1
+      }
+    }
+
     this.dx *= FRICTION
     this.dy *= FRICTION
 
@@ -171,12 +190,14 @@ class Player {
       x: canvas.width / 480,
       y: canvas.height / 360
     }
+    let lightness = 50 / ((MAX_HEALTH - this.hp) + 1)
+    let color = 'hsl(257, 100%, ' + lightness + '%)'
     let radius = SIZE * scale.x
     draw.fillCircle(
       this.x * scale.x,
       this.y * scale.y,
       radius,
-      'blue'
+      color
     )
   }
 }
