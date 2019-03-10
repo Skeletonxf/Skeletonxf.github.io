@@ -7,7 +7,7 @@ layout: portfolio
     <h1>Portfolio</h1>
   </header>
   <div id="intro" class="free-text">
-    <p>I'm currently a computer science university student looking for an internship next academic year. Some of my projects are listed below:</p>
+    <p>I'm currently a computer science university student looking for an internship starting at the end of this academic year. Some of my projects are listed below:</p>
   </div>
   <div id="grid">
     <div id="one" class="item" tabindex="1"  aria-expanded="true">
@@ -17,7 +17,7 @@ layout: portfolio
     </div>
     <div id="two" class="item" tabindex="4" aria-expanded="true">
       <h2>Web Extensions <a href="https://github.com/Skeletonxf/duplicate-tab/" aria-label="First WebExtension source code link" tabindex="2">[1]</a> <a href="https://github.com/Skeletonxf/image-extract" aria-label="Second WebExtension source code link" tabindex="3">[2]</a></h2>
-      <div class="expanded text">As of 2018/10/20 my two WebExtensions have a combined user count of 1992. I developed both to improve my workflow, they aid in duplicating tabs and accessing images on a page respectively. The main challenge for me was learning how to use the WebExtension APIs. They both receive feature requests every now and then and I'm glad people found them useful.</div>
+      <div class="expanded text">As of 2019/03/10 my two WebExtensions have a combined user count of 2119. I developed both to improve my workflow, they aid in duplicating tabs and accessing images on a page respectively. The main challenge for me was learning how to use the WebExtension APIs. They both receive feature requests every now and then and I'm glad people found them useful.</div>
       <img src="images/combined-addons.svg" alt="WebExtension logos"></img>
     </div>
     <div id="three" class="item" tabindex="6" aria-expanded="true">
@@ -25,17 +25,17 @@ layout: portfolio
       <div class="expanded text">I had built a simple comment reply based Reddit bot before in Python but found it quite hard to maintain. I decided to make a new bot and separate the Reddit library logic from the comment reply behaviour. I also wanted to learn more Rust and this was the perfect size for a new project, so I developed the bot in Rust and configured its behaviour via a Lua script. Unfortunately the only viable Reddit library for Rust was somewhat abandoned and was preventing me from cloning a struct I needed to duplicate (Rust moves values by default and no <code>Clone</code> trait was defined by the lib). I found a fork of the library which had fixed the lack of <code>Clone</code> for a different struct so I forked that fork and pull requested the fix. The bot has been ticking along with minimal maintenance for several months now and I can edit the Lua script to add more reply triggers and actions without having to think about the Reddit library calls.</div>
       <img src="images/reddit-bot-bot.png" alt="Screenshot of Reddit bot README"></img>
     </div>
-    <div id="four" class="item no-cursor" tabindex="7" aria-expanded="true">
-      <h2>Dissertation</h2>
-      <div class="text">At the time of writing I have only just begun my Dissertation in automatically detecting accessibility issues in websites. I've started thinking about the WCAG and the alternative ways some people access online content, as well as what can and can't be programmatically detected. I already knew about text contrast but very little about keyboard traps and screen readers. You may not have noticed that you can tab through these blocks - this page is navigable by the keyboard.</div>
+    <div id="four" class="item no-cursor" tabindex="8" aria-expanded="true">
+      <h2><a href="https://github.com/Skeletonxf/totally-automated-a11y-scanner" tabindex="7">Dissertation</a></h2>
+      <div class="text">My Dissertation in automatically detecting accessibility issues in websites is going very well. The tool I'm building is nearly released and checks for many different WCAG criteria relating to the alternative ways some people access online content. I'm hoping I can make it user friendly enough that developers without existing accessibility knowledge can use it. However I've also learned that not all problems can be programmatically detected. The tool checks for text contrast and various content for screen readers but it can't identify keyboard traps even though they can cause huge problems for some users. You may not have noticed that you can tab through these blocks - this page is navigable by the keyboard.</div>
     </div>
-    <div id="five" class="item" tabindex="9" aria-expanded="true">
-      <h2><a href="risky.html" tabindex="8">Risky Conquest (Web Game)</a></h2>
+    <div id="five" class="item" tabindex="10" aria-expanded="true">
+      <h2><a href="risky.html" tabindex="9">Risky Conquest (Web Game)</a></h2>
       <div class="expanded text">At the start of Summer I had a block of time with few commitments and wanted to 0-100 something. There was also a forum game I played a few years prior that was well defined and deliberately really simple that I had enjoyed playing. I decided to turn it into an automated game on the Web, because UI is easy to design with HTML/CSS compared to desktop applications and a Web format is easily shared. 2500 lines of JavaScript, lots of graph manipulation, lists and maps later and I finished it. To my knowledge the code has 0 bugs and once I cached the results of my breadth first search pathing the game updated very quickly. In hindsight I would split the logic into multiple files if I were to do something similar again, though I think the data and function based approach I took worked better than an object orientated one would have - most concerns were cross cutting.</div>
       <img src="images/risky-conquest.png" alt="Screenshot of Risky Conquest game"></img>
     </div>
-    <div id="six" class="item" tabindex="11" aria-expanded="true">
-      <h2><a href="https://youtu.be/fWrJ7m5LLO4" tabindex="10">Connect Four</a></h2>
+    <div id="six" class="item" tabindex="12" aria-expanded="true">
+      <h2><a href="https://youtu.be/fWrJ7m5LLO4" tabindex="11">Connect Four</a></h2>
       <div class="expanded text">The last assignment of my Java programming module was a semester long Connect 4 game, initially for playing on the command line and then over a graphical interface. Designing for blocking reads from the console in the first half of the assessment introduced lots of problems for the graphical half which I solved by using multiple threads. The assignment also involved creating an automated Connect 4 player which I implemented as a min-max game state search. Unfortunately the provided code we had to build our assignment on (for automated marking) was never licensed so I cannot distribute my project. Overall I got 91% in the module.</div>
       <img src="images/connect4-icon.png" alt="Connect 4 icon"></img>
     </div>
