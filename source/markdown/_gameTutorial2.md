@@ -24,7 +24,7 @@ There are 3 starts you can choose on your first turn. If you do not choose you w
 
 ## Units
 
-Territories are fought over with units which are bought on castles. Castles are indicated by a black dot, and player control by the territory colour. There are 4* types of units, the neutral starting ones and Archers, Calvary and Infantry. Neutral units trade 1 for 1 in battle before dying. A battle of 11 against 10 will leave the former winning with 1 unit left. Each of the otheres are strong against or weak against the other in a rock-paper-scissors system. 1 Archer is worth 2 Infantry, 1 Calvary is worth 2 Archers and 1 Infantry is worth 2 Calvary. Units can also be upgraded which doubles their strength for each level. 1 level 4 Archer is worth 8 neutral units, 4 calvary or 16 infantry. All units start at level 1, and neutral units cannot be purchased or upgraded.
+Territories are fought over with units which are bought on castles. Castles are indicated by a black dot, and player control by the territory colour. There are 5* types of units, the neutral starting ones, defenders (also neutral) and Archers, Calvary and Infantry. Neutral units trade 1 for 1 in battle before dying. A battle of 11 against 10 will leave the former winning with 1 unit left. Each of the otheres are strong against or weak against the other in a rock-paper-scissors system. 1 Archer is worth 2 Infantry, 1 Calvary is worth 2 Archers and 1 Infantry is worth 2 Calvary. Units can also be upgraded which doubles their strength for each level. 1 level 4 Archer is worth 8 neutral units, 4 calvary or 16 infantry. All units start at level 1, and neutral units cannot be purchased or upgraded directly.
 
 > "But Devour, what if my country has 25 archers and 25 cavalry verse 50 infantry?" I hear you ask. Well my man, when you have multiple different units on a territory, they have to take their turns. Think of it like having some units in the front while others wait in the back line. People will have to tell me if they want their Archers in Line 1 and their Cavalry on Line 2. Infantry on Line 3 if they have that too. In this setup, the Cavalry won't fight until all the Archers are dead. I know it's kind of gimmicky but hey, it's the price we pay for simplicity.
 
@@ -36,7 +36,7 @@ Each unit costs 20 gold. This spawns one new unit on a Castle after all battles 
 
 ### Mines
 
-Mine costs and levels are listed above this article. Mines produce extra gold from a territory. The extra gold per turn diminishes sharply with further levels. Mines are indicated by 0-6 gold dots.
+Mine costs and levels are listed above this article. Mines produce extra gold from a territory. Mines automatically upgrade each turn. Mines are indicated by 0-6 gold dots.
 
 ### Territory Gold
 
@@ -44,14 +44,14 @@ Water territories give no gold. Normal territories give 150 gold per turn. The c
 
 ### Walls
 
-A wall costs 1500 gold to build, and is built after all battles. On all future battles the defending units inside gain 1 level of strength. Walls are indicated by grey outlines.
+A wall costs 1500 gold to build, and is built after all battles. On all future battles the defending units inside gain 1/2 a level of strength. Walls are indicated by grey outlines. Walls also generate increasing amounts of defending units which fight as neutral units but cannot be deployed to other territories, however they are free and always fight first. Wall bonuses are reset when captured!
 
 ### * Battering Rams
-A Battering Ram is a special unit that does not fight. Each unit costs 1500 gold. 1 Battering Ram negates wall defensive bonuses and multiple destroy the attacked wall entirely, in both cases being consumed upon use. Battering Rams can be intercepted or attacked so should always be deployed behind a protective army to keep them alive on their journey to seige the opponent.
+A Battering Ram is a special unit that does not fight. Each unit costs 1500 gold. 1 Battering Ram negates wall defensive bonuses and multiple destroy the attacked wall and any defenders entirely, in both cases being consumed upon use. Battering Rams can be intercepted or attacked so should always be deployed behind a protective army to keep them alive on their journey to seige the opponent.
 
 ### Castles.
 
-A castle costs 2000 gold to build, and is build after all battles. Castles under your control are the only territory you can spawn units on. No castles, no new units! Castles are indicated by black dots.
+A castle costs 2000 gold to build, and is built after all battles. Castles under your control are the only territory you can spawn units on. No castles, no new units! Castles are indicated by black dots.
 
 ## Razing down
 

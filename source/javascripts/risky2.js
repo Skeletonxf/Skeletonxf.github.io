@@ -300,8 +300,10 @@ var switchFocusTo = null
     document.getElementById('territory-mines').textContent = map[node.id].mines + " Mines"
     if (map[node.id].wall) {
       document.getElementById('territory-wall').textContent = "Wall"
+      document.getElementById('territory-wall-strength').textContent = `Max defenders: ${map[node.id].wallStrength}`
     } else {
       document.getElementById('territory-wall').textContent = "No Wall"
+      document.getElementById('territory-wall-strength').textContent = "No defenders"
     }
     if (map[node.id].castle) {
       document.getElementById('territory-castle').textContent = "Castle"
@@ -397,7 +399,9 @@ var switchFocusTo = null
       listArmy(d.army)
       listed.push(d.army)
     })
-    map[node.id].armies.forEach((army) => {
+    map[node.id].armies
+        .filter(army => army.type !== 'Defender')
+        .forEach((army) => {
       if (!listed.includes(army)) {
         // avoid listing twice
         listArmy(army)
@@ -731,7 +735,7 @@ let players = {};
 // index by level of mine 0-6
 let mineIncome = [ 0, 100, 125, 150, 175, 200, 250 ]
 // index by level of mine to buy 1-6
-let mineUpgradeCost = [ 500, 0, 0, 0, 0, 0 ]
+let mineUpgradeCost = [ 800, 0, 0, 0, 0, 0 ]
 
 {
   let ol = document.getElementById('mine-gold-income-list')
@@ -1116,7 +1120,9 @@ function applyTurns() {
   for (let node in map) {
     if (map[node].deployed.length > 0) {
       map[node].deployed.forEach((d) => {
-        if (d.target) {
+        // Ensure all deployed units are not defenders and that
+        // they have a valid target
+        if (d.target && (d.army.type !== 'Defender')) {
           map[d.target].arriving.push({
             player: map[node].player,
             army: d.army,
@@ -1225,7 +1231,13 @@ function applyTurns() {
         })
         if (rams > 1) {
           // if attacking with multiple rams then destroy the wall
+          // and defenders
           map[node].wall = false
+          map[node].wallStrength = 10
+          // Defenders can't attack as they can't be deployed
+          map[node].armies
+            .filter(a => a.type === 'Defender')
+            .forEach(a => a.quantity = 0)
         }
         // apply any wall bonus flags to defenders not under seige
         if ((map[node].wall) && (!sieging)) {
@@ -1368,17 +1380,29 @@ function applyTurns() {
           .filter(a => a.type === 'Defender')
           .filter(a => a.level === highestLevel)
           .reduce((total, a) => a.quantity + total, 0)
-        let underleveledDefenders = map[node].armies
-          .filter(a => a.type === 'Defender')
-          .filter(a => a.level < highestLevel)
-        // remove underleveled defenders
+
+        let removedArmies = []
+        // remove up to 10 underleveled defenders each iteration
+        let spawnLimit = 10
+        for (let i = 0; i < spawnLimit; i++) {
+          for (let army of map[node].armies) {
+            if ((army.type === 'Defender') && (army.level < highestLevel)) {
+              if (army.quantity > 2) {
+                army.quantity -= 1;
+              } else {
+                removedArmies.push(army)
+              }
+            }
+          }
+        }
         map[node].armies = map[node].armies
-          .filter(a => !underleveledDefenders.some(a1 => a1 === a))
+          .filter(a => !removedArmies.some(a1 => a1 === a))
+
         let highestID = getHighestID(map[node].armies)
         if (defenders < map[node].wallStrength) {
           // use unshift so the defenders always fight first
           map[node].armies.unshift({
-            quantity: map[node].wallStrength - defenders,
+            quantity: Math.min(map[node].wallStrength - defenders, spawnLimit),
             type: 'Defender',
             level: highestLevel,
             id: highestID + 1
@@ -1421,7 +1445,10 @@ function applyTurns() {
       if (players[player].start === 'defensive') {
         for (let node in map) {
           if (map[node].player === player) {
-            map[node].wall = true
+            if (!map[node].wall) {
+              map[node].wall = true
+              map[node].wallStrength = 10
+            }
           }
         }
       }
@@ -1777,7 +1804,7 @@ function getTotalLevelWeightedQuantity(armies) {
 // Gets the approximate defending power of the node.
 function getDefence(node) {
   if (map[node].wall) {
-    return getTotalLevelWeightedQuantity(map[node].armies) * 2
+    return getTotalLevelWeightedQuantity(map[node].armies) * (1 + DEFENDING_WALL_BONUS)
   } else {
     return getTotalLevelWeightedQuantity(map[node].armies)
   }
