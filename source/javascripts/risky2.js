@@ -7,6 +7,8 @@ const UNIT_COST = 20
 const CASTLE_COST = 2000
 const WALL_COST = 1500
 const RAM_COST = 1500
+// Defending with a wall is equivalent to half a level advantage
+const DEFENDING_WALL_BONUS = 0.5
 
 let drawLine = null;
 let drawWall = null;
@@ -184,6 +186,7 @@ let map = {}
         }],
         player: 'p' + player,
         wall: true,
+        wallStrength: 10,
         castle: true,
         capital: true,
         justTaken: true
@@ -199,6 +202,7 @@ let map = {}
         }],
         player: 'neutral',
         wall: false,
+        wallStrength: 0,
         castle: false,
         capital: false,
         justTaken: false
@@ -1313,6 +1317,7 @@ function applyTurns() {
       map[node].castle = false
       map[node].mines = 0
       map[node].wall = false
+      map[node].wallStrength = 0
     }
   }
 
@@ -1328,7 +1333,6 @@ function applyTurns() {
       }
     })
   }
-
 
   // Apply purchases on territories that remain under the same player's
   // control.
@@ -1349,21 +1353,55 @@ function applyTurns() {
       map[node].purchases.castle = false
       map[node].castle = true
     }
+    if (map[node].wall) {
+      if (map[node].justTaken) {
+        // reset strength of wall
+        map[node].wallStrength = 10
+      } else {
+        map[node].wallStrength += 2
+      }
+      if (map[node].player !== 'neutral') {
+        let highestLevel = ['archers', 'calvary', 'infantry']
+          .map((unit) => players[map[node].player].units[unit])
+          .reduce((highest, level) => Math.max(highest, level), 1)
+        let defenders = map[node].armies
+          .filter(a => a.type === 'Defender')
+          .filter(a => a.level === highestLevel)
+          .reduce((total, a) => a.quantity + total, 0)
+        let underleveledDefenders = map[node].armies
+          .filter(a => a.type === 'Defender')
+          .filter(a => a.level < highestLevel)
+        // remove underleveled defenders
+        map[node].armies = map[node].armies
+          .filter(a => !underleveledDefenders.some(a1 => a1 === a))
+        let highestID = getHighestID(map[node].armies)
+        if (defenders < map[node].wallStrength) {
+          // use unshift so the defenders always fight first
+          map[node].armies.unshift({
+            quantity: map[node].wallStrength - defenders,
+            type: 'Defender',
+            level: highestLevel,
+            id: highestID + 1
+          })
+        }
+      }
+    }
     if (map[node].purchases.wall) {
       map[node].purchases.wall = false
       map[node].wall = true
+      map[node].wallStrength = 10
     }
     // apply auto mine levelling up if the mine is held
     // as long as the player has spare money
     if ((map[node].mines > 0)
-            && (map[node].mines < mineUpgradeCost.length)
-            && (!map[node].justTaken)
-            && (map[node].player !== 'neutral')) {
-        let costOfPurchase = mineUpgradeCost[map[node].mines]
-        if (players[map[node].player].gold >= costOfPurchase) {
-            map[node].mines += 1
-            players[map[node].player].gold -= costOfPurchase
-        }
+        && (map[node].mines < mineUpgradeCost.length)
+        && (!map[node].justTaken)
+        && (map[node].player !== 'neutral')) {
+      let costOfPurchase = mineUpgradeCost[map[node].mines]
+      if (players[map[node].player].gold >= costOfPurchase) {
+        map[node].mines += 1
+        players[map[node].player].gold -= costOfPurchase
+      }
     }
     if (map[node].purchases.mines > 0) {
       map[node].mines += map[node].purchases.mines
@@ -1534,34 +1572,45 @@ let typeAdvantage = {
     Neutral: 0,
     Archers: 0,
     Calvary: 0,
-    Infantry: 0
+    Infantry: 0,
+    Defender: 0
+  },
+  Defender: {
+    Neutral: 0,
+    Archers: 0,
+    Calvary: 0,
+    Infantry: 0,
+    Defender: 0
   },
   Archers: {
     Neutral: 0,
     Archers: 0,
     Calvary: -1, // weak to calvary
-    Infantry: 1 // strong against infantry
+    Infantry: 1, // strong against infantry
+    Defender: 0
   },
   Calvary: {
     Neutral: 0,
     Archers: 1, // strong against archers
     Calvary: 0,
-    Infantry: -1 // weak to infantry
+    Infantry: -1, // weak to infantry
+    Defender: 0
   },
   Infantry: {
     Neutral: 0,
     Archers: -1, // weak to archers
     Calvary: 1, // strong against calvary
-    Infantry: 0
+    Infantry: 0,
+    Defender: 0
   }
 }
 function battleMultiplier(trade, against) {
   let levelDifference = trade.level - against.level
   if (trade.insideWall) {
-    levelDifference += 1
+    levelDifference += DEFENDING_WALL_BONUS
   }
   if (against.insideWall) {
-    levelDifference -= 1
+    levelDifference -= DEFENDING_WALL_BONUS
   }
   return Math.pow(2,
     levelDifference + typeAdvantage[trade.type][against.type])
