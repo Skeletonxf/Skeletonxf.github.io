@@ -6,7 +6,9 @@ This is no longer a forum game, has slight tweaks and nothing to do with Busines
 
 ## Risky Conquest 1.2
 
-This game is mostly an automation of the aforementioned forum game ran by Devour on Stickpage forums. The game ran there never finished, but it was both very simple and had lots of strategy so it seemed like a good target to code up. Perhaps on a rerun I might come further than 4th. Now with a few tweaks to improve gameplay.
+This game is mostly an automation of the aforementioned forum game ran by Devour on Stickpage forums. The game ran there never finished, but it was both very simple and had lots of strategy so it seemed like a good target to code up. Perhaps on a rerun I might come further than 4th.
+
+In version 1.2 I've made a few tweaks to improve gameplay. Walls are no longer immediately as powerful but provide increasingly strong free defences which hold off weak armies. Mines now cost 800 to buy but then automatically level up. I think the overall effect is a more aggressive game which rewards taking enemy territory more and requires less micro management to defend.
 
 # Tutorial
 
@@ -44,7 +46,7 @@ Water territories give no gold. Normal territories give 150 gold per turn. The c
 
 ### Walls
 
-A wall costs 1500 gold to build, and is built after all battles. On all future battles the defending units inside gain 1/2 a level of strength. Walls are indicated by grey outlines. Walls also generate increasing amounts of defending units which fight as neutral units but cannot be deployed to other territories, however they are free and always fight first. Wall bonuses are reset when captured!
+A wall costs 1500 gold to build, and is built after all battles. On all future battles the defending units inside gain 1/2 a level of strength. Walls are indicated by grey outlines. Walls also generate increasing amounts of defending units which fight as neutral units but cannot be deployed to other territories. Walls used to be a just +1 strength whereas now they are +0.5 strength and +10 free units which equals out at 20 units. The 10 free units increases by 2 each turn the wall is held, so after 10 turns this bonus equals out at 40 units, and the wall will practically defend itself for free against weak armies. However wall bonuses are reset when captured!
 
 ### * Battering Rams
 A Battering Ram is a special unit that does not fight. Each unit costs 1500 gold. 1 Battering Ram negates wall defensive bonuses and multiple destroy the attacked wall and any defenders entirely, in both cases being consumed upon use. Battering Rams can be intercepted or attacked so should always be deployed behind a protective army to keep them alive on their journey to seige the opponent.
