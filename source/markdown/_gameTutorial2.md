@@ -46,7 +46,7 @@ Water territories give no gold. Normal territories give 150 gold per turn. The c
 
 ### Walls
 
-A wall costs 1500 gold to build, and is built after all battles. On all future battles the defending units inside gain 1/2 a level of strength. Walls are indicated by grey outlines. Walls also generate increasing amounts of defending units which fight as neutral units but cannot be deployed to other territories. Walls used to be a just +1 strength whereas now they are +0.5 strength and +10 free units which equals out at 20 units. The 10 free units increases by 2 each turn the wall is held, so after 10 turns this bonus equals out at 40 units, and the wall will practically defend itself for free against weak armies. However wall bonuses are reset when captured!
+A wall costs 1500 gold to build, and is built after all battles. On all future battles the defending units inside gain 1/2 a level of strength. Walls are indicated by grey outlines. Walls also generate increasing amounts of defending units which fight as neutral units but cannot be deployed to other territories. Walls used to be a just +1 strength whereas now they are +0.5 strength and free units. The free units increase by 2 each turn the wall is held so the wall will practically defend itself for free against weak armies. However wall bonuses are reset when captured!
 
 ### * Battering Rams
 A Battering Ram is a special unit that does not fight. Each unit costs 1500 gold. 1 Battering Ram negates wall defensive bonuses and multiple destroy the attacked wall and any defenders entirely, in both cases being consumed upon use. Battering Rams can be intercepted or attacked so should always be deployed behind a protective army to keep them alive on their journey to seige the opponent.

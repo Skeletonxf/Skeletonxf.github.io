@@ -9,6 +9,12 @@ const WALL_COST = 1500
 const RAM_COST = 1500
 // Defending with a wall is equivalent to half a level advantage
 const DEFENDING_WALL_BONUS = 0.5
+// Walls start with 2 free defenders
+const STARTING_WALL_STRENGTH = 2
+// Up to 6 defenders are replenished each turn for each wall
+const DEFENDER_SPAWN_LIMIT = 6
+// walls gain 2 free defenders per turn
+const WALL_STRENGTH_GROWTH = 2
 
 let drawLine = null;
 let drawWall = null;
@@ -186,7 +192,7 @@ let map = {}
         }],
         player: 'p' + player,
         wall: true,
-        wallStrength: 10,
+        wallStrength: STARTING_WALL_STRENGTH,
         castle: true,
         capital: true,
         justTaken: true
@@ -727,7 +733,11 @@ let players = {};
       calvary: false,
       infantry: false
     },
-    start: null
+    start: null,
+    // Generate a random aggression factor from 1.00 to 2.49
+    // which will be used to determine how aggressively the bot buys units
+    // if this player is controlled by a bot
+    botAggressionFactor: 0.1 * Math.floor(10 * (1 + (Math.random() * 1.5)))
   }
 })
 
@@ -1233,7 +1243,7 @@ function applyTurns() {
           // if attacking with multiple rams then destroy the wall
           // and defenders
           map[node].wall = false
-          map[node].wallStrength = 10
+          map[node].wallStrength = STARTING_WALL_STRENGTH
           // Defenders can't attack as they can't be deployed
           map[node].armies
             .filter(a => a.type === 'Defender')
@@ -1368,9 +1378,9 @@ function applyTurns() {
     if (map[node].wall) {
       if (map[node].justTaken) {
         // reset strength of wall
-        map[node].wallStrength = 10
+        map[node].wallStrength = STARTING_WALL_STRENGTH
       } else {
-        map[node].wallStrength += 2
+        map[node].wallStrength += WALL_STRENGTH_GROWTH
       }
       if (map[node].player !== 'neutral') {
         let highestLevel = ['archers', 'calvary', 'infantry']
@@ -1382,9 +1392,8 @@ function applyTurns() {
           .reduce((total, a) => a.quantity + total, 0)
 
         let removedArmies = []
-        // remove up to 10 underleveled defenders each iteration
-        let spawnLimit = 10
-        for (let i = 0; i < spawnLimit; i++) {
+        // remove up to x underleveled defenders each iteration
+        for (let i = 0; i < DEFENDER_SPAWN_LIMIT; i++) {
           for (let army of map[node].armies) {
             if ((army.type === 'Defender') && (army.level < highestLevel)) {
               if (army.quantity > 2) {
@@ -1402,7 +1411,7 @@ function applyTurns() {
         if (defenders < map[node].wallStrength) {
           // use unshift so the defenders always fight first
           map[node].armies.unshift({
-            quantity: Math.min(map[node].wallStrength - defenders, spawnLimit),
+            quantity: Math.min(map[node].wallStrength - defenders, DEFENDER_SPAWN_LIMIT),
             type: 'Defender',
             level: highestLevel,
             id: highestID + 1
@@ -1413,7 +1422,7 @@ function applyTurns() {
     if (map[node].purchases.wall) {
       map[node].purchases.wall = false
       map[node].wall = true
-      map[node].wallStrength = 10
+      map[node].wallStrength = STARTING_WALL_STRENGTH
     }
     // apply auto mine levelling up if the mine is held
     // as long as the player has spare money
@@ -1447,7 +1456,7 @@ function applyTurns() {
           if (map[node].player === player) {
             if (!map[node].wall) {
               map[node].wall = true
-              map[node].wallStrength = 10
+              map[node].wallStrength = STARTING_WALL_STRENGTH
             }
           }
         }
@@ -2257,6 +2266,7 @@ function botPlayer() {
 
   // Should spawn at castles near where need units and able
   // to spawn at multiple castles
+  let spawnAt = []
   if (castles.length > 0) {
     let priorityCastles = castles.filter((castle) => {
       // consider all paths from third neighbours to the castle
@@ -2291,7 +2301,7 @@ function botPlayer() {
       return !canIntercept
     })
 
-    let spawnAt = priorityCastles
+    spawnAt = priorityCastles
     if (priorityCastles.length === 0) {
       spawnAt = castles
     }
@@ -2322,7 +2332,7 @@ function botPlayer() {
     // Remove wall defensive bonus.
     let effectiveDefence = defence
     if (ramPresent && map[castle].wall) {
-      effectiveDefence /= 2
+      effectiveDefence /= (1 + DEFENDING_WALL_BONUS)
     }
     // If immediate neighbours are capable of taking the castle
     // then assume it will be taken anyway.
@@ -2359,7 +2369,7 @@ function botPlayer() {
       // Remove wall defensive bonus.
       let effectiveDefence = defence
       if (ramPresent && map[castle].wall) {
-        effectiveDefence /= 2
+        effectiveDefence /= (1 + DEFENDING_WALL_BONUS)
       }
       if ((totalThreats - effectiveDefence) > 0) {
         // Buy units to defend castle with.
@@ -2390,7 +2400,7 @@ function botPlayer() {
     })
     let defence = getDefence(node)
     if (graph[node].some(n => hasRam(n)) && (map[node].wall)) {
-      defence /= 2
+      defence /= (1 + DEFENDING_WALL_BONUS)
     }
     if (((threats * 0.8) > defence) || (threats < (defence * 0.5))) {
       // Either castle is doomed anyway or
@@ -2534,9 +2544,10 @@ function botPlayer() {
   for (let node in map) {
     if (map[node].player === turnPlayer) {
       if ((map[node].castle) && (!map[node].wall)) {
-        if (!doomedCastles.includes(node)) {
-          // leave money in reserve for defence
-          if (players[turnPlayer].gold > (WALL_COST * 1.5)) {
+        if (!doomedCastles.includes(node)
+            || (players[turnPlayer].gold > (WALL_COST * 1.5))) {
+          // leave some money in reserve for defence
+          if (players[turnPlayer].gold > (WALL_COST * 1.2)) {
             buyUpgrade(node, 'wall')
           }
         }
@@ -2572,7 +2583,7 @@ function botPlayer() {
 
   {
     // collect all territory 1 away from neighbours
-    // with no mines
+    // with no mines and look to buy mines
     let safeishTerritory = territories.filter((node) => {
       return !neighbours.some(n => graph[n] === node)
     }).filter((node) => {
@@ -2595,6 +2606,18 @@ function botPlayer() {
           buyUpgrade(safeishTerritory[0], 'mine')
         }
       }
+    }
+  }
+
+  // Try to avoid stashing huge sums of money
+  {
+    let income = players[turnPlayer].goldIncome
+    let gold = players[turnPlayer].gold
+    let threshold = players[turnPlayer].botAggressionFactor
+    if ((gold > (income * threshold)) && spawnAt.length > 0) {
+      let unitsToBuy = Math.floor(
+        (gold - (income * threshold)) / (UNIT_COST * spawnAt.length))
+      spawnAt.forEach(castle => buyUnit(castle, unitBuying, unitsToBuy))
     }
   }
 }
