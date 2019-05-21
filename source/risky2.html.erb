@@ -1,0 +1,272 @@
+---
+layout: risky2
+title: Risky Conquest 1.2
+---
+
+<%= partial :back %>
+<h1 class = "center title" id = "title">
+  Risky Conquest
+</h1>
+<div id = "flex-wrapper">
+  <div id = "armies">
+    <div>
+      <p id = "turn-player-remaining-gold">Remaining Gold: </p>
+    </div>
+    <div id = "armies-all">
+      <h2>Available</h2>
+      <ol id = "territory-armies-all"></ol>
+    </div>
+    <div id = "armies-selected">
+      <h2>Selected</h2>
+      <ol id = "territory-armies-selected"></ol>
+    </div>
+    <div id = "armies-attack"></div>
+    <div id = "attacks">
+      <h2>Orders</h2>
+      <ol id = "territory-attacks"></ol>
+    </div>
+    <div id = "choose-start">
+      <button id="aggressive-start" title="Start with extra units and gain 1000 gold at the end of phase 3 to expand quicker than your opponents">Aggressive</button>
+      <button id="defensive-start" title="Build defensive walls on all your territories at the end of phase 3 to dig in and hold your ground">Defensive</button>
+      <button id="scientific-start" title="Control the strongest units in the game by starting with level 2 archers and spawning level 5 neutral units at the end of phase 3">Scientific</button>
+    </div>
+  </div>
+  <div id = "map">
+    <div id = "territories">
+      <% mid = "$" %>
+      <% inner = 1 %>
+      <% middle = 1 %>
+      <% outer = 1 %>
+      <% base = 1 %>
+      <% water = 1 %>
+      <% 6.times do |n| %>
+        <div id = "section<%= n*2 %>" class="section">
+          <div class="container">
+            <ol class="even nothing-up face-to-face-down">
+              <li class='hex base' id='base<%= base %>'>
+                <div class="content info">
+                  <p class='id'><%= base %></p>
+                  <% base += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd face-to-face-up point-to-point-down">
+              <li class='hex' id='outer<%= outer %>'>
+                <div class="content info">
+                  <p class='id'><%= outer %></p>
+                  <% outer += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='outer<%= outer %>'>
+                <div class="content info">
+                  <p class='id'><%= outer %></p>
+                  <% outer += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up face-to-face-down">
+              <li class='hex' id='middle<%= middle %>'>
+                <div class="content info">
+                  <p class='id'><%= middle %></p>
+                  <% middle += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+              <li class='hex' id='middle<%= middle %>'>
+                <div class="content info">
+                  <p class='id'><%= middle %></p>
+                  <% middle += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even face-to-face-up point-to-point-down">
+              <li class='hex inner' id='inner<%= inner %>'>
+                <div class="content info">
+                  <p class='id'><%= inner %></p>
+                  <% inner += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="even point-to-point-up nothing-down">
+              <li class='hex blank'></li>
+            </ol>
+          </div>
+        </div>
+        <div id = "section<%= (n*2)+1 %>" class="section">
+          <div class="container">
+            <ol class="odd nothing-up point-to-point-down">
+              <li class='hex water', id='water<%= water %>'>
+                <div class="content info">
+                  <p class='id'><%= water %></p>
+                  <% water += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex blank half'></li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex' id='middle<%= middle %>'>
+                <div class="content info">
+                  <p class='id'><%= middle %></p>
+                  <% middle += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up point-to-point-down">
+              <li class='hex inner' id='inner<%= inner %>'>
+                <div class="content info">
+                  <p class='id'><%= inner %></p>
+                  <% inner += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
+            </ol>
+            <ol class="odd point-to-point-up nothing-down">
+              <li class='hex blank half'></li>
+            </ol>
+          </div>
+        </div>
+      <% end %>
+      <div id="section12" class="center section">
+        <div class="container">
+          <ol class="center odd nothing-up nothing-down">
+            <li class="center hex" id='<%= mid %>'>
+              <div class="content info">
+                <p class='id mid'><%= mid %></p>
+              </div>
+              <div class="content units"></div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+    <svg id="paths"></svg>
+    <svg id="walls"></svg>
+    <svg id="mines"></svg>
+    <svg id="castles"></svg>
+  </div>
+  <div id = "info">
+    <h2 id = "territory-name"></h2>
+    <h3>Control</h3>
+    <p id = "territory-controller"></p>
+    <h3>Structures</h3>
+    <p id = "territory-mines" title="Mines increase gold income"></p>
+    <p id = "territory-wall" title="Walls increase the strength of defending units by 1/2"></p>
+    <p id = "territory-wall-strength" title="Maximum defending units that can spawn"></p>
+    <p id = "territory-castle" title="Castles can spawn units"></p>
+    <h3>Gold Income</h3>
+    <p id = "territory-gold-income" title="The gold this territory gives per turn"></p>
+    <div id="info-build-units">
+      <h3>Buy Units</h3>
+      <h4>20 Gold</h4>
+      <div class="buy">
+        <label for="archers" title="Weak to Calvary">Archers</label>
+        <input type="number" id="archers"></input>
+      </div>
+      <div class="buy">
+        <label for="calvary" title="Weak to Infantry">Calvary</label>
+        <input type="number" id="calvary"></input>
+      </div>
+      <div class="buy">
+        <label for="infantry" title="Weak to Archers">Infantry</label>
+        <input type="number" id="infantry"></input>
+      </div>
+      <h4>1500 Gold</h4>
+      <div class="buy">
+        <label for="rams" title="Negate Wall bonuses and destroy Walls in multiples (consumed on use)">Battering Ram</label>
+        <input type="number" id="rams"></input>
+      </div>
+    </div>
+    <div id="info-buttons">
+      <h4>Territory Upgrades</h4>
+      <div class="buy">
+        <label for="build-mines" id="build-mines-label" title="Gain more Gold from this territory">Mines +1: 200</label>
+        <input type="number" id="build-mines"></input>
+      </div>
+      <button id="build-wall" title="Doubles the strength of your defending units">Build Wall (1500)</button>
+      <button id="build-castle" title="Spawn units">Build Castle (2000)</button>
+      <button id="raze-down" title="Remove all Mines, Walls and Castles (no refund)">Raze Down</button>
+    </div>
+  </div>
+  <div id = "players">
+    <ul>
+      <li id = "p1-player-info" class="p1 player-info">
+        <h2>Player 1</h2>
+        <p id = "p1-gold"></p>
+        <p id = "p1-archers-level"></p>
+        <p id = "p1-calvary-level"></p>
+        <p id = "p1-infantry-level"></p>
+        <div id = "turn-player-unit-upgrades">
+          <button id = "turn-player-upgrade-archers" title="Double the strength of newly spawned Archers">Upgrade Archers</button>
+          <button id = "turn-player-upgrade-calvary" title="Double the strength of newly spawned Calvary">Upgrade Calvary</button>
+          <button id = "turn-player-upgrade-infantry" title="Double the strength of newly spawned Infantry">Upgrade Infantry</button>
+        </div>
+        <button id="end-turn">End Turn</button>
+      </li>
+      <li id = "p2-player-info" class="p2 player-info">
+        <h2>Player 2</h2>
+        <p id = "p2-gold"></p>
+        <p id = "p2-archers-level"></p>
+        <p id = "p2-calvary-level"></p>
+        <p id = "p2-infantry-level"></p>
+      </li>
+      <li id = "p3-player-info" class="p3 player-info">
+        <h2>Player 3</h2>
+        <p id = "p3-gold"></p>
+        <p id = "p3-archers-level"></p>
+        <p id = "p3-calvary-level"></p>
+        <p id = "p3-infantry-level"></p>
+      </li>
+      <li id = "p4-player-info" class="p4 player-info">
+        <h2>Player 4</h2>
+        <p id = "p4-gold"></p>
+        <p id = "p4-archers-level"></p>
+        <p id = "p4-calvary-level"></p>
+        <p id = "p4-infantry-level"></p>
+      </li>
+      <li id = "p5-player-info" class="p5 player-info">
+        <h2>Player 5</h2>
+        <p id = "p5-gold"></p>
+        <p id = "p5-archers-level"></p>
+        <p id = "p5-calvary-level"></p>
+        <p id = "p5-infantry-level"></p>
+      </li>
+      <li id = "p6-player-info" class="p6 player-info">
+        <h2>Player 6</h2>
+        <p id = "p6-gold"></p>
+        <p id = "p6-archers-level"></p>
+        <p id = "p6-calvary-level"></p>
+        <p id = "p6-infantry-level"></p>
+      </li>
+    </ul>
+  </div>
+</div>
+<div id = "mine-gold-income">
+  <h2>Mine gold income levels</h2>
+  <ol id = "mine-gold-income-list"></ol>
+</div>
+<div id = "tutorial">
+  <article>
+    <%= partial "markdown/gameTutorial2" %>
+  </article>
+</div>
+<div id = "bot-controls">
+  <h2 id>Bots</h2>
+  <% [2, 3, 4, 5, 6].each do |player| %>
+    <div>
+      <label for = "automate-player-<%=player%>">Player <%= player %></label>
+      <input type = "checkbox" id = "automate-player-<%=player%>" checked></input>
+    </div>
+  <% end %>
+</div>
+<script>
+window.onbeforeunload = () => { return 'Are you sure you want to quit this game?' }
+</script>
