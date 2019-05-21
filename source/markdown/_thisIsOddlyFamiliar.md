@@ -1,4 +1,5 @@
 # This is oddly familiar
+<p class = "article-date">2018/10/6</p>
 
 ## FFI and JSON messaging
 

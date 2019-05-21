@@ -157,6 +157,10 @@ article img {
   margin: 0 auto;
  }
 
+.article-date {
+    font-size: 0.8rem;
+}
+
 /* Tweaking */
 
 a {

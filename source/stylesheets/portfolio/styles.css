@@ -54,7 +54,7 @@ h2 {
 @media only screen and (max-width: 1378px) {
   #grid {
     display: grid;
-    grid-template-columns: auto repeat(2, 400px) auto;
+    grid-template-columns: auto repeat(2, 450px) auto;
     grid-template-rows: repeat(3, auto);
     grid-template-areas:
       "left one two right"
@@ -66,7 +66,7 @@ h2 {
 @media only screen and (max-width: 860px) {
   #grid {
     display: grid;
-    grid-template-columns: auto repeat(1, 400px) auto;
+    grid-template-columns: auto repeat(1, 450px) auto;
     grid-template-rows: repeat(6, auto);
     grid-template-areas:
       "left one right"
@@ -78,7 +78,7 @@ h2 {
   }
 }
 
-@media only screen and (max-width: 420px) {
+@media only screen and (max-width: 500px) {
   #grid {
     display: grid;
     grid-template-columns: auto repeat(1, 90%) auto;
@@ -104,19 +104,7 @@ h2 {
   align-items: center;
   flex-direction: column;
   min-height: 250px;
-  cursor: pointer;
-}
-
-.item.selected {
-  cursor: auto;
-}
-
-.item.no-cursor {
-  cursor: auto;
-}
-
-.item:focus {
-  box-shadow: 4px 4px silver;
+  justify-content: space-between;
 }
 
 .item h2 {
@@ -126,50 +114,20 @@ h2 {
 
 .item img {
   display: block;
-  margin: auto;
+  margin: 1rem auto;
   max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+.item img.small-image {
+    max-height: 150px;
 }
 
 .item a {
   padding: 0.3em;
   margin: -0.3em;
 }
-
-.expanded {
-  position: static !important;
-  opacity: 1;
-}
-
-.text {
-  transition: opacity 1s;
-}
-
-.hidden {
-  /* don't use display: none; as it will stop screen reader access */
-  position: absolute !important;
-  top: -9999px !important;
-  left: -9999px !important;
-  opacity: 0;
-}
-
-/* Hide image when showing text */
-
-.hidden + img {
-  position: static !important;
-  opacity: 1;
-}
-
-.expanded.js-works + img {
-  position: absolute !important;
-  top: -9999px !important;
-  left: -9999px !important;
-  opacity: 0;
-}
-
-.text + img {
-  transition: opacity 1s;
-}
-
 
 #one {
   grid-area: one;

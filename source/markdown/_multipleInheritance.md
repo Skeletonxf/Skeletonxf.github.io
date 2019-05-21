@@ -1,4 +1,5 @@
 # Multiple Inheritance in Lua
+<p class = "article-date">2018/04/04</p>
 
 First I will go over why one of the reasons why Java doesn't have multiple inheritance and then how this informs multiple inheritance in Lua (where one can do classes and objects however one likes because "[objects are not primitive](https://www.lua.org/pil/16.3.html)").
 
