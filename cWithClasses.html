@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset = "UTF-8">
+  <meta name = "viewport" content = "width = device-width">
+  <!-- Use the title from a page's frontmatter if it has one -->
+  <title>Skeletonxf.github.io</title>
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
+  <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+</head>
+<body>
+  <div class = "page">
+    <header class = "back">
+  <nav>
+    <ul>
+      <li>
+        <p><a href = "index.html">Index</a></p>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<h1 class = "center title">
+  A blog of sorts
+</h1>
+<div class = "content">
+  <article>
+    <h1>Gotchas: C + classes</h1>
+
+<p class = "article-date">2018/11/06</p>
+
+<p><strong>Or writing in C using C++</strong></p>
+
+<p>I was recently introduced to C++ in my Internet of Things module where we were writing some firmware for our micro controller.</p>
+
+<p>While we <strong>were</strong> using C++, the libraries we were using used lots of <code>char *</code>s, nothing from <code>std</code> at their interface level, and most of the time when they did define classes it was for a singleton instance only. So it was more like coding in C with a few classes for scoping than anything object orientated. We were also not taught any C or C++ so it was very easy to fall back on the  familiar control structures of imperative programming from other languages and hope for the best. Unfortunately embedded systems don&rsquo;t seem so good at telling you when you&rsquo;re messing up your memory. This post will hopefully be the crash course in not reading garbled strings that I never had, and perhaps a reference going forward in my IoT module.</p>
+
+<p>There was one place where objects came up a lot and that was Arduino&rsquo;s <code>String</code> class.</p>
+
+<p>The default &lsquo;Sketch&rsquo; template in Arduino&rsquo;s IDE is</p>
+<div class="highlight"><pre class="highlight cpp"><code><span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// put your setup code here, to run once:</span>
+
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// put your main code here, to run repeatedly:</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>You might notice that if you&rsquo;re creating things in the setup() function and want them in the loop() function you&rsquo;re going to have to make sure they&rsquo;re still alive, and in scope. Arduino&rsquo;s <code>String</code> class, much like you might expect of a C++ object if you learnt C++ and then started writing programs, owns its characters.</p>
+
+<h2>The const keyword</h2>
+
+<p>This will fail to compile.</p>
+<div class="highlight"><pre class="highlight cpp"><code><span class="kt">int</span> <span class="n">BAUD_RATE</span> <span class="o">=</span> <span class="mi">115200</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">hello</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">BAUD_RATE</span><span class="p">);</span>
+  <span class="c1">// put your setup code here, to run once:</span>
+  <span class="n">hello</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">random</span><span class="p">(</span><span class="mi">10</span><span class="p">)).</span><span class="n">c_str</span><span class="p">();</span> <span class="c1">// const char *</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// put your main code here, to run repeatedly:</span>
+  <span class="n">String</span><span class="p">(</span><span class="n">random</span><span class="p">(</span><span class="mi">10</span><span class="p">));</span>
+  <span class="n">delay</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="n">hello</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Unlike every other programming language I&rsquo;ve used <code>const</code> in C and C++ is part of the type, not a restriction on a variable.</p>
+
+<h2>My String went out of scope and I held a reference to it</h2>
+<div class="highlight"><pre class="highlight cpp"><code><span class="kt">int</span> <span class="n">BAUD_RATE</span> <span class="o">=</span> <span class="mi">115200</span><span class="p">;</span>
+<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">hello</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">BAUD_RATE</span><span class="p">);</span>
+  <span class="c1">// put your setup code here, to run once:</span>
+  <span class="n">hello</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">random</span><span class="p">(</span><span class="mi">10</span><span class="p">)).</span><span class="n">c_str</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// put your main code here, to run repeatedly:</span>
+  <span class="n">String</span><span class="p">(</span><span class="n">random</span><span class="p">(</span><span class="mi">10</span><span class="p">));</span>
+  <span class="n">delay</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="n">hello</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>This compiles, but if you read the documentation for <a href="https://www.arduino.cc/reference/en/language/variables/data-types/string/functions/c_str/"><code>c_str()</code></a> this is a terrible idea. On my micro controller rather than generating a random number <strong>once</strong> and then printing it repeatedly we get a random number every loop!</p>
+
+<p>In the setup function <code>hello</code> does indeed point to the <code>char *</code> that <code>c_str()</code> gives us, but the <code>String</code> object goes out of scope by the time we reach the loop and in fact points to the new <code>String</code> object we create just before in the loop every time. <a href="https://en.wikipedia.org/wiki/Undefined_behavior">There is also no reason <code>hello</code> <strong>should</strong> be pointing to the <code>String</code> in the loop function :)</a></p>
+
+<h2>My struct&rsquo;s struct is gone</h2>
+<div class="highlight"><pre class="highlight cpp"><code><span class="kt">int</span> <span class="n">BAUD_RATE</span> <span class="o">=</span> <span class="mi">115200</span><span class="p">;</span>
+
+<span class="k">struct</span> <span class="n">Foo</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">bar</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="n">FooBar</span> <span class="p">{</span>
+  <span class="n">Foo</span> <span class="o">*</span><span class="n">bar</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">FooBar</span> <span class="n">fooBar</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">BAUD_RATE</span><span class="p">);</span>
+  <span class="c1">// put your setup code here, to run once:</span>
+  <span class="n">Foo</span> <span class="n">foo</span><span class="p">;</span>
+  <span class="n">foo</span><span class="p">.</span><span class="n">bar</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">fooBar</span><span class="p">.</span><span class="n">bar</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">foo</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// put your main code here, to run repeatedly:</span>
+  <span class="n">delay</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="n">fooBar</span><span class="p">.</span><span class="n">bar</span><span class="o">-&gt;</span><span class="n">bar</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>What does this print? 0. <code>foo</code> went out of scope.</p>
+
+<h2>I allocated my struct&rsquo;s struct on the heap so it didn&rsquo;t die</h2>
+<div class="highlight"><pre class="highlight cpp"><code><span class="kt">int</span> <span class="n">BAUD_RATE</span> <span class="o">=</span> <span class="mi">115200</span><span class="p">;</span>
+
+<span class="k">struct</span> <span class="n">Foo</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">bar</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="n">FooBar</span> <span class="p">{</span>
+  <span class="n">Foo</span> <span class="o">*</span><span class="n">bar</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">FooBar</span> <span class="n">fooBar</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">BAUD_RATE</span><span class="p">);</span>
+  <span class="c1">// put your setup code here, to run once:</span>
+  <span class="n">Foo</span> <span class="o">*</span><span class="n">foo</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Foo</span><span class="p">();</span>
+  <span class="n">foo</span><span class="o">-&gt;</span><span class="n">bar</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">fooBar</span><span class="p">.</span><span class="n">bar</span> <span class="o">=</span> <span class="n">foo</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// put your main code here, to run repeatedly:</span>
+  <span class="n">delay</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="n">fooBar</span><span class="p">.</span><span class="n">bar</span><span class="o">-&gt;</span><span class="n">bar</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>What does this print? 1. And now there will be a memory leak if you forget to delete <code>foo</code> when you&rsquo;re done with <code>fooBar</code>. Memory leaks on embedded systems with very scarce memory will cause problems for you.</p>
+
+<p>At this point I know enough to point you to <a href="https://stackoverflow.com/questions/2321511/what-is-meant-by-resource-acquisition-is-initialization-raii">RAII</a> but not enough to explain it.</p>
+
+<aside>
+Note: I didn&rsquo;t publish this article when I wrote it. Partly because I was busy and partly because I forgot about it but think I was also concerned that I might have said something wrong. I haven&rsquo;t done any major work in C or C++ since so there&rsquo;s never been a good time to double check things, but from the little Rust I&rsquo;ve done I think I can now be confident that these problems I was running into did come from needing to unlearn the mental model that anything would exist as long as I held a reference to it which I had picked up from various garbage collected languages.
+</aside>
+
+  </article>
+</div>
+
+  </div>
+  <footer>
+    <div class = "footer">
+      <p>My content on this site is licensed under Creative Commons By Attribution <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></p>
+      <p>This site's source code is licensed under the MIT license <a href="https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code">https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code</a></p>
+    </div>
+  </footer>
+</body>
+</html>

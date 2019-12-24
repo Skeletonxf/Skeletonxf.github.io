@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset = "UTF-8">
+  <meta name = "viewport" content = "width = device-width">
+  <!-- Use the title from a page's frontmatter if it has one -->
+  <title>Skeletonxf.github.io</title>
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
+  <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+</head>
+<body>
+  <div class = "page">
+    <header class = "back">
+  <nav>
+    <ul>
+      <li>
+        <p><a href = "index.html">Index</a></p>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<h1 class = "center title">
+  A blog of sorts
+</h1>
+<div class = "content">
+  <article>
+    <h1>Model-View-ViewModel what?</h1>
+
+<p class = "article-date">2019/12/17</p>
+
+<p>I still vaguely remember being introduced to the Model-View-Controller pattern a few years ago in  a web development university module. At the time it seemed like MVC was <em>the</em> solution so I was very confused when two years later in my app development module MVC was criticised and MVVM was promoted.</p>
+
+<p>After some thinking It makes sense to me that there is this divide. In traditional web development your server serves webpages to the client that interact with the Controller by requesting other views. There it makes sense for the Controller to control the View. It would be quite a challenge making an HTML page change itself when you click a URL instead of loading the new webpage!<sup>1</sup> On Android the interface between the View and the thing that interfaces with the Model can be a lot richer with lots of communication in both directions. Furthermore, Android will kill views that have been closed even if the thing that interfaces with the View and Model is still running, even if it still holds references to the now killed View! This makes it a lot easier to use a ViewModel instead which exposes state and data to the View but doesn&rsquo;t do any controlling.</p>
+
+<p>However I still have no idea why this middle layer is called a ViewModel. It&rsquo;s not a View and it&rsquo;s not a Model. The ViewModel doesn&rsquo;t do any controlling of the View like in MVC, so a synonym of Controller also wouldn&rsquo;t fit, but it does expose things to the View that let the views control themselves. Hence I propose what I think is a better name for this pattern:</p>
+
+<p>Model-View-Inverted Controller</p>
+
+<p>I think Inverted Controller captures the idea of letting something else observe what it needs to do much better.</p>
+
+<p>Now I realise that when I was building a website in React last year for a group coursework that what we were creating was straying away from MVC and becoming a bit like MVVM. Because the website had to work offline our webpages served by the server were more like templates and we were observing the actual state and data of the application through additional message passes using web sockets and get and post requests.</p>
+
+<p>From a brief search I notice other Javascript UI frameworks are probably similar in this respect. It seems like Vue and Angular support two way data binding, which is a key component in writing Android apps using MVVM without lots of boilerplate.</p>
+
+<p>Perhaps an explicit ViewModel won&rsquo;t ever fit into the dichotomy of the client/server world of web development but for me MVVM doesn&rsquo;t seem so different to web development anymore.</p>
+
+<hr>
+
+<p>1 -  am aware that this is almost exactly what our website that worked offline ended up doing. If it didn&rsquo;t have to work offline it would have probably taken us half as much time to develop.</p>
+
+  </article>
+</div>
+
+  </div>
+  <footer>
+    <div class = "footer">
+      <p>My content on this site is licensed under Creative Commons By Attribution <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></p>
+      <p>This site's source code is licensed under the MIT license <a href="https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code">https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code</a></p>
+    </div>
+  </footer>
+</body>
+</html>

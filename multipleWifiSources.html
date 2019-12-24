@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset = "UTF-8">
+  <meta name = "viewport" content = "width = device-width">
+  <!-- Use the title from a page's frontmatter if it has one -->
+  <title>Skeletonxf.github.io</title>
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
+  <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+</head>
+<body>
+  <div class = "page">
+    <header class = "back">
+  <nav>
+    <ul>
+      <li>
+        <p><a href = "index.html">Index</a></p>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<h1 class = "center title">
+  A blog of sorts
+</h1>
+<div class = "content">
+  <article>
+    <h1>Multiple WiFi sources on KDE Plasma</h1>
+
+<p class = "article-date">2019/01/24</p>
+
+<p>I had often wondered why I couldn&rsquo;t connect to ethernet and WiFi at once to improve my bandwidth. My desktop had both a WiFi chip and an ethernet socket so I never quite understood why both weren&rsquo;t an option. Fast forward to this week at the time of writing and my WiFi setup for my desktop was no longer ethernet but by WiFi with very poor signal and no direct line of sight to the router. I improved my signal by moving my desktop closer to my door / router but this improvement seemed to no longer be enough. The WiFi was regularly cutting out on me and becoming very problematic. I figured it was at least partially the linux Broadcom WiFi drivers because while the signal was still poor when booting Windows 7 it didn&rsquo;t cut out on me.</p>
+
+<p>I therefore ordered a &ldquo;plug and play&rdquo; USB WiFi network adapter which uses an AR9271L Atheros chip. I &lsquo;knew&rsquo; this should work easily because <a href="https://en.wikipedia.org/wiki/Comparison_of_open-source_wireless_drivers">wikipedia shows it as integrated into the mainline kernel and doesn&rsquo;t require non free firmware</a>, plus it is quite old so any bugs should be fixed.</p>
+
+<p>KDE Plasma didn&rsquo;t give me any visual indicators that the WiFi network adapter was detected. I didn&rsquo;t get an entry in the drivers tab either.</p>
+
+<p><img src="/images/no-additional-drivers.png" alt="Driver management software, Broadcom WiFi adapter and graphics card present, new USB WiFi adapter not present" /></p>
+
+<p>After unsuccessfully testing many different terminal commands and learning very little I tried connecting the USB WiFi network adapter to my laptop, which still runs Ubuntu Unity. To my amazement it not only detected and displayed the USB WiFi adapter in the system settings but also let me connect to my home WiFi with both simultaneously. This confirmed that the USB WiFi adapter did work and was plug and play so I then tested my desktop using Windows 7 with the network adapter. Windows 7 also let me setup two simulatneous connections.</p>
+
+<p>This made me fairly confident that KDE Plasma was the problem and not my WiFi adapter, so I tried installing Ubuntu Unity onto my desktop. I would like to caution any readers at this point that installing multiple desktop environments on the same system is <strong>asking</strong> for problems. Unsurprisingly, I had a lot of weird themes and icon sets selected on Unity when I logged into it, but I also finally had the network adapter showing up in the WiFi menus and was able to setup the two simulatneous connections.</p>
+
+<p><figure>
+<img src="/images/unity-wifi-selection.png" alt="Unity 7 WiFi selection allowing both WiFi chips to connect to the same network" />
+    <figcaption>Unity 7 WiFi selection allowing both WiFi chips to connect to the same network. Using Arc rather than Unity&rsquo;s default Adawita because the Adawita theme had weird 1 pixel white borders on windows. Not pictured: KDE&rsquo;s Latte dock also present alongside Unity&rsquo;s dock. I did say installing a second desktop environment is asking for problems</figcaption>
+<figure></p>
+
+<p>The graphical mismatches and theming problems persisted so I gave up on Unity and decided to try Plasma again and hope that the WiFi configuration persisted.</p>
+
+<p><img src="/images/two-connections.png" alt="Multiple simulatneous WiFi connections on KDE Plasma" /></p>
+
+<p>It turns out that KDE Plasma detected my USB network adapter all along.</p>
+
+<p><img src="/images/restrict-to-device.png" alt="Restrict to device setting available on KDE Plasma WiFi connection settings" /></p>
+
+<p>You have to create a new connection for the same network and then restrict each one to the device that you want.</p>
+
+<p>My Broadcom WiFi connection continues to cut out but my Atheros WiFi connection doesn&rsquo;t, and when both are working I get even better bandwidth. I still don&rsquo;t know why this was never an option for ethernet + WiFi but I&rsquo;m glad multiple WiFi sources works.</p>
+
+  </article>
+</div>
+
+  </div>
+  <footer>
+    <div class = "footer">
+      <p>My content on this site is licensed under Creative Commons By Attribution <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></p>
+      <p>This site's source code is licensed under the MIT license <a href="https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code">https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code</a></p>
+    </div>
+  </footer>
+</body>
+</html>
