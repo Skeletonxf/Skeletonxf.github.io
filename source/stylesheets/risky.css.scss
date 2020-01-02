@@ -460,8 +460,15 @@ p.id.mid {
 
 #armies, #map, #info, #players, #mine-gold-income {
   display: block;
-  margin: 0;
+  margin: 5px;
   border: 1px solid black;
+}
+
+@media (max-width: 933px) {
+  /* remove margins once the ui collapses to a single column layout */
+  #armies, #map, #info, #players, #mine-gold-income {
+    margin: 0;
+  }
 }
 
 #armies, #info, #players, #mine-gold-income {
@@ -477,6 +484,10 @@ p.id.mid {
     padding: 2px;
   }
   padding: 5px;
+}
+
+#players {
+  padding: 0 !important;
 }
 
 #flex-wrapper {
