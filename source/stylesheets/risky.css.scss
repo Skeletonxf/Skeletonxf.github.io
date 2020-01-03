@@ -441,10 +441,18 @@ p.id.mid {
 #mines, #castles {
   z-index: 100;
   /* hide the wrapper so territories can still be clicked */
+  /*
+   * This hidden parent visible children method stopped working
+   * in Gecko and WebKit?
+   */
+  /* this works instead because we never need to click the dots */
+  pointer-events: none;
+  /*
   visibility: hidden;
   circle {
     visibility: visible;
   }
+  */
 }
 
 #paths {
