@@ -105,6 +105,12 @@ ol {
 .hex.half {
   height: 2em; }
 
+.selected-hex, .selected-hex::before, .selected-hex::after {
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  border-top: 1px dashed black;
+  border-bottom: 1px dashed black; }
+
 /* Sections of map */
 #map {
   width: 700px;
@@ -378,7 +384,7 @@ p.id.mid {
   pointer-events: none;
   /*
   visibility: hidden;
-    circle {
+  circle {
     visibility: visible;
   }
   */ }
