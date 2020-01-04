@@ -129,6 +129,12 @@ ol {
   height: $hex-size;
 }
 
+.selected-hex, .selected-hex::before, .selected-hex::after {
+  box-sizing: border-box;
+  border-top: 1px dashed black;
+  border-bottom: 1px dashed black;
+}
+
 /* Sections of map */
 
 #map {
