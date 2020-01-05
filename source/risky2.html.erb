@@ -39,6 +39,7 @@ title: Risky Conquest 1.2
       <% outer = 1 %>
       <% base = 1 %>
       <% water = 1 %>
+      <% island = 1 %>
       <% 6.times do |n| %>
         <div id = "section<%= n*2 %>" class="section">
           <div class="container">
@@ -109,7 +110,13 @@ title: Risky Conquest 1.2
               </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
-              <li class='hex blank half'></li>
+              <li class='hex island' id='island<%= island %>'>
+                <div class="content info">
+                  <p class='id'><%= island %></p>
+                  <% island += 1 %>
+                </div>
+                <div class="content units"></div>
+              </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
               <li class='hex' id='middle<%= middle %>'>
@@ -204,6 +211,7 @@ title: Risky Conquest 1.2
         <p id = "p1-archers-level"></p>
         <p id = "p1-calvary-level"></p>
         <p id = "p1-infantry-level"></p>
+        <p id = "p1-territories"></p>
         <div id = "turn-player-unit-upgrades">
           <button id = "turn-player-upgrade-archers" title="Double the strength of newly spawned Archers">Upgrade Archers</button>
           <button id = "turn-player-upgrade-calvary" title="Double the strength of newly spawned Calvary">Upgrade Calvary</button>
@@ -217,6 +225,7 @@ title: Risky Conquest 1.2
         <p id = "p2-archers-level"></p>
         <p id = "p2-calvary-level"></p>
         <p id = "p2-infantry-level"></p>
+        <p id = "p2-territories"></p>
       </li>
       <li id = "p3-player-info" class="p3 player-info">
         <h2>Player 3</h2>
@@ -224,6 +233,7 @@ title: Risky Conquest 1.2
         <p id = "p3-archers-level"></p>
         <p id = "p3-calvary-level"></p>
         <p id = "p3-infantry-level"></p>
+        <p id = "p3-territories"></p>
       </li>
       <li id = "p4-player-info" class="p4 player-info">
         <h2>Player 4</h2>
@@ -231,6 +241,7 @@ title: Risky Conquest 1.2
         <p id = "p4-archers-level"></p>
         <p id = "p4-calvary-level"></p>
         <p id = "p4-infantry-level"></p>
+        <p id = "p4-territories"></p>
       </li>
       <li id = "p5-player-info" class="p5 player-info">
         <h2>Player 5</h2>
@@ -238,6 +249,7 @@ title: Risky Conquest 1.2
         <p id = "p5-archers-level"></p>
         <p id = "p5-calvary-level"></p>
         <p id = "p5-infantry-level"></p>
+        <p id = "p5-territories"></p>
       </li>
       <li id = "p6-player-info" class="p6 player-info">
         <h2>Player 6</h2>
@@ -245,6 +257,7 @@ title: Risky Conquest 1.2
         <p id = "p6-archers-level"></p>
         <p id = "p6-calvary-level"></p>
         <p id = "p6-infantry-level"></p>
+        <p id = "p6-territories"></p>
       </li>
     </ul>
   </div>

@@ -8,7 +8,9 @@ This is no longer a forum game, has slight tweaks and nothing to do with Busines
 
 This game is mostly an automation of the aforementioned forum game ran by Devour on Stickpage forums. The game ran there never finished, but it was both very simple and had lots of strategy so it seemed like a good target to code up. Perhaps on a rerun I might come further than 4th.
 
-In version 1.2 I've made a few tweaks to improve gameplay. Walls are no longer immediately as powerful but provide increasingly strong free defences which hold off weak armies. Mines now cost 800 to buy but then automatically level up. I think the overall effect is a more aggressive game which rewards taking enemy territory more and requires less micro management to defend.
+In version 1.2 I've made a few tweaks to improve gameplay. Walls now only boost defenders by 50% but provide increasingly strong free defences over time which hold off weak armies. Mines now cost 800 to buy but then automatically level up. Income is scaled beyond 100% as players control more than 8 territories. I think the overall effect is a more aggressive game which rewards taking enemy territory more, requires less micro management to defend, and doesn't take as long to finish when the winner is a foregone conclusion.
+
+I've also introduced 8 new island nodes which start with partially constructed mines to freshen up the gameplay. They're in an awkward spot because they can get cut off from your main army if you lose control of the middle hexes but at the same time they are in good spots for castles due to their proximity to everything. The islands also shield the 3 middle hexes that used to be directly connected to the water hexes.
 
 # Tutorial
 
