@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset = "UTF-8">
   <meta name = "viewport" content = "width = device-width">
   <!-- Use the title from a page's frontmatter if it has one -->
-  <title>Risky Conquest 1.1</title>
+  <title>Risky Conquest 1.2</title>
   <link rel = "stylesheet" href = "stylesheets/styles.css">
   <link rel = "stylesheet" href = "stylesheets/highlighting.css">
   <link rel = "stylesheet" href = "stylesheets/risky.css">
-  <script src = "javascripts/risky.js"></script>
+  <script src = "javascripts/risky2.js"></script>
 </head>
 <body>
   <div class = "page">
@@ -113,7 +113,12 @@
               </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
-              <li class='hex blank half'></li>
+              <li class='hex island' id='island1'>
+                <div class="content info">
+                  <p class='id'>1</p>
+                </div>
+                <div class="content units"></div>
+              </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
               <li class='hex' id='middle3'>
@@ -198,7 +203,12 @@
               </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
-              <li class='hex blank half'></li>
+              <li class='hex island' id='island2'>
+                <div class="content info">
+                  <p class='id'>2</p>
+                </div>
+                <div class="content units"></div>
+              </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
               <li class='hex' id='middle6'>
@@ -283,7 +293,12 @@
               </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
-              <li class='hex blank half'></li>
+              <li class='hex island' id='island3'>
+                <div class="content info">
+                  <p class='id'>3</p>
+                </div>
+                <div class="content units"></div>
+              </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
               <li class='hex' id='middle9'>
@@ -368,7 +383,12 @@
               </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
-              <li class='hex blank half'></li>
+              <li class='hex island' id='island4'>
+                <div class="content info">
+                  <p class='id'>4</p>
+                </div>
+                <div class="content units"></div>
+              </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
               <li class='hex' id='middle12'>
@@ -453,7 +473,12 @@
               </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
-              <li class='hex blank half'></li>
+              <li class='hex island' id='island5'>
+                <div class="content info">
+                  <p class='id'>5</p>
+                </div>
+                <div class="content units"></div>
+              </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
               <li class='hex' id='middle15'>
@@ -538,7 +563,12 @@
               </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
-              <li class='hex blank half'></li>
+              <li class='hex island' id='island6'>
+                <div class="content info">
+                  <p class='id'>6</p>
+                </div>
+                <div class="content units"></div>
+              </li>
             </ol>
             <ol class="odd point-to-point-up point-to-point-down">
               <li class='hex' id='middle18'>
@@ -585,7 +615,8 @@
     <p id = "territory-controller"></p>
     <h3>Structures</h3>
     <p id = "territory-mines" title="Mines increase gold income"></p>
-    <p id = "territory-wall" title="Walls double the strength of defending units"></p>
+    <p id = "territory-wall" title="Walls increase the strength of defending units by 1/2"></p>
+    <p id = "territory-wall-strength" title="Maximum defending units that can spawn"></p>
     <p id = "territory-castle" title="Castles can spawn units"></p>
     <h3>Gold Income</h3>
     <p id = "territory-gold-income" title="The gold this territory gives per turn"></p>
@@ -629,6 +660,7 @@
         <p id = "p1-archers-level"></p>
         <p id = "p1-calvary-level"></p>
         <p id = "p1-infantry-level"></p>
+        <p id = "p1-territories"></p>
         <div id = "turn-player-unit-upgrades">
           <button id = "turn-player-upgrade-archers" title="Double the strength of newly spawned Archers">Upgrade Archers</button>
           <button id = "turn-player-upgrade-calvary" title="Double the strength of newly spawned Calvary">Upgrade Calvary</button>
@@ -642,6 +674,7 @@
         <p id = "p2-archers-level"></p>
         <p id = "p2-calvary-level"></p>
         <p id = "p2-infantry-level"></p>
+        <p id = "p2-territories"></p>
       </li>
       <li id = "p3-player-info" class="p3 player-info">
         <h2>Player 3</h2>
@@ -649,6 +682,7 @@
         <p id = "p3-archers-level"></p>
         <p id = "p3-calvary-level"></p>
         <p id = "p3-infantry-level"></p>
+        <p id = "p3-territories"></p>
       </li>
       <li id = "p4-player-info" class="p4 player-info">
         <h2>Player 4</h2>
@@ -656,6 +690,7 @@
         <p id = "p4-archers-level"></p>
         <p id = "p4-calvary-level"></p>
         <p id = "p4-infantry-level"></p>
+        <p id = "p4-territories"></p>
       </li>
       <li id = "p5-player-info" class="p5 player-info">
         <h2>Player 5</h2>
@@ -663,6 +698,7 @@
         <p id = "p5-archers-level"></p>
         <p id = "p5-calvary-level"></p>
         <p id = "p5-infantry-level"></p>
+        <p id = "p5-territories"></p>
       </li>
       <li id = "p6-player-info" class="p6 player-info">
         <h2>Player 6</h2>
@@ -670,6 +706,7 @@
         <p id = "p6-archers-level"></p>
         <p id = "p6-calvary-level"></p>
         <p id = "p6-infantry-level"></p>
+        <p id = "p6-territories"></p>
       </li>
     </ul>
   </div>
@@ -686,11 +723,13 @@
 
 <p>This is no longer a forum game, has slight tweaks and nothing to do with Business. Therefore this shall be known as:</p>
 
-<h2>Risky Conquest 1.1</h2>
+<h2>Risky Conquest 1.2</h2>
 
 <p>This game is mostly an automation of the aforementioned forum game ran by Devour on Stickpage forums. The game ran there never finished, but it was both very simple and had lots of strategy so it seemed like a good target to code up. Perhaps on a rerun I might come further than 4th.</p>
 
-<p><a href="risky2.html">An updated version of this game is available</a>.</p>
+<p>In version 1.2 I&rsquo;ve made a few tweaks to improve gameplay. Walls now only boost defenders by 50% but provide increasingly strong free defences over time which hold off weak armies. Mines now cost 800 to buy but then automatically level up. Income is scaled beyond 100% as players control more than 8 territories. I think the overall effect is a more aggressive game which rewards taking enemy territory more, requires less micro management to defend, and doesn&rsquo;t take as long to finish when the winner is a foregone conclusion.</p>
+
+<p>I&rsquo;ve also introduced 8 new island nodes which start with partially constructed mines to freshen up the gameplay. They&rsquo;re in an awkward spot because they can get cut off from your main army if you lose control of the middle hexes but at the same time they are in good spots for castles due to their proximity to everything. The islands also shield the 3 middle hexes that used to be directly connected to the water hexes.</p>
 
 <h1>Tutorial</h1>
 
@@ -710,7 +749,7 @@
 
 <h2>Units</h2>
 
-<p>Territories are fought over with units which are bought on castles. Castles are indicated by a black dot, and player control by the territory colour. There are 4* types of units, the neutral starting ones and Archers, Calvary and Infantry. Neutral units trade 1 for 1 in battle before dying. A battle of 11 against 10 will leave the former winning with 1 unit left. Each of the otheres are strong against or weak against the other in a rock-paper-scissors system. 1 Archer is worth 2 Infantry, 1 Calvary is worth 2 Archers and 1 Infantry is worth 2 Calvary. Units can also be upgraded which doubles their strength for each level. 1 level 4 Archer is worth 8 neutral units, 4 calvary or 16 infantry. All units start at level 1, and neutral units cannot be purchased or upgraded.</p>
+<p>Territories are fought over with units which are bought on castles. Castles are indicated by a black dot, and player control by the territory colour. There are 5* types of units, the neutral starting ones, defenders (also neutral) and Archers, Calvary and Infantry. Neutral units trade 1 for 1 in battle before dying. A battle of 11 against 10 will leave the former winning with 1 unit left. Each of the otheres are strong against or weak against the other in a rock-paper-scissors system. 1 Archer is worth 2 Infantry, 1 Calvary is worth 2 Archers and 1 Infantry is worth 2 Calvary. Units can also be upgraded which doubles their strength for each level. 1 level 4 Archer is worth 8 neutral units, 4 calvary or 16 infantry. All units start at level 1, and neutral units cannot be purchased or upgraded directly.</p>
 
 <blockquote>
 <p>&ldquo;But Devour, what if my country has 25 archers and 25 cavalry verse 50 infantry?&rdquo; I hear you ask. Well my man, when you have multiple different units on a territory, they have to take their turns. Think of it like having some units in the front while others wait in the back line. People will have to tell me if they want their Archers in Line 1 and their Cavalry on Line 2. Infantry on Line 3 if they have that too. In this setup, the Cavalry won&rsquo;t fight until all the Archers are dead. I know it&rsquo;s kind of gimmicky but hey, it&rsquo;s the price we pay for simplicity.</p>
@@ -724,7 +763,7 @@
 
 <h3>Mines</h3>
 
-<p>Mine costs and levels are listed above this article. Mines produce extra gold from a territory. The extra gold per turn diminishes sharply with further levels. Mines are indicated by 0-6 gold dots.</p>
+<p>Mine costs and levels are listed above this article. Mines produce extra gold from a territory. Mines automatically upgrade each turn. Mines are indicated by 0-6 gold dots.</p>
 
 <h3>Territory Gold</h3>
 
@@ -732,15 +771,15 @@
 
 <h3>Walls</h3>
 
-<p>A wall costs 1500 gold to build, and is built after all battles. On all future battles the defending units inside gain 1 level of strength. Walls are indicated by grey outlines.</p>
+<p>A wall costs 1500 gold to build, and is built after all battles. On all future battles the defending units inside gain &frac12; a level of strength. Walls are indicated by grey outlines. Walls also generate increasing amounts of defending units which fight as neutral units but cannot be deployed to other territories. Walls used to be a just +1 strength whereas now they are +0.5 strength and free units. The free units increase by 2 each turn the wall is held so the wall will practically defend itself for free against weak armies. However wall bonuses are reset when captured!</p>
 
 <h3>* Battering Rams</h3>
 
-<p>A Battering Ram is a special unit that does not fight. Each unit costs 1500 gold. 1 Battering Ram negates wall defensive bonuses and multiple destroy the attacked wall entirely, in both cases being consumed upon use. Battering Rams can be intercepted or attacked so should always be deployed behind a protective army to keep them alive on their journey to seige the opponent.</p>
+<p>A Battering Ram is a special unit that does not fight. Each unit costs 1500 gold. 1 Battering Ram negates wall defensive bonuses and multiple destroy the attacked wall and any defenders entirely, in both cases being consumed upon use. Battering Rams can be intercepted or attacked so should always be deployed behind a protective army to keep them alive on their journey to seige the opponent.</p>
 
 <h3>Castles.</h3>
 
-<p>A castle costs 2000 gold to build, and is build after all battles. Castles under your control are the only territory you can spawn units on. No castles, no new units! Castles are indicated by black dots.</p>
+<p>A castle costs 2000 gold to build, and is built after all battles. Castles under your control are the only territory you can spawn units on. No castles, no new units! Castles are indicated by black dots.</p>
 
 <h2>Razing down</h2>
 

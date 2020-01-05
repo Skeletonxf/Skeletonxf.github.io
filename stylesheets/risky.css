@@ -95,6 +95,11 @@ ol {
 .hex.water {
   background: lightskyblue; }
 
+.hex.island {
+  background: lightseagreen;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em; }
+
 .hex.highlight {
   width: 1.2em;
   margin-left: 0.5em; }
