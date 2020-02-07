@@ -34,6 +34,12 @@ h2 {
   padding: 0.8em;
   background-color: white;
   border-radius: 18px;
+  -webkit-box-shadow: 3px 3px 7px darkgray;
+          box-shadow: 3px 3px 7px darkgray;
+}
+
+.free-text article {
+  width: auto;
 }
 
 .overview {
@@ -51,41 +57,33 @@ h2 {
 }
 
 #grid {
-  display: -ms-grid;
   display: grid;
-  -ms-grid-columns: auto (450px)[3] auto;
   grid-template-columns: auto repeat(3, 450px) auto;
-  -ms-grid-rows: (auto)[2];
   grid-template-rows: repeat(2, auto);
-      grid-template-areas:
+  grid-template-areas:
     "left one two three right"
     "left four five six right";
+  margin: 1em 0;
 }
 
 @media only screen and (max-width: 1378px) {
   #grid {
-    display: -ms-grid;
     display: grid;
-    -ms-grid-columns: auto (450px)[2] auto;
     grid-template-columns: auto repeat(2, 450px) auto;
-    -ms-grid-rows: (auto)[3];
     grid-template-rows: repeat(3, auto);
-        grid-template-areas:
+    grid-template-areas:
       "left one two right"
       "left three four right"
       "left five six right";
   }
 }
 
-@media only screen and (max-width: 860px) {
+@media only screen and (max-width: 920px) and (min-width: 581px) {
   #grid {
-    display: -ms-grid;
     display: grid;
-    -ms-grid-columns: auto (450px)[1] auto;
-    grid-template-columns: auto repeat(1, 450px) auto;
-    -ms-grid-rows: (auto)[6];
+    grid-template-columns: auto repeat(1, 550px) auto;
     grid-template-rows: repeat(6, auto);
-        grid-template-areas:
+    grid-template-areas:
       "left one right"
       "left two right"
       "left three right"
@@ -93,17 +91,20 @@ h2 {
       "left five right"
       "left six right";
   }
+
+  .item img {
+    float: left;
+    max-width: 35% !important;
+    margin: 0.9em !important;
+  }
 }
 
-@media only screen and (max-width: 500px) {
+@media only screen and (max-width: 580px) {
   #grid {
-    display: -ms-grid;
     display: grid;
-    -ms-grid-columns: auto (90%)[1] auto;
-    grid-template-columns: auto repeat(1, 90%) auto;
-    -ms-grid-rows: (auto)[6];
+    grid-template-columns: 0 repeat(1, auto) 0;
     grid-template-rows: repeat(6, auto);
-        grid-template-areas:
+    grid-template-areas:
       "left one right"
       "left two right"
       "left three right"
@@ -115,16 +116,26 @@ h2 {
 
 .item {
   margin: 1em;
-  border: 2px solid black;
   border-radius: 1em;
   padding: 1em;
+  -webkit-box-shadow: 3px 3px 7px darkgray;
+          box-shadow: 3px 3px 7px darkgray;
   background-color: white;
   /* center vertically */
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
-  align-items: center;
-  flex-direction: column;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
   min-height: 250px;
-  justify-content: space-between;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
 }
 
 .item h2 {
@@ -150,119 +161,60 @@ h2 {
   margin: -0.3em;
 }
 
+@media only screen and (max-width: 920px) {
+  /*
+   * Add seperator lines when single column list
+   */
+  .item:not(:first-child)::before {
+    content: "";
+    border-bottom: 1px solid black;
+    width: 50%;
+    height: 10px;
+    margin: 1em auto;
+    display: block;
+  }
+
+  /* Remove the visual styling from each item */
+  .item {
+    margin: 0;
+    border-radius: 0;
+    padding: 0;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+    background-color: unset;
+  }
+
+  /* Put the visual styling of each item into its content */
+  .item-content {
+    margin: 1em;
+    border-radius: 1em;
+    padding: 1em;
+    -webkit-box-shadow: 3px 3px 7px darkgray;
+            box-shadow: 3px 3px 7px darkgray;
+    background-color: white;
+  }
+}
+
 #one {
-  -ms-grid-row: 1;
-  -ms-grid-column: 2;
   grid-area: one;
 }
 
 #two {
-  -ms-grid-row: 1;
-  -ms-grid-column: 3;
   grid-area: two;
 }
 
 #three {
-  -ms-grid-row: 1;
-  -ms-grid-column: 4;
   grid-area: three;
 }
 
 #four {
-  -ms-grid-row: 2;
-  -ms-grid-column: 2;
   grid-area: four;
 }
 
 #five {
-  -ms-grid-row: 2;
-  -ms-grid-column: 3;
   grid-area: five;
 }
 
 #six {
-  -ms-grid-row: 2;
-  -ms-grid-column: 4;
   grid-area: six;
-}
-
-@media only screen and (max-width: 1378px) {
-  #one {
-    -ms-grid-row: 1;
-    -ms-grid-column: 2;
-  }
-  #two {
-    -ms-grid-row: 1;
-    -ms-grid-column: 3;
-  }
-  #three {
-    -ms-grid-row: 2;
-    -ms-grid-column: 2;
-  }
-  #four {
-    -ms-grid-row: 2;
-    -ms-grid-column: 3;
-  }
-  #five {
-    -ms-grid-row: 3;
-    -ms-grid-column: 2;
-  }
-  #six {
-    -ms-grid-row: 3;
-    -ms-grid-column: 3;
-  }
-}
-
-@media only screen and (max-width: 860px) {
-  #one {
-    -ms-grid-row: 1;
-    -ms-grid-column: 2;
-  }
-  #two {
-    -ms-grid-row: 2;
-    -ms-grid-column: 2;
-  }
-  #three {
-    -ms-grid-row: 3;
-    -ms-grid-column: 2;
-  }
-  #four {
-    -ms-grid-row: 4;
-    -ms-grid-column: 2;
-  }
-  #five {
-    -ms-grid-row: 5;
-    -ms-grid-column: 2;
-  }
-  #six {
-    -ms-grid-row: 6;
-    -ms-grid-column: 2;
-  }
-}
-
-@media only screen and (max-width: 500px) {
-  #one {
-    -ms-grid-row: 1;
-    -ms-grid-column: 2;
-  }
-  #two {
-    -ms-grid-row: 2;
-    -ms-grid-column: 2;
-  }
-  #three {
-    -ms-grid-row: 3;
-    -ms-grid-column: 2;
-  }
-  #four {
-    -ms-grid-row: 4;
-    -ms-grid-column: 2;
-  }
-  #five {
-    -ms-grid-row: 5;
-    -ms-grid-column: 2;
-  }
-  #six {
-    -ms-grid-row: 6;
-    -ms-grid-column: 2;
-  }
 }
