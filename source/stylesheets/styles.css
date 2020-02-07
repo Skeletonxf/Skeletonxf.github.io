@@ -161,6 +161,10 @@ article img {
     font-size: 0.8rem;
 }
 
+aside {
+    font-style: italic;
+}
+
 /* Tweaking */
 
 a {

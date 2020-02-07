@@ -16,6 +16,14 @@ const DEFENDER_SPAWN_LIMIT = 6
 // walls gain 2 free defenders per turn
 const WALL_STRENGTH_GROWTH = 2
 
+function GOLD_INCOME_MODIFIER(territories) {
+  // Start to increase the modifier beyond 1 at > 8 territories,
+  // which requires holding more than 1/6 of the regular map.
+  // This will cap out around 3 - 4 which is more than enough
+  // to snowball the game.
+  return Math.max(0.5 + territories / 16, 1)
+}
+
 let drawLine = null;
 let drawWall = null;
 let drawMine = null;
@@ -126,24 +134,24 @@ let graph = {
   inner10: ['$', 'inner9', 'inner11', 'middle15'],
   inner11: ['inner10', 'inner12', 'middle16', 'middle17'],
   inner12: ['$', 'inner1', 'inner11', 'middle18'],
-  middle1: ['inner1', 'middle18', 'middle2', 'outer1', 'outer2', 'water6'],
-  middle2: ['inner1', 'middle1', 'middle3', 'outer1', 'outer2', 'water1'],
-  middle3: ['inner2', 'middle2', 'middle4', 'water1'],
-  middle4: ['inner3', 'middle3', 'middle5', 'outer3', 'outer4', 'water1'],
-  middle5: ['inner3', 'middle4', 'middle6', 'outer3', 'outer4', 'water2'],
-  middle6: ['inner4', 'middle5', 'middle7', 'water2'],
-  middle7: ['inner5', 'middle6', 'middle8', 'outer5', 'outer6', 'water2'],
-  middle8: ['inner5', 'middle7', 'middle9', 'outer5', 'outer6', 'water3'],
-  middle9: ['inner6', 'middle8', 'middle10', 'water3'],
-  middle10: ['inner7', 'middle9', 'middle11', 'outer7', 'outer8', 'water3'],
-  middle11: ['inner7', 'middle10', 'middle12', 'outer7', 'outer8', 'water4'],
-  middle12: ['inner8', 'middle11', 'middle13', 'water4'],
-  middle13: ['inner9', 'middle12', 'middle14', 'outer9', 'outer10', 'water4'],
-  middle14: ['inner9', 'middle13', 'middle15', 'outer9', 'outer10', 'water5'],
-  middle15: ['inner10', 'middle14', 'middle16', 'water5'],
-  middle16: ['inner11', 'middle15', 'middle17', 'outer11', 'outer12', 'water5'],
-  middle17: ['inner11', 'middle16', 'middle18', 'outer11', 'outer12', 'water6'],
-  middle18: ['inner12', 'middle17', 'middle1', 'water6'],
+  middle1: ['inner1', 'middle18', 'middle2', 'outer1', 'outer2'],
+  middle2: ['inner1', 'middle1', 'middle3', 'outer1', 'outer2'],
+  middle3: ['inner2', 'middle2', 'middle4', 'island1'],
+  middle4: ['inner3', 'middle3', 'middle5', 'outer3', 'outer4'],
+  middle5: ['inner3', 'middle4', 'middle6', 'outer3', 'outer4'],
+  middle6: ['inner4', 'middle5', 'middle7', 'island2'],
+  middle7: ['inner5', 'middle6', 'middle8', 'outer5', 'outer6'],
+  middle8: ['inner5', 'middle7', 'middle9', 'outer5', 'outer6'],
+  middle9: ['inner6', 'middle8', 'middle10', 'island3'],
+  middle10: ['inner7', 'middle9', 'middle11', 'outer7', 'outer8'],
+  middle11: ['inner7', 'middle10', 'middle12', 'outer7', 'outer8'],
+  middle12: ['inner8', 'middle11', 'middle13', 'island4'],
+  middle13: ['inner9', 'middle12', 'middle14', 'outer9', 'outer10'],
+  middle14: ['inner9', 'middle13', 'middle15', 'outer9', 'outer10'],
+  middle15: ['inner10', 'middle14', 'middle16', 'island5'],
+  middle16: ['inner11', 'middle15', 'middle17', 'outer11', 'outer12'],
+  middle17: ['inner11', 'middle16', 'middle18', 'outer11', 'outer12'],
+  middle18: ['inner12', 'middle17', 'middle1', 'island6'],
   outer1: ['middle1', 'middle2', 'base1', 'water6'],
   outer2: ['middle1', 'middle2', 'base1', 'water1'],
   outer3: ['middle4', 'middle5', 'base2', 'water1'],
@@ -162,12 +170,18 @@ let graph = {
   base4: ['outer7', 'outer8', 'water3', 'water4'],
   base5: ['outer9', 'outer10', 'water4', 'water5'],
   base6: ['outer11', 'outer12', 'water5', 'water6'],
-  water1: ['base1', 'outer2', 'middle2', 'middle3', 'middle4', 'outer3', 'base2'],
-  water2: ['base2', 'outer4', 'middle5', 'middle6', 'middle7', 'outer5', 'base3'],
-  water3: ['base3', 'outer6', 'middle8', 'middle9', 'middle10', 'outer7', 'base4'],
-  water4: ['base4', 'outer8', 'middle11', 'middle12', 'middle13', 'outer9', 'base5'],
-  water5: ['base5', 'outer10', 'middle14', 'middle15', 'middle16', 'outer11', 'base6'],
-  water6: ['base6', 'outer12', 'middle17', 'middle18', 'middle1', 'outer1', 'base1']
+  water1: ['base1', 'outer2', 'island1', 'outer3', 'base2'],
+  water2: ['base2', 'outer4', 'island2', 'outer5', 'base3'],
+  water3: ['base3', 'outer6', 'island3', 'outer7', 'base4'],
+  water4: ['base4', 'outer8', 'island4', 'outer9', 'base5'],
+  water5: ['base5', 'outer10', 'island5', 'outer11', 'base6'],
+  water6: ['base6', 'outer12', 'island6', 'outer1', 'base1'],
+  island1: ['middle3', 'water1'],
+  island2: ['middle6', 'water2'],
+  island3: ['middle9', 'water3'],
+  island4: ['middle12', 'water4'],
+  island5: ['middle15', 'water5'],
+  island6: ['middle18', 'water6']
 }
 
 for (let node in graph) {
@@ -221,6 +235,10 @@ let map = {}
       }
     }
     map[node].mines = 0
+    if (node.includes('island')) {
+      map[node].armies[0].quantity = 30
+      map[node].mines = 3
+    }
     map[node].purchases = {
       archers: 0,
       calvary: 0,
@@ -298,6 +316,8 @@ function getFullName(id) {
 
 var switchFocusTo = null
 {
+  let previousFocus = null
+
   function updateInfo(node) {
     let fullName = getFullName(node.id)
 
@@ -534,9 +554,18 @@ var switchFocusTo = null
     }
   }
 
+  function highlightSelected(node) {
+    if (previousFocus) {
+      previousFocus.classList.remove('selected-hex')
+    }
+    node.classList.add('selected-hex')
+    previousFocus = node
+  }
+
   switchFocusTo = function(node) {
     updateInfo(node)
     updateArmies(node)
+    highlightSelected(node)
   }
 }
 
@@ -728,6 +757,8 @@ let players = {};
     gold: 0,
     goldIncome: 0,
     goldPublic: 0,
+    territoryCount: 1,
+    goldIncomeModifier: 1,
     upgrades: {
       archers: false,
       calvary: false,
@@ -777,7 +808,7 @@ function territoryGoldIncome(node) {
     }
   }
   // gain extra gold for mine levels
-  return income += mineIncome[map[node].mines]
+  return income + mineIncome[map[node].mines]
 }
 
 // Updates the UI on mine purchases for a territory
@@ -937,14 +968,19 @@ function updatePlayerUnitUpgrades() {
 function applyPlayerGoldIncome() {
   for (let player in players) {
     players[player].goldIncome = 0
+    players[player].territoryCount = 0
   }
   for (let node in map) {
     if (map[node].player !== 'neutral') {
-      players[map[node].player].gold += territoryGoldIncome(node)
       players[map[node].player].goldIncome += territoryGoldIncome(node)
+      players[map[node].player].territoryCount += 1
     }
   }
   for (let player in players) {
+    let modifier = GOLD_INCOME_MODIFIER(players[player].territoryCount)
+    players[player].goldIncomeModifier = modifier
+    players[player].goldIncome = Math.floor(players[player].goldIncome * modifier)
+    players[player].gold += players[player].goldIncome
     players[player].goldPublic = players[player].gold
   }
   updatePlayerGold()
@@ -1082,7 +1118,7 @@ changeTurnPlayer()
 // The gold of the player at the start of their turn is shown
 // as each non turn player's gold.
 function updatePlayerGold() {
-  let elements = {
+  let goldIncomeElements = {
     p1: document.getElementById('p1-gold'),
     p2: document.getElementById('p2-gold'),
     p3: document.getElementById('p3-gold'),
@@ -1090,16 +1126,27 @@ function updatePlayerGold() {
     p5: document.getElementById('p5-gold'),
     p6: document.getElementById('p6-gold')
   }
-  for (let id in elements) {
-    let element = elements[id]
+  let territoryCountElements = {
+    p1: document.getElementById('p1-territories'),
+    p2: document.getElementById('p2-territories'),
+    p3: document.getElementById('p3-territories'),
+    p4: document.getElementById('p4-territories'),
+    p5: document.getElementById('p5-territories'),
+    p6: document.getElementById('p6-territories')
+  }
+  for (let id in goldIncomeElements) {
+    let goldIncomeElement = goldIncomeElements[id]
+    let territoryCountElement = territoryCountElements[id]
     let player = players[id]
     if (turnPlayer === id) {
-      element.textContent = 'Gold: ' + player.gold +
+      goldIncomeElement.textContent = 'Gold: ' + player.gold +
       ' (+' + player.goldIncome + ')'
     } else {
-      element.textContent = 'Gold: ' + player.goldPublic +
+      goldIncomeElement.textContent = 'Gold: ' + player.goldPublic +
       ' (+' + player.goldIncome + ')'
     }
+    territoryCountElement.textContent = 'Territories: ' + player.territoryCount +
+      ' (*' + (Math.round(player.goldIncomeModifier * 10) / 10) + ')'
   }
   if (players[turnPlayer]) {
     let turnPlayerNotice = 'Remaining Gold: ' + players[turnPlayer].gold

@@ -6,18 +6,30 @@ layout: portfolio
   <header id="header">
     <h1>Portfolio</h1>
   </header>
-  <div id="intro" class="free-text">
-    <p>I'm currently a computer science university student looking for an internship starting at the end of this academic year. Some of my projects are listed below:</p>
-  </div>
-  <div id="grid">
+  <section id="intro" class="free-text">
+    <p>I'm currently a computer science university student finishing my Master's year.</p>
+    <article class="overview">
+      <p>
+      I started programming in my own time with Scratch in 2010 and later taught
+      myself Lua and Java. I've gained valuable team working skills from helping
+      AvatarMC.com on various Java projects in my spare time and from several
+      semester-long group projects at university. At university I've explored
+      many different areas of computer science and programming including:
+      machine learning, functional programming and mobile app development.
+      Outside my course I've published 2 Mozilla Firefox Web Extensions and
+      continue to maintain the third I built in my Dissertation.
+      </p>
+    </article>
+  </section>
+  <section id="grid">
     <div id="one" class="item">
       <div class="item-content">
-        <h2>AvatarMC.com</h2>
-        <img src="https://www.avatarmc.com/static/img/androidlogo.png" alt="AvatarMC.com logo"></img>
+        <h2><a href="https://github.com/Skeletonxf/totally-automated-a11y-scanner">Dissertation</a></h2>
+        <img src="images/help-page-screenshot.png" alt="Totally Automated Accessibility Scanner Help Page Screenshot, developed for my Dissertation"></img>
         <div class="text">
-            <p>In my spare time I've been able to work on Java projects as part of a small team at AvatarMC.com for 3 years. I've worked on several projects over the holidays, often developing a minimum viable product or specific feature before I go back. I started with little knowledge of object orientated programming and version control and have since learnt a lot in these areas.</p>
-            <p>The projects have complemented my more theoretical content at University, in particular: graph theory, sorting and complexity analysis.</p>
-        </div>
+            <p>I choose to do my Dissertation on automatically detecting accessibility issues in websites. I've released the tool I built on addons.mozilla.org and open sourced it. It checks for many different WCAG criteria relating to the alternative ways some people access online content, such as HTML markup that assists screen readers. I am in the process of porting back the additional tests that I wrote to the project I used as the base for it. Hopefully web developers can find it useful for their own websites, the user testing I conducted seems to indicate so. It is slowly gaining users.</p>
+            <p>Obviously this webpage passes all of my tool's tests</p>
+          </div>
       </div>
     </div>
     <div id="two" class="item">
@@ -36,11 +48,11 @@ layout: portfolio
     </div>
     <div id="four" class="item no-cursor">
       <div class="item-content">
-        <h2><a href="https://github.com/Skeletonxf/totally-automated-a11y-scanner">Dissertation</a></h2>
-        <img src="images/help-page-screenshot.png" alt="Totally Automated Accessibility Scanner Help Page Screenshot, developed for my Dissertation"></img>
+        <h2>AvatarMC.com</h2>
+        <img src="https://www.avatarmc.com/static/img/androidlogo.png" alt="AvatarMC.com logo"></img>
         <div class="text">
-            <p>I choose to do my Dissertation on automatically detecting accessibility issues in websites. I've released the tool I built on addons.mozilla.org and open sourced it. It checks for many different WCAG criteria relating to the alternative ways some people access online content, such as HTML markup that assists screen readers. I am in the process of porting back the additional tests that I wrote to the project I used as the base for it. Hopefully web developers can find it useful for their own websites, the user testing I conducted seems to indicate so. It is slowly gaining users.</p>
-            <p>Obviously this webpage passes all of my tool's tests</p>
+            <p>In my spare time I've been able to work on Java projects as part of a small volunteer team at AvatarMC.com for 3 years. I worked on several projects over the holidays, often developing a minimum viable product or specific feature before I go back. I started with little knowledge of object orientated programming and version control and have since learnt a lot in these areas.</p>
+            <p>The projects complemented my more theoretical content at University, in particular: graph theory, sorting and complexity analysis.</p>
         </div>
       </div>
     </div>
@@ -48,7 +60,7 @@ layout: portfolio
       <div class="item-content">
         <h2><a href="risky.html">Risky Conquest (Web Game)</a></h2>
         <img src="images/risky-conquest.png" alt="Screenshot of Risky Conquest game"></img>
-        <div class="text"><p>At the start of Summer I had a block of time with few commitments and wanted to 0-100 something. There was also a forum game I played a few years prior that was well defined and deliberately really simple that I had enjoyed playing. I decided to turn it into an automated game on the Web, because UI is easy to design with HTML/CSS compared to desktop applications and a Web format is easily shared. 2500 lines of JavaScript, lots of graph manipulation, lists and maps later and I finished it. To my knowledge the code has 0 bugs and once I cached the results of my breadth first search pathing the game updated very quickly. In hindsight I would split the logic into multiple files if I were to do something similar again, though I think the data and function based approach I took worked better than an object orientated one would have - most concerns were cross cutting.</p></div>
+        <div class="text"><p>At the start of a Summer break I had a block of time with few commitments and wanted to 0-100 something. There was also a forum game I played a few years prior that was well defined and deliberately really simple that I had enjoyed playing. I decided to turn it into an automated game on the Web, because UI is easy to design with HTML/CSS compared to desktop applications and a Web format is easily shared. 2500 lines of JavaScript, lots of graph manipulation, lists and maps later and I finished it. To my knowledge the code has 0 bugs and once I cached the results of my breadth first search pathing the game updated very quickly. In hindsight I would split the logic into multiple files if I were to do something similar again, though I think the data and function based approach I took worked better than an object orientated one would have - most concerns were cross cutting.</p></div>
       </div>
     </div>
     <div id="six" class="item">
@@ -58,8 +70,8 @@ layout: portfolio
         <div class="text"><p>The last assignment of my Java programming module was a semester long Connect 4 game, initially for playing on the command line and then over a graphical interface. Designing for blocking reads from the console in the first half of the assessment introduced lots of problems for the graphical half which I solved by using multiple threads. The assignment also involved creating an automated Connect 4 player which I implemented as a min-max game state search. Unfortunately the provided code we had to build our assignment on (for automated marking) was never licensed so I cannot distribute my project. Overall I got 91% in the module.</p></div>
       </div>
     </div>
-  </div>
-  <div class="free-text">
+  </section>
+  <section class="free-text">
     <p>More of my projects can be viewed at <a href="https://github.com/Skeletonxf">GitHub</a></p>
-  </div>
+  </section>
 </main>

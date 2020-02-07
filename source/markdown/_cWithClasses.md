@@ -1,8 +1,9 @@
-## Gotchas: C+ classes
+# Gotchas: C + classes
+<p class = "article-date">2018/11/06</p>
 
 **Or writing in C using C++**
 
-I was recentely introduced to C++ in my Internet of Things module where we were writing some firmware for our micro controller.
+I was recently introduced to C++ in my Internet of Things module where we were writing some firmware for our micro controller.
 
 While we **were** using C++, the libraries we were using used lots of `char *`s, nothing from `std` at their interface level, and most of the time when they did define classes it was for a singleton instance only. So it was more like coding in C with a few classes for scoping than anything object orientated. We were also not taught any C or C++ so it was very easy to fall back on the  familiar control structures of imperative programming from other languages and hope for the best. Unfortunately embedded systems don't seem so good at telling you when you're messing up your memory. This post will hopefully be the crash course in not reading garbled strings that I never had, and perhaps a reference going forward in my IoT module.
 
@@ -133,6 +134,10 @@ void loop() {
 }
 ```
 
-What does this print? 1. And now there will be a memory leak if you forget to delete `foo` when you're done with `fooBar`. Memory leaks on embedded systems with very scare memory will cause problems for you :)
+What does this print? 1. And now there will be a memory leak if you forget to delete `foo` when you're done with `fooBar`. Memory leaks on embedded systems with very scarce memory will cause problems for you.
 
 At this point I know enough to point you to [RAII](https://stackoverflow.com/questions/2321511/what-is-meant-by-resource-acquisition-is-initialization-raii) but not enough to explain it.
+
+<aside>
+Note: I didn't publish this article when I wrote it. Partly because I was busy and partly because I forgot about it but think I was also concerned that I might have said something wrong. I haven't done any major work in C or C++ since so there's never been a good time to double check things, but from the little Rust I've done I think I can now be confident that these problems I was running into did come from needing to unlearn the mental model that anything would exist as long as I held a reference to it which I had picked up from various garbage collected languages.
+</aside>

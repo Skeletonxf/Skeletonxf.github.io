@@ -288,6 +288,8 @@ function getFullName(id) {
 
 var switchFocusTo = null
 {
+  let previousFocus = null
+
   function updateInfo(node) {
     let fullName = getFullName(node.id)
 
@@ -520,9 +522,18 @@ var switchFocusTo = null
     }
   }
 
+  function highlightSelected(node) {
+    if (previousFocus) {
+      previousFocus.classList.remove('selected-hex')
+    }
+    node.classList.add('selected-hex')
+    previousFocus = node
+  }
+
   switchFocusTo = function(node) {
     updateInfo(node)
     updateArmies(node)
+    highlightSelected(node)
   }
 }
 

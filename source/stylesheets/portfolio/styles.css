@@ -37,6 +37,18 @@ h2 {
   box-shadow: 3px 3px 7px darkgray;
 }
 
+.free-text article {
+  width: auto;
+}
+
+.overview {
+  padding-bottom: 0;
+}
+
+.overview p {
+  font-size: 1em;
+}
+
 @media only screen and (max-width: 700px) {
   .free-text {
     margin: 1em;
@@ -50,6 +62,7 @@ h2 {
   grid-template-areas:
     "left one two three right"
     "left four five six right";
+  margin: 1em 0;
 }
 
 @media only screen and (max-width: 1378px) {

@@ -8,6 +8,8 @@ This is no longer a forum game, has slight tweaks and nothing to do with Busines
 
 This game is mostly an automation of the aforementioned forum game ran by Devour on Stickpage forums. The game ran there never finished, but it was both very simple and had lots of strategy so it seemed like a good target to code up. Perhaps on a rerun I might come further than 4th.
 
+[An updated version of this game is available](./risky2.html).
+
 # Tutorial
 
 There are 6 players positioned equally on a hexagonal map. In the centre is a territory with 50 neutral units that must be defeated to take. When a player takes control of it they gain 2000 gold immediately, and still 600 gold each turn after. The game ends when one player has become unstoppable, probably by permanent control of the centre. Detecting this automatically is left as an excerise to the reader.
