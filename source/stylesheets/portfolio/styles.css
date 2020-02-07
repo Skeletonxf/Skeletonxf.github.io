@@ -34,6 +34,7 @@ h2 {
   padding: 0.8em;
   background-color: white;
   border-radius: 18px;
+  box-shadow: 3px 3px 7px darkgray;
 }
 
 @media only screen and (max-width: 700px) {
@@ -63,10 +64,10 @@ h2 {
   }
 }
 
-@media only screen and (max-width: 860px) {
+@media only screen and (max-width: 920px) and (min-width: 581px) {
   #grid {
     display: grid;
-    grid-template-columns: auto repeat(1, 450px) auto;
+    grid-template-columns: auto repeat(1, 550px) auto;
     grid-template-rows: repeat(6, auto);
     grid-template-areas:
       "left one right"
@@ -76,12 +77,18 @@ h2 {
       "left five right"
       "left six right";
   }
+
+  .item img {
+    float: left;
+    max-width: 35% !important;
+    margin: 0.9em !important;
+  }
 }
 
-@media only screen and (max-width: 500px) {
+@media only screen and (max-width: 580px) {
   #grid {
     display: grid;
-    grid-template-columns: auto repeat(1, 90%) auto;
+    grid-template-columns: 0 repeat(1, auto) 0;
     grid-template-rows: repeat(6, auto);
     grid-template-areas:
       "left one right"
@@ -95,9 +102,9 @@ h2 {
 
 .item {
   margin: 1em;
-  border: 2px solid black;
   border-radius: 1em;
   padding: 1em;
+  box-shadow: 3px 3px 7px darkgray;
   background-color: white;
   /* center vertically */
   display: flex;
@@ -127,6 +134,38 @@ h2 {
 .item a {
   padding: 0.3em;
   margin: -0.3em;
+}
+
+@media only screen and (max-width: 920px) {
+  /*
+   * Add seperator lines when single column list
+   */
+  .item:not(:first-child)::before {
+    content: "";
+    border-bottom: 1px solid black;
+    width: 50%;
+    height: 10px;
+    margin: 1em auto;
+    display: block;
+  }
+
+  /* Remove the visual styling from each item */
+  .item {
+    margin: 0;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    background-color: unset;
+  }
+
+  /* Put the visual styling of each item into its content */
+  .item-content {
+    margin: 1em;
+    border-radius: 1em;
+    padding: 1em;
+    box-shadow: 3px 3px 7px darkgray;
+    background-color: white;
+  }
 }
 
 #one {
