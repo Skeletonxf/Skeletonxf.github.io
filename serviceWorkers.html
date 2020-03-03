@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset = "UTF-8">
+  <meta name = "viewport" content = "width = device-width">
+  <!-- Use the title from a page's frontmatter if it has one -->
+  <title>Skeletonxf.github.io</title>
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
+  <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+</head>
+<body>
+  <div class = "page">
+    <header class = "back">
+  <nav>
+    <ul>
+      <li>
+        <p><a href = "index.html">Index</a></p>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<h1 class = "center title">
+  A blog of sorts
+</h1>
+<div class = "content">
+  <article>
+    <h1>Avoiding corrupted content errors with Service Workers</h1>
+
+<p class = "article-date">2020/03/03</p>
+
+<p>At the time of writing I just finished writing my second service worker for a website and ran into another bunch of Corrupted Content Errors.</p>
+
+<p>There are several ways you can cause this and none of them are particularly easy to Google the solution to because if you just search for &ldquo;Corrupted Content Error&rdquo; all you see are these errors in production sites that end users have experienced.</p>
+
+<h2>Service Worker 101</h2>
+
+<p>To understand why these errors can be introduced into service worker code by accident it is helpful to recap how a service worker works.</p>
+
+<p>You will probably register the service worker using code like the following example in a JavaScript file that is executed on every webpage of your site.</p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="k">if</span> <span class="p">(</span><span class="s1">'serviceWorker'</span> <span class="k">in</span> <span class="nb">navigator</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nb">navigator</span><span class="p">.</span><span class="nx">serviceWorker</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">'/service-worker.js'</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Then in a JavaScript file which the web server makes public at <code>/service-worker.js</code> (or whatever you&rsquo;ve named it as) you put the actual service worker (not in the <code>&lt;head&gt;</code> of any of your webpages).</p>
+
+<p>The service worker will probably contain an <code>install</code> event, and a <code>fetch</code> event which will look a little bit like below:</p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="kd">const</span> <span class="nx">CACHE_VERSION</span> <span class="o">=</span> <span class="s1">'v1'</span>
+<span class="kd">const</span> <span class="nx">CACHE_NAME</span> <span class="o">=</span> <span class="s2">`cache-name`</span>
+<span class="kd">const</span> <span class="nx">CACHE_FILE_URLS</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="s1">'/'</span><span class="p">,</span>
+  <span class="s1">'/foo'</span><span class="p">,</span>
+  <span class="s1">'/foobar'</span>
+<span class="p">]</span>
+
+<span class="nb">self</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'install'</span><span class="p">,</span> <span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">event</span><span class="p">.</span><span class="nx">waitUntil</span><span class="p">(</span>
+    <span class="nx">caches</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="nx">CACHE_NAME</span><span class="p">).</span><span class="nx">then</span><span class="p">((</span><span class="nx">cache</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">cache</span><span class="p">.</span><span class="nx">addAll</span><span class="p">(</span><span class="nx">CACHE_FILE_URLS</span><span class="p">)</span>
+    <span class="p">})</span>
+  <span class="p">)</span>
+<span class="p">})</span>
+
+<span class="nb">self</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'fetch'</span><span class="p">,</span> <span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">event</span><span class="p">.</span><span class="nx">respondWith</span><span class="p">(...)</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>This rough structure will add all the files listed in <code>CACHE_FILE_URLS</code> to the service worker&rsquo;s cache when it installs. Once the service worker is installed the service worker will listen to every <code>fetch</code> event the browser makes for the webpage and be able to intercept it.</p>
+
+<p>So far so good.</p>
+
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Offline_Service_workers">MDN gives an example</a> for the fetch event which will perform a strategy of cache then network</p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="nb">self</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'fetch'</span><span class="p">,</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">e</span><span class="p">.</span><span class="nx">respondWith</span><span class="p">(</span>
+    <span class="nx">caches</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">).</span><span class="nx">then</span><span class="p">((</span><span class="nx">r</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Fetching resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+      <span class="k">return</span> <span class="nx">r</span> <span class="o">||</span> <span class="nx">fetch</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">).</span><span class="nx">then</span><span class="p">((</span><span class="nx">response</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                <span class="k">return</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="nx">CACHE_NAME</span><span class="p">).</span><span class="nx">then</span><span class="p">((</span><span class="nx">cache</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Caching new resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+          <span class="nx">cache</span><span class="p">.</span><span class="nx">put</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">,</span> <span class="nx">response</span><span class="p">.</span><span class="nx">clone</span><span class="p">())</span>
+          <span class="k">return</span> <span class="nx">response</span>
+        <span class="p">})</span>
+      <span class="p">})</span>
+    <span class="p">})</span>
+  <span class="p">)</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>Understanding the asyncronous control flow can be a little tricky using <code>.then()</code>s so presented below is the ES7 version</p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="nb">self</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'fetch'</span><span class="p">,</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">e</span><span class="p">.</span><span class="nx">respondWith</span><span class="p">(</span><span class="k">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">cacheResponse</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Fetching resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">cacheResponse</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">cacheResponse</span>
+    <span class="p">}</span>
+    <span class="kd">const</span> <span class="nx">networkResponse</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">)</span>
+    <span class="kd">const</span> <span class="nx">cache</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="nx">CACHE_NAME</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Caching new resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+    <span class="nx">cache</span><span class="p">.</span><span class="nx">put</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">,</span> <span class="nx">networkResponse</span><span class="p">.</span><span class="nx">clone</span><span class="p">())</span>
+    <span class="k">return</span> <span class="nx">networkResponse</span>
+  <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>Whoops!</p>
+
+<p><img src = "./images/sw-cce-1.png"
+  alt = "Corrupted Content Error Screenshot"
+  title = "Corrupted Content Error Screenshot">
+</img></p>
+
+<p>I must have made a mistake. Now I can&rsquo;t load any pages for this site until I go to <code>about:serviceworkers</code> and unregister the service worker.</p>
+
+<h2>The broken Service Worker skeleton</h2>
+
+<p><code>/service-worker.js</code></p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="kd">const</span> <span class="nx">CACHE_VERSION</span> <span class="o">=</span> <span class="s1">'v1'</span>
+<span class="kd">const</span> <span class="nx">CACHE_NAME</span> <span class="o">=</span> <span class="s2">`cache-name`</span>
+<span class="kd">const</span> <span class="nx">CACHE_FILE_URLS</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="s1">'/index.html'</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="nb">self</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'install'</span><span class="p">,</span> <span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">event</span><span class="p">.</span><span class="nx">waitUntil</span><span class="p">(</span>
+    <span class="nx">caches</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="nx">CACHE_NAME</span><span class="p">).</span><span class="nx">then</span><span class="p">((</span><span class="nx">cache</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">cache</span><span class="p">.</span><span class="nx">addAll</span><span class="p">(</span><span class="nx">CACHE_FILE_URLS</span><span class="p">)</span>
+    <span class="p">})</span>
+  <span class="p">)</span>
+<span class="p">})</span>
+
+<span class="nb">self</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'fetch'</span><span class="p">,</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">e</span><span class="p">.</span><span class="nx">respondWith</span><span class="p">(</span><span class="k">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">cacheResponse</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Fetching resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">cacheResponse</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">cacheResponse</span>
+    <span class="p">}</span>
+    <span class="kd">const</span> <span class="nx">networkResponse</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">)</span>
+    <span class="kd">const</span> <span class="nx">cache</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="nx">CACHE_NAME</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Caching new resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+    <span class="nx">cache</span><span class="p">.</span><span class="nx">put</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">,</span> <span class="nx">networkResponse</span><span class="p">.</span><span class="nx">clone</span><span class="p">())</span>
+    <span class="k">return</span> <span class="nx">networkResponse</span>
+  <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div>
+<p><code>/sw-test.html</code></p>
+<div class="highlight"><pre class="highlight html"><code><span class="nt">&lt;html&gt;</span>
+<span class="nt">&lt;head&gt;</span>
+<span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"UTF8"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;script&gt;</span>
+<span class="k">if</span> <span class="p">(</span><span class="s1">'serviceWorker'</span> <span class="k">in</span> <span class="nb">navigator</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nb">navigator</span><span class="p">.</span><span class="nx">serviceWorker</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">'/service-worker.js'</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/head&gt;</span>
+<span class="nt">&lt;body&gt;</span>
+<span class="nt">&lt;p&gt;</span>The page loaded!<span class="nt">&lt;/p&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre></div>
+<p>Note that to replicate this bug you have to serve these files over HTTPS or localhost. The browser will refuse to install the service worker if you try to use <code>file:///</code></p>
+
+<h2>Issue One</h2>
+
+<p>The mistake I made was that I passed <code>respondWith</code> a function. It needs to receive a <code>Promise</code> that resolves to a <code>Response</code>.</p>
+
+<p>The solution is to immediately call the asyncronous function I defined, as async functions always return promises.</p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="nb">self</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'fetch'</span><span class="p">,</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">e</span><span class="p">.</span><span class="nx">respondWith</span><span class="p">((</span><span class="k">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">cacheResponse</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Fetching resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">cacheResponse</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">cacheResponse</span>
+    <span class="p">}</span>
+    <span class="kd">const</span> <span class="nx">networkResponse</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">)</span>
+    <span class="kd">const</span> <span class="nx">cache</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="nx">CACHE_NAME</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Caching new resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+    <span class="nx">cache</span><span class="p">.</span><span class="nx">put</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">,</span> <span class="nx">networkResponse</span><span class="p">.</span><span class="nx">clone</span><span class="p">())</span>
+    <span class="k">return</span> <span class="nx">networkResponse</span>
+  <span class="p">})())</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>It&rsquo;s easy to miss this step even when following a tutorial that does it because the <code>})()</code> at the end is after the function body.</p>
+
+<p>Now I can stop the server and continue to load the cached webpage and the service worker will fetch it from the cache for me.</p>
+
+<h2>Pages not in cache or network</h2>
+
+<p>What happens if I try a different URL?</p>
+
+<p>Let&rsquo;s try <code>/sw-test</code> instead of <code>/sw-test.html</code></p>
+
+<p><img src = "./images/sw-cce-2.png"
+  alt = "Corrupted Content Error Screenshot"
+  title = "Corrupted Content Error Screenshot">
+</img></p>
+
+<p>Yet another Corrupted Content Error</p>
+
+<p>Aside from the issue that the service worker code doesn&rsquo;t realise the resource at <code>/sw-test</code> and <code>/sw-test.html</code> is the same, and it has <code>/sw-test.html</code> in the cache, the main issue is that if you pass a promise that fails to resolve to a response you still get a Corrupted Content Error!</p>
+
+<p><code>fetch()</code> rejects if there&rsquo;s a network error, which must be caught so we can still resolve to a response.</p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="nb">self</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'fetch'</span><span class="p">,</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">e</span><span class="p">.</span><span class="nx">respondWith</span><span class="p">((</span><span class="k">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">cacheResponse</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Fetching resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">cacheResponse</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">cacheResponse</span>
+    <span class="p">}</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="kd">const</span> <span class="nx">networkResponse</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">)</span>
+      <span class="kd">const</span> <span class="nx">cache</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="nx">CACHE_NAME</span><span class="p">)</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Caching new resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+      <span class="nx">cache</span><span class="p">.</span><span class="nx">put</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">,</span> <span class="nx">networkResponse</span><span class="p">.</span><span class="nx">clone</span><span class="p">())</span>
+      <span class="k">return</span> <span class="nx">networkResponse</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">// network error</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nx">Response</span><span class="p">(</span><span class="s1">'&lt;p&gt;Not in cache 😢&lt;/p&gt;'</span><span class="p">)</span>
+  <span class="p">})())</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>What about <code>match()</code> or <code>open()</code>? <a href="https://developer.mozilla.org/en-US/docs/Web/API/Cache/match"><code>match()</code></a> always resolves to either the response or <code>undefined</code> and <a href="https://developer.mozilla.org/en-US/docs/Web/API/CacheStorage/open"><code>open()</code></a> always resolves to the cache object, and will make one if it didn&rsquo;t exist.</p>
+
+<h2>Working versions</h2>
+
+<p>Finally working offline</p>
+
+<p><img src = "./images/sw-cce-3.png"
+  alt = "Fallback resource when offline screenshot"
+  title = "Fallback resource when offline screenshot">
+</img></p>
+
+<p>Immediately after adding the above image I tried refreshing my browser to see the updated article. Because the service worker is still set to cache then network and it has a cache of the article, it&rsquo;s going to prevent my browser fetching the new one from my server.</p>
+
+<p>Hence below is the network then cache version for completeness.</p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="nb">self</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'fetch'</span><span class="p">,</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">e</span><span class="p">.</span><span class="nx">respondWith</span><span class="p">((</span><span class="k">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="kd">const</span> <span class="nx">networkResponse</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">)</span>
+      <span class="kd">const</span> <span class="nx">cache</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="nx">CACHE_NAME</span><span class="p">)</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Caching updated resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+      <span class="nx">cache</span><span class="p">.</span><span class="nx">put</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">,</span> <span class="nx">networkResponse</span><span class="p">.</span><span class="nx">clone</span><span class="p">())</span>
+      <span class="k">return</span> <span class="nx">networkResponse</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">// network error</span>
+    <span class="p">}</span>
+    <span class="kd">const</span> <span class="nx">cacheResponse</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">caches</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'[Service Worker] Fetching resource: '</span><span class="o">+</span><span class="nx">e</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">cacheResponse</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">cacheResponse</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nx">Response</span><span class="p">(</span><span class="s1">'&lt;p&gt;Not in cache 😢&lt;/p&gt;'</span><span class="p">)</span>
+  <span class="p">})())</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>On a real website you probably don&rsquo;t want to indiscriminately cache everything and probably want a proper webpage to return if the cache and network fail, but you should now be able to avoid two easy mistakes that cause Corrupted Content Errors.</p>
+
+<hr>
+
+<p>All of the code examples in this article are MIT licensed.</p>
+
+  </article>
+</div>
+
+  </div>
+  <footer>
+    <div class = "footer">
+      <p>My content on this site is licensed under Creative Commons By Attribution <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></p>
+      <p>This site's source code is licensed under the MIT license <a href="https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code">https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code</a></p>
+    </div>
+  </footer>
+</body>
+</html>
