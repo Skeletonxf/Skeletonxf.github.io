@@ -127,7 +127,7 @@ ol {
   #map {
     overflow-x: auto;
     /* scroll on mobile */
-    height: 680px;
+    height: 682px;
     /* add some height to accomodate the horizontal scroll bar */ } }
 
 .section {
