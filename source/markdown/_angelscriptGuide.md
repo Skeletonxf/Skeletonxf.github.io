@@ -13,7 +13,7 @@ AngelScript gives types to variables. This is in contrast to more popular script
 
 ### Compiled
 
-AngelScript is compiled rather than interpreted. This distinction means you have two classes of errors that can occur in your program: Compile errors when you get the syntax wrong or misuse types, in which case you find out immediately before you even try to run the code, and Runtime errors when you messup the logic of something once its running. Runtime errors are generally much harder to debug, so moving errors into compile time via strong typing can help with maintainence.
+AngelScript is compiled rather than interpreted. This distinction means you have two classes of errors that can occur in your program: Compile errors when you get the syntax wrong or misuse types, in which case you find out immediately before you even try to run the code, and Runtime errors when you messup the logic of something once its running. Runtime errors are generally much harder to debug, so moving errors into compile time via strong typing can help with maintenance.
 
 ### Multi Paradigm
 
@@ -39,7 +39,33 @@ j = i + j;
 
 ### Statements
 
-TODO: If statements, while statements, break, continue, return
+Control flow statements are very similar.
+```as
+for (uint i = 0; i < total; ++i) {
+	if (/* condition */) {
+		continue;
+	}
+	// do something
+}
+
+while (/* condition */) {
+	if (/* other condition */) {
+		// do something
+	} else {
+		break; // breaks out of the while loop
+	}
+}
+
+return value; // returns from the function
+```
+They are not expressions, so you cannot avoid boilerplate with syntax like in rust
+```rust
+let x = if (/* condition */) {
+	value1
+} else {
+	value2
+};
+```
 
 ### Classes
 
@@ -60,6 +86,17 @@ class Counter {
 ### Functions
 
 Functions are defined with `RETURN_TYPE identifier(<ARGUMENTS>)`. If the function does not return anything, the return type is `void`. If the function does not take any arguments the brackets are left empty.
+
+Functions can have default named arguments such as
+```as
+void foo(bool bar = true) {
+	if (bar) {
+		...
+	} else {
+		...
+	}
+}
+```
 
 ### Methods
 
@@ -132,6 +169,8 @@ void incrementBoth(MultiCounter& counters) {
 }
 ```
 
+References can't be null, which can be helpful to reduce otherwise needed boilerplate error checking.
+
 ## Files and imports
 
 AngelScript files use the `.as` file extension, which clashes with the file extension of ActionScript. AngelScript can import functions and classes from other files in a number of ways.
@@ -188,7 +227,7 @@ import empire_ai.dragon.bookkeeping.resource_flows;
 from empire_ai.dragon.bookkeeping.resource_value import RaceResourceValuation, ResourceValuator;
 ```
 
-You may be wondering how to export things. There is no export keyword. Anything you define as public (the default) can be imported into other files.
+You may be wondering how to export things. There is an export keyword, however anything you define as public (the default) can be imported into other files.
 
 ## Interfaces
 
@@ -231,9 +270,12 @@ numbers.sortAsc(); // numbers is now [-7, -4, 1, 3, 3, 5]
 
 ```
 
-TODO: Clearing arrays
+Arrays can be cleared by setting their length back to 0.
+```as
+numbers.length = 0;
+```
 
-TODO: Arrays as fields and handles
+Arrays are always passed by reference, and you may often want to pass them around as handles.
 
 TODO: Const
 
