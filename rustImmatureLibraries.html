@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset = "UTF-8">
+  <meta name = "viewport" content = "width = device-width">
+  <!-- Use the title from a page's frontmatter if it has one -->
+  <title>Skeletonxf.github.io</title>
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
+  <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+</head>
+<body>
+  <div class = "page">
+    <header class = "back">
+  <nav>
+    <ul>
+      <li>
+        <p><a href = "index.html">Index</a></p>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<h1 class = "center title">
+  A blog of sorts
+</h1>
+<div class = "content">
+  <article>
+    <h1>Working with immature libraries in Rust</h1>
+
+<p class = "article-date">2021/07/14</p>
+
+<p>Having worked with Rust both on hobby projects and on commercial endeavors I&rsquo;ve had to work with a number of libraries that are pre version 1.0, sometimes poorly documented, and sometimes lacking functionality that would have been easy to add but was likely missed. However, even an immature Rust library is generally quite workable if you can spend some time with it since the type system can provide valuable documentation on its own and it&rsquo;s <em>very</em> easy to look under the hood with all those <code>src</code> links in Rust&rsquo;s documentation to check implementation details to verify behaviour is as you expect.</p>
+
+<p>This is a listicle that goes through some of the <a href="https://rust-lang.github.io/api-guidelines/about.html">Rust API Guidelines</a> from the perspective of using a crate rather than writing it, and what you can do if a crate <em>doesn&rsquo;t</em> follow the guidelines.</p>
+
+<h2>Naming</h2>
+
+<p>If a type or trait is named in a way that causes issues for your tooling, comprehension or consistency, you can rename when you bring it into scope using <a href="https://doc.rust-lang.org/book/ch07-04-bringing-paths-into-scope-with-the-use-keyword.html#providing-new-names-with-the-as-keyword"><code>as</code></a>.</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="c">// external library definition</span>
+<span class="k">pub</span> <span class="k">struct</span> <span class="n">I_Should_Be_Camel_Case</span> <span class="p">{</span>
+    <span class="n">foo</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c">// consuming code</span>
+<span class="k">use</span> <span class="nn">path_to</span><span class="p">::</span><span class="n">I_Should_Be_Camel_Case</span> <span class="k">as</span> <span class="n">IShouldBeCamelCase</span><span class="p">;</span>
+</code></pre></div>
+<h2>Interoperability and missing trait impls</h2>
+
+<p>You can&rsquo;t implement traits you didn&rsquo;t define on types you didn&rsquo;t define, however in my experience it is not uncommon to discover that a crate&rsquo;s type does not implement one of the common traits from the standard libray I would like it to. The general approach to this is define a wrapper type that implements the traits you want.</p>
+
+<h3>Debug</h3>
+
+<p>If you just want your type to be <code>Debug</code> rather than needing to debug a third party type it contains you can fall back to a manual <code>Debug</code> implementation on the type wrapping it, and continue using <code>#[derive(Debug)]</code> on any of your types that contain the wrapper.</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="c">// external library definition</span>
+<span class="k">pub</span> <span class="k">struct</span> <span class="n">Opaque</span><span class="p">;</span>
+
+<span class="c">// consuming code</span>
+<span class="k">struct</span> <span class="n">MyType</span> <span class="p">{</span>
+    <span class="n">opaque</span><span class="p">:</span> <span class="n">Opaque</span><span class="p">,</span>
+    <span class="c">// other fields</span>
+<span class="p">}</span>
+
+<span class="k">impl</span> <span class="n">Debug</span> <span class="k">for</span> <span class="n">MyType</span> <span class="p">{</span>
+    <span class="k">fn</span> <span class="nf">fmt</span><span class="p">(</span><span class="o">&amp;</span><span class="k">self</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="o">&amp;</span><span class="k">mut</span> <span class="nn">fmt</span><span class="p">::</span><span class="n">Formatter</span><span class="o">&lt;</span><span class="nv">'_</span><span class="o">&gt;</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nn">fmt</span><span class="p">::</span><span class="n">Result</span> <span class="p">{</span>
+        <span class="n">f</span><span class="nf">.debug_struct</span><span class="p">(</span><span class="s">"MyType"</span><span class="p">)</span>
+         <span class="nf">.field</span><span class="p">(</span><span class="s">"opaque"</span><span class="p">,</span> <span class="o">&amp;</span><span class="s">"Opaque"</span><span class="p">)</span>
+          <span class="c">// other fields</span>
+         <span class="nf">.finish</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3>Eq, PartialEq, Ord, PartialOrd, and Hash</h3>
+
+<p>You can wrap an external type that does not implement these in a struct and manually implement them if the type exposes enough information for you to do the checks.</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="c">// external library definition</span>
+<span class="k">pub</span> <span class="k">struct</span> <span class="n">Foo</span> <span class="p">{</span>
+    <span class="k">pub</span> <span class="n">bar</span><span class="p">:</span> <span class="nb">i32</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c">// consuming code</span>
+<span class="k">struct</span> <span class="n">FooWrapper</span> <span class="p">{</span>
+    <span class="n">foo</span><span class="p">:</span> <span class="n">Foo</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="k">impl</span> <span class="n">PartialEq</span> <span class="k">for</span> <span class="n">FooWrapper</span> <span class="p">{</span>
+    <span class="k">fn</span> <span class="nf">eq</span><span class="p">(</span><span class="o">&amp;</span><span class="k">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="o">&amp;</span><span class="n">Self</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">bool</span> <span class="p">{</span>
+        <span class="k">self</span><span class="py">.foo.bar</span> <span class="o">==</span> <span class="n">other</span><span class="py">.foo.bar</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3>Default</h3>
+
+<p>You can still implement <code>Default</code> on a wrapper for an external type if you can call one of its constructors and set the relevant fields to what you want even if you don&rsquo;t have public access to all the fields for initialisation.</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="c">// external library definition</span>
+<span class="k">pub</span> <span class="k">struct</span> <span class="n">NotAllPublicFields</span> <span class="p">{</span>
+    <span class="k">pub</span> <span class="n">foo</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="p">(),</span>
+<span class="p">}</span>
+<span class="k">impl</span> <span class="n">NotAllPublicFields</span> <span class="p">{</span>
+    <span class="k">pub</span> <span class="k">fn</span> <span class="nf">new</span><span class="p">()</span> <span class="k">-&gt;</span> <span class="n">Self</span> <span class="p">{</span>
+        <span class="n">NotAllPublicFields</span> <span class="p">{</span>
+            <span class="n">foo</span><span class="p">:</span> <span class="k">true</span><span class="p">,</span>
+            <span class="n">bar</span><span class="p">:</span> <span class="p">(),</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c">// consuming code that wants a default with foo set to false</span>
+<span class="k">struct</span> <span class="nf">Wrapper</span><span class="p">(</span><span class="n">NotAllPublicFields</span><span class="p">);</span>
+
+<span class="k">impl</span> <span class="n">Default</span> <span class="k">for</span> <span class="n">Wrapper</span> <span class="p">{</span>
+    <span class="k">fn</span> <span class="nf">default</span><span class="p">()</span> <span class="k">-&gt;</span> <span class="n">Self</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="k">mut</span> <span class="n">data</span> <span class="o">=</span> <span class="nn">NotAllPublicFields</span><span class="p">::</span><span class="nf">new</span><span class="p">();</span>
+        <span class="n">data</span><span class="py">.foo</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>
+        <span class="nf">Wrapper</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3>Copy</h3>
+
+<p><code>Copy</code> can&rsquo;t be implemented by wrapping something that isn&rsquo;t <code>Copy</code>. If you can&rsquo;t make do with <code>Clone</code> you will need to fork the library and add the <code>Copy</code> implementation.</p>
+
+<h3>Clone</h3>
+
+<p><code>Clone</code> is also quite tricky if the type you&rsquo;re wrapping doesn&rsquo;t have suitable constructors and/or access to set all the fields on the clone. If the type you&rsquo;re wrapping can live exclusvely behind shared references, you can put it behind an <code>Arc</code> or an <code>Rc</code> (or even just <code>&amp;</code> if you don&rsquo;t need ownership) to get something <code>Clone</code>able.</p>
+
+<p>If forking the library is not desirable, one final extremly unsafe option is to define a struct which does derive <code>Clone</code> and has exactly the same size and fields. You can call <a href="https://doc.rust-lang.org/std/mem/fn.transmute.html"><code>std::mem::transmute</code></a> on the offending type to reinterpret the bits as your type which you can then clone since you have access to every field. However not only can this cause all kinds of undefined behaviour, you add a dependency on the exact definition of the library type and you must ensure it remains in sync with your version, even though the library could change it in a non API breaking patch update.</p>
+
+<h3>Serialize and Deserialize (Serde)</h3>
+
+<p>Refer to serde&rsquo;s <a href="https://serde.rs/custom-serialization.html">custom serialization</a> docs if you need to serialize an external library type which exposes all its data but doesn&rsquo;t already have serde integration. Often libraries will have an optional dependecy for serde integration, so check for that first since it may not be enabled by default.</p>
+
+<h3>Send and Sync</h3>
+
+<p>Occasionally you need to use crates which contain types with dynamic trait objects as members that don&rsquo;t contain <code>Send</code> and <code>Sync</code> bounds, or types which are genuinely never thread safe. You can always put a non <code>Send</code> and non <code>Sync</code> type onto a dedicated thread and &lsquo;wrap&rsquo; it into a <code>Send</code> and <code>Sync</code> handle that acts like it owns the type via message passing to that dedicated thread.</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="c">// external library definition</span>
+<span class="k">pub</span> <span class="k">struct</span> <span class="n">SomethingNotThreadSafe</span> <span class="p">{</span>
+    <span class="n">_marker</span><span class="p">:</span> <span class="nn">std</span><span class="p">::</span><span class="nn">marker</span><span class="p">::</span><span class="n">PhantomData</span><span class="o">&lt;*</span><span class="k">const</span> <span class="p">()</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c">// consuming code using tokio that wants a Send and Sync handle</span>
+<span class="k">use</span> <span class="n">tokio</span><span class="p">;</span>
+<span class="k">use</span> <span class="nn">tokio</span><span class="p">::</span><span class="nn">sync</span><span class="p">::</span><span class="n">mpsc</span><span class="p">;</span>
+
+<span class="k">enum</span> <span class="n">CommandType</span> <span class="p">{}</span>
+<span class="k">enum</span> <span class="n">ResponseType</span> <span class="p">{}</span>
+
+<span class="k">struct</span> <span class="n">SomethingNotThreadSafeHandle</span> <span class="p">{</span>
+    <span class="n">command</span><span class="p">:</span> <span class="nn">mpsc</span><span class="p">::</span><span class="n">Sender</span><span class="o">&lt;</span><span class="n">CommandType</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="n">response</span><span class="p">:</span> <span class="nn">mpsc</span><span class="p">::</span><span class="n">Receiver</span><span class="o">&lt;</span><span class="n">ResponseType</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">impl</span> <span class="n">SomethingNotThreadSafeHandle</span> <span class="p">{</span>
+    <span class="k">fn</span> <span class="nf">new</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">SomethingNotThreadSafe</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="n">Self</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="p">(</span><span class="n">command_tx</span><span class="p">,</span> <span class="k">mut</span> <span class="n">command_rx</span><span class="p">)</span> <span class="o">=</span> <span class="nn">mpsc</span><span class="p">::</span><span class="nf">channel</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+        <span class="k">let</span> <span class="p">(</span><span class="n">response_tx</span><span class="p">,</span> <span class="n">response_rx</span><span class="p">)</span> <span class="o">=</span> <span class="nn">mpsc</span><span class="p">::</span><span class="nf">channel</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+        <span class="nn">tokio</span><span class="p">::</span><span class="nn">task</span><span class="p">::</span><span class="nf">spawn_blocking</span><span class="p">(</span><span class="k">move</span> <span class="p">||</span> <span class="p">{</span>
+            <span class="k">loop</span> <span class="p">{</span>
+                <span class="k">let</span> <span class="n">command</span> <span class="o">=</span> <span class="n">command_rx</span><span class="nf">.blocking_recv</span><span class="p">();</span>
+                <span class="c">// do something</span>
+                <span class="k">let</span> <span class="n">response</span> <span class="o">=</span> <span class="nd">unimplemented!</span><span class="p">();</span>
+                <span class="n">response_tx</span><span class="nf">.blocking_send</span><span class="p">(</span><span class="n">response</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+        <span class="n">SomethingNotThreadSafeHandle</span> <span class="p">{</span>
+            <span class="n">command</span><span class="p">:</span> <span class="n">command_tx</span><span class="p">,</span>
+            <span class="n">response</span><span class="p">:</span> <span class="n">response_rx</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="n">async</span> <span class="k">fn</span> <span class="nf">do_something</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span> <span class="k">self</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="py">.command</span><span class="nf">.send</span><span class="p">(</span><span class="nd">unimplemented!</span><span class="p">())</span><span class="py">.await</span><span class="p">;</span>
+        <span class="k">let</span> <span class="n">response</span> <span class="o">=</span> <span class="k">self</span><span class="py">.response</span><span class="nf">.recv</span><span class="p">()</span><span class="py">.await</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2>Other issues</h2>
+
+<h3>Non object safe traits</h3>
+
+<p><a href="https://www.possiblerust.com/pattern/3-things-to-try-when-you-can-t-make-a-trait-object">Option 2</a> of <em>3 Things to Try When You Can&rsquo;t Make a Trait Object</em> explains how to make something object safe.</p>
+
+  </article>
+</div>
+
+  </div>
+  <footer>
+    <div class = "footer">
+      <p>My content on this site is licensed under Creative Commons By Attribution <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></p>
+      <p>This site's source code is licensed under the MIT license <a href="https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code">https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code</a></p>
+    </div>
+  </footer>
+</body>
+</html>
