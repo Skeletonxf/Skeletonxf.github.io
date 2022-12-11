@@ -19,7 +19,7 @@ The [JEP contains lots of details on this Java API](https://openjdk.org/jeps/412
 
 Fortunately, there's a tool called [jextract](https://github.com/openjdk/jextract) which can consume that C header API and generate Java bindings for me. Problem solved right?
 
-Yes and no. The aforementioned libraries create the full loop, from Rust Engine -> C header -> jextract & Java Foreign Function and Memory API -> Kotlin Jetpack Compse UI, but they don't tell me how to fill in the details for actually passing data along.
+Yes and no. The aforementioned libraries create the full loop, from Rust Engine → C header → jextract & Java Foreign Function and Memory API → Kotlin Jetpack Compse UI, but they don't tell me how to fill in the details for actually passing data along.
 
 The build process I've constructed so far leaves a lot to be desired too, ideally I would only need to press `Run` in the IDE and it'll build the Rust library as a dependency of the app, and then automatically run jextract without requiring a manual installation before finally compiling the Kotlin code. Doing this properly is left as an exercise to the reader - but if you do get this working please tell me, I'd love to pipeline this all properly in Gradle.
 
@@ -28,6 +28,7 @@ The build process I've constructed so far leaves a lot to be desired too, ideall
 The first step to getting a JVM app to play a tafl game surely has to start with the Rust code allocating structs for the game engine, then handing off control of that data to the JVM. That'll let me create a new game each time I need to, no static/global variables needed or wanted.
 
 This little bit of Rust code (GameState being my tafl game engine instance)
+
 ```rust
 mod state;
 
@@ -56,6 +57,7 @@ pub extern fn game_state_handle_new() -> *mut GameStateHandle {
 ```
 
 Generates this short C header
+
 ```c
 typedef struct GameStateHandle GameStateHandle;
 
@@ -422,8 +424,8 @@ where
         return Err(FFIError::NullPointer)
     }
     std::panic::catch_unwind(|| {
-        // SAFETY: We only give out valid pointers, and are trusting that the Kotlin code
-        // does not invalidate them.
+        // SAFETY: We only give out valid pointers, and are trusting that
+        //  the Kotlin code does not invalidate them.
         let handle = unsafe {
             &mut *handle
         };
@@ -457,7 +459,7 @@ let handle = unsafe {
 };
 ```
 
-will create two `&mut` references to the `GameStateHandle`, which is undefined behaviour. I could just promise not to do that from the Kotlin side, but there's no compiler on the Kotlin side to help, so it's not ideal. Kotlin could also create a *wrong* pointer and call the `game_state_handle_debug` method, which would also be undefined behaviour, but nothing can really be done about that and that's at least much harder to do by accident.
+will create two `&mut` references to the `GameStateHandle`, which is undefined behaviour. I could just promise not to do that from the Kotlin side, but there's no compiler checks on the Kotlin side, so it's not ideal. Kotlin could also create a *wrong* pointer and call the `game_state_handle_debug` method, which would also be undefined behaviour, but nothing can really be done about that and that's at least much harder to do by accident.
 
 After some research, I eventually came across a solution. The same way one would rewrite that `DoubleLinkedList` in Kotlin to add in thread safety can be used on the Rust side.
 
@@ -493,13 +495,14 @@ where
         return Err(FFIError::NullPointer)
     }
     std::panic::catch_unwind(|| {
-        // SAFETY: We only give out valid pointers, and are trusting that the Kotlin code
-        // does not invalidate them.
+        // SAFETY: We only give out valid pointers, and are trusting that
+        //  the Kotlin code does not invalidate them.
         let handle = unsafe {
             & *handle
         };
-        // Since the Kotlin side can freely alias as much as it likes, we put the aliased handle
-        // around a Mutex so we can ensure no aliasing for the actual game state
+        // Since the Kotlin side can freely alias as much as it likes, we put
+        // the aliased handle around a Mutex so we can ensure no aliasing for
+        // the actual game state
         let mut guard = match handle.state.lock() {
             Ok(guard) => guard,
             Err(poison_error) => {
@@ -525,7 +528,7 @@ pub extern fn game_state_handle_debug(handle: *const GameStateHandle) {
 
 Now, if two Kotlin threads call `game_state_handle_debug` at the same time,
 
-```kotlin
+```rust
 let handle = unsafe {
     & *handle
 };
@@ -535,7 +538,7 @@ will construct two shared references to the `GameStateHandle` (which is safe bec
 
 There might be less heavy handed solutions than full blown synchronisation with a Mutex, but for a type I'm not intending to have a lot of access from multiple threads at once, the overhead should be pretty minor.
 
-Unfortunately, while this works great for methods, at some point we also want to destroy the game state so we can start a new game.
+Unfortunately, while this works great for methods, at some point I also want to destroy the game state so I can start a new game.
 
 ## Cleaning up
 
@@ -543,8 +546,8 @@ The Rust side of this is straightforward just like for the constructor, the chal
 
 ```rust
 /// Destroys the data owned by the pointer
-/// The caller is responsible for ensuring there are no aliased references elsewhere in the
-/// program
+/// The caller is responsible for ensuring there are no aliased references
+/// elsewhere in the program
 #[no_mangle]
 pub unsafe extern fn game_state_handle_destroy(handle: *mut GameStateHandle) {
     if handle.is_null() {
@@ -592,9 +595,9 @@ class Bridge {
 }
 ```
 
-I initially wrote a Kotlin wrapper around the jextract Java bindings like this. For very shortlived data, `Closeable` works pretty well, `use` lets you do operations with a `GameStateHandle` and `close` gets called for you once you're done. Since `game_state_handle_destroy` is called for you, you're not going to trigger a double free accidentally. However, I don't want such a shortlived `GameStateHandle`. I want it to last for the duration of a game, which is going to be far longer than a single function call.
+I initially wrote a Kotlin wrapper around the jextract Java bindings like this. For very shortlived data, `Closeable` works pretty well, `use` lets you do operations with a `GameStateHandle` and `close` gets called automatically for you once you're done. Since `game_state_handle_destroy` is called for you, you're not going to trigger a double free accidentally. However, I don't want such a shortlived `GameStateHandle`. I want it to last for the duration of a game, which is going to be far longer than a single function call.
 
-Some initial searching lead me to the [deprecated `finalize` method](https://docs.oracle.com/javase/9/docs/api/java/lang/Object.html#finalize--). It seemed like exactly what I needed, something that runs exactly once as the object is going to be garbage collected. If `GameStateHandle` is getting garbage collected, there's no aliases to `handle: MemoryAddress` because we never gave any out and `GameStateHandle` is the only one still holding it.
+Some initial searching lead me to the [deprecated `finalize` method](https://docs.oracle.com/javase/9/docs/api/java/lang/Object.html#finalize--). It seemed like exactly what I needed, something that runs exactly once as the object is going to be garbage collected. If `GameStateHandle` is getting garbage collected, there's no other aliases to `handle: MemoryAddress` because we never gave any out and `GameStateHandle` is the only one still holding it.
 
 Still, it looked like it was deprecated for good reason, so I followed the deprecation notice and looked the [`Cleaner` class docs](https://docs.oracle.com/javase/9/docs/api/java/lang/ref/Cleaner.html).
 
@@ -603,15 +606,18 @@ class GameStateHandle: GameState {
     private val handle: MemoryAddress = bindings_h.game_state_handle_new()
 
     init {
-        // We must not use any inner classes or lambdas for the runnable object, to avoid capturing our
-        // GameStateHandle instance, which would prevent the cleaner ever running.
-        // We could hold onto the cleanable this method returns so that we can manually trigger it
-        // with a `close()` method or such, but such an API can't stop us calling that method
-        // while still holding references to the GameStateHandle, in which case we'd trigger
-        // undefined behavior and likely reclaim the memory on the Rust side while we still
-        // have other aliases to it that think it's still in use. Instead, the *only* way
-        // to tell Rust it's time to call the destructor is when the cleaner determines there are
-        // no more references to our GameStateHandle.
+        // We must not use any inner classes or lambdas for the runnable object,
+        // to avoid capturing our GameStateHandle instance, which would prevent
+        // the cleaner ever running.
+        // We could hold onto the cleanable this method returns so that we can
+        // manually trigger it with a `close()` method or such, but such an API
+        // can't stop us calling that method while still holding references to
+        // the GameStateHandle, in which case we'd trigger undefined behaviour
+        // and likely reclaim the memory on the Rust side while we still have
+        // other aliases to it that think it's still in use. Instead, the
+        // *only* way to tell Rust it's time to call the destructor is when the
+        // cleaner determines there are no more references to our
+        // GameStateHandle.
         bridgeCleaner.register(this, BridgeHandleCleaner(handle))
     }
 
@@ -626,11 +632,13 @@ class GameStateHandle: GameState {
 
 private data class BridgeHandleCleaner(private val handle: MemoryAddress): Runnable {
     override fun run() {
-        // Because this class is private, and we only ever call it from the cleaner, and we never
-        // give out any references to our `handle: MemoryAddress` to any other classes, this
-        // runs exactly once after all references to GameStateHandle are dead and the cleaner
-        // runs us. Hence, we can meet the requirement that the handle is not aliased, so the
-        // Rust side can use it as an exclusive reference and reclaim the memory safely.
+        // Because this class is private, and we only ever call it from the
+        // cleaner, and we never give out any references to our
+        // `handle: MemoryAddress` to any other classes, this runs exactly once
+        // after all references to GameStateHandle are dead and the cleaner runs
+        // us. Hence, we can meet the requirement that the handle is not
+        // aliased, so the Rust side can use it as an exclusive reference and
+        // reclaim the memory safely.
         bindings_h.game_state_handle_destroy(handle)
     }
 }
@@ -638,6 +646,6 @@ private data class BridgeHandleCleaner(private val handle: MemoryAddress): Runna
 
 Following the javadoc's example, I arrived at this. `BridgeHandleCleaner` is private, so only `GameStateHandle` can instantiate it. When `GameStateHandle` is instantiated, we add a `BridgeHandleCleaner` to the singleton `bridgeCleaner: Cleaner`. I've removed the `Closeable` implementation because I want the Cleaner to be the only means of running the `BridgeHandleCleaner`, which it does exactly once, when there are no references to the `GameStateHandle` instance anymore. A destructor in all but name.
 
-If there are no references to `GameStateHandle`, since `handle` is private to `GameStateHandle` and `BridgeHandleCleaner`, that means we will always calling `game_state_handle_destroy` with the *only* reference left, which is then completely safe to be a mutable one.
+If there are no references to `GameStateHandle`, since `handle` is private to `GameStateHandle` and `BridgeHandleCleaner`, that means we will always call `game_state_handle_destroy` with the *only* reference left, which is then completely safe to be a mutable one.
 
-Now all I need to do is build a GUI on top of that `GameState` interface I set out to do...
+Now all I need to do is build that GUI on top of that `GameState` interface I set out to do...
