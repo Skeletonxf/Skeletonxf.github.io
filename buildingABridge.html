@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset = "UTF-8">
+  <meta name = "viewport" content = "width = device-width">
+  <!-- Use the title from a page's frontmatter if it has one -->
+  <title>Skeletonxf.github.io</title>
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
+  <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+</head>
+<body>
+  <div class = "page">
+    <header class = "back">
+  <nav>
+    <ul>
+      <li>
+        <p><a href = "index.html">Index</a></p>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<h1 class = "center title">
+  A blog of sorts
+</h1>
+<div class = "content">
+  <article>
+    <h1>Getting Rust and the JVM to talk to each other without JNI</h1>
+
+<p class = "article-date">2022/12/11</p>
+
+<p>Or using 4 languages to talk between 2</p>
+
+<h2>Overview</h2>
+
+<p>Some time ago I started building a tafl board game engine in Rust. I got it far enough to do 2-player games on the command line, but typing your moves is kinda clunky; I never actually finished a game over the CLI interface! Did I even code the win condition checks? I don&rsquo;t remember. To give the engine a real GUI I initially looked to the Web, Rust has <a href="https://www.arewewebyet.org/">plenty of libraries in this space</a>, but I personally have mostly done Web UI with static-ish HTML and CSS. I initially learned to use JavaScript to &lsquo;enhance&rsquo; an already usable HTML+CSS webpage, not the JavaScript first world a lot of extremely dynamic content websites use today. What I am familiar with is Jetpack Compose, which I had only used on Android but fortunately JetBrains have got this working on the desktop and to quote:</p>
+
+<blockquote>
+<p>Compose for Desktop simplifies and accelerates UI development for desktop applications, and allows extensive UI code sharing between Android and desktop applications.</p>
+</blockquote>
+
+<p>For me, being able to use the same APIs I&rsquo;ve already learnt to build GUIs with on Android can&rsquo;t really be topped in terms of developer productivity.</p>
+
+<p>All that was left to do was get Kotlin calling the Rust code I&rsquo;d already started and I knew I could built a UI that was efficient enough for me to actually play a full game. Now, Java has had JNI for calling native code for longer than Rust has existed, but there&rsquo;s something newer I wanted to try out.</p>
+
+<h2>Using the Java Foreign Function and Memory API</h2>
+
+<p>The <a href="https://openjdk.org/jeps/412">JEP contains lots of details on this Java API</a>, but I want to focus on the Rust side and the code I&rsquo;ve actually written in this article rather than the libraries and tooling. To summarise, I want to write Rust code that knows about the game engine, and not about Java (in theory no changes would be needed to use this engine somewhere else like in an iOS app). I can settle for writing a C API in Rust manually since for a game engine all I really need to send over the FFI layer to the JVM is a bunch of numbers. Then I can use the crate <a href="https://crates.io/crates/cbindgen">cbindgen</a> to autogenerate the C header for that C API I&rsquo;ve written in Rust. On the JVM side, I don&rsquo;t want to write <em>more</em> glue code consuming this C API.</p>
+
+<p>Fortunately, there&rsquo;s a tool called <a href="https://github.com/openjdk/jextract">jextract</a> which can consume that C header API and generate Java bindings for me. Problem solved right?</p>
+
+<p>Yes and no. The aforementioned libraries create the full loop, from Rust Engine → C header → jextract &amp; Java Foreign Function and Memory API → Kotlin Jetpack Compse UI, but they don&rsquo;t tell me how to fill in the details for actually passing data along.</p>
+
+<p>The build process I&rsquo;ve constructed so far leaves a lot to be desired too, ideally I would only need to press <code>Run</code> in the IDE and it&rsquo;ll build the Rust library as a dependency of the app, and then automatically run jextract without requiring a manual installation before finally compiling the Kotlin code. Doing this properly is left as an exercise to the reader - but if you do get this working please tell me, I&rsquo;d love to pipeline this all properly in Gradle.</p>
+
+<h2>Giving the JVM an object</h2>
+
+<p>The first step to getting a JVM app to play a tafl game surely has to start with the Rust code allocating structs for the game engine, then handing off control of that data to the JVM. That&rsquo;ll let me create a new game each time I need to, no static/global variables needed or wanted.</p>
+
+<p>This little bit of Rust code (GameState being my tafl game engine instance)</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="k">mod</span> <span class="n">state</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nn">state</span><span class="p">::</span><span class="n">GameState</span><span class="p">;</span>
+
+<span class="nd">#[derive(Debug)]</span>
+<span class="k">pub</span> <span class="k">struct</span> <span class="n">GameStateHandle</span> <span class="p">{</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">GameState</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">impl</span> <span class="n">GameStateHandle</span> <span class="p">{</span>
+    <span class="k">fn</span> <span class="nf">new</span><span class="p">()</span> <span class="k">-&gt;</span> <span class="k">Self</span> <span class="p">{</span>
+        <span class="n">GameStateHandle</span> <span class="p">{</span>
+            <span class="n">state</span><span class="p">:</span> <span class="nn">GameState</span><span class="p">::</span><span class="nf">default</span><span class="p">(),</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="cd">/// Creates a new GameStateHandle</span>
+<span class="nd">#[no_mangle]</span>
+<span class="k">pub</span> <span class="k">extern</span> <span class="k">fn</span> <span class="nf">game_state_handle_new</span><span class="p">()</span> <span class="k">-&gt;</span> <span class="o">*</span><span class="k">mut</span> <span class="n">GameStateHandle</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="n">boxed</span> <span class="o">=</span> <span class="nn">Box</span><span class="p">::</span><span class="nf">new</span><span class="p">(</span><span class="nn">GameStateHandle</span><span class="p">::</span><span class="nf">new</span><span class="p">());</span>
+    <span class="c1">// let the caller be responsible for managing this memory now</span>
+    <span class="nn">Box</span><span class="p">::</span><span class="nf">into_raw</span><span class="p">(</span><span class="n">boxed</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Generates this short C header</p>
+<div class="highlight"><pre class="highlight c"><code><span class="k">typedef</span> <span class="k">struct</span> <span class="n">GameStateHandle</span> <span class="n">GameStateHandle</span><span class="p">;</span>
+
+<span class="cm">/**
+ * Creates a new GameStateHandle
+ */</span>
+<span class="k">struct</span> <span class="n">GameStateHandle</span> <span class="o">*</span><span class="nf">game_state_handle_new</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</code></pre></div>
+<p>And absolutely loads of Java glue code I barely understand but can clearly see the constructor in.</p>
+<div class="highlight"><pre class="highlight java"><code><span class="c1">// bindings_h.java</span>
+<span class="c1">// Generated by jextract</span>
+
+<span class="kn">package</span> <span class="nn">io.github.skeletonxf.bindings</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.lang.invoke.MethodHandle</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.invoke.VarHandle</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.nio.ByteOrder</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">foreign</span><span class="o">.</span><span class="na">ValueLayout</span><span class="o">.*;</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">bindings_h</span>  <span class="o">{</span>
+
+    <span class="cm">/* package-private */</span> <span class="n">bindings_h</span><span class="o">()</span> <span class="o">{}</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">OfByte</span> <span class="no">C_CHAR</span> <span class="o">=</span> <span class="nc">Constants</span><span class="n">$root</span><span class="o">.</span><span class="na">C_CHAR</span><span class="n">$LAYOUT</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">OfShort</span> <span class="no">C_SHORT</span> <span class="o">=</span> <span class="nc">Constants</span><span class="n">$root</span><span class="o">.</span><span class="na">C_SHORT</span><span class="n">$LAYOUT</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">OfInt</span> <span class="no">C_INT</span> <span class="o">=</span> <span class="nc">Constants</span><span class="n">$root</span><span class="o">.</span><span class="na">C_INT</span><span class="n">$LAYOUT</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">OfLong</span> <span class="no">C_LONG</span> <span class="o">=</span> <span class="nc">Constants</span><span class="n">$root</span><span class="o">.</span><span class="na">C_LONG_LONG</span><span class="n">$LAYOUT</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">OfLong</span> <span class="no">C_LONG_LONG</span> <span class="o">=</span> <span class="nc">Constants</span><span class="n">$root</span><span class="o">.</span><span class="na">C_LONG_LONG</span><span class="n">$LAYOUT</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">OfFloat</span> <span class="no">C_FLOAT</span> <span class="o">=</span> <span class="nc">Constants</span><span class="n">$root</span><span class="o">.</span><span class="na">C_FLOAT</span><span class="n">$LAYOUT</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">OfDouble</span> <span class="no">C_DOUBLE</span> <span class="o">=</span> <span class="nc">Constants</span><span class="n">$root</span><span class="o">.</span><span class="na">C_DOUBLE</span><span class="n">$LAYOUT</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">OfAddress</span> <span class="no">C_POINTER</span> <span class="o">=</span> <span class="nc">Constants</span><span class="n">$root</span><span class="o">.</span><span class="na">C_POINTER</span><span class="n">$LAYOUT</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">MethodHandle</span> <span class="n">game_state_handle_new$MH</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="nc">RuntimeHelper</span><span class="o">.</span><span class="na">requireNonNull</span><span class="o">(</span><span class="n">constants</span><span class="err">$</span><span class="mi">0</span><span class="o">.</span><span class="na">game_state_handle_new</span><span class="n">$MH</span><span class="o">,</span><span class="s">"game_state_handle_new"</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">MemoryAddress</span> <span class="nf">game_state_handle_new</span> <span class="o">()</span> <span class="o">{</span>
+        <span class="kt">var</span> <span class="n">mh</span><span class="err">$</span> <span class="o">=</span> <span class="n">game_state_handle_new$MH</span><span class="o">();</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">foreign</span><span class="o">.</span><span class="na">MemoryAddress</span><span class="o">)</span><span class="n">mh</span><span class="err">$</span><span class="o">.</span><span class="na">invokeExact</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Throwable</span> <span class="n">ex</span><span class="err">$</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">AssertionError</span><span class="o">(</span><span class="s">"should not reach here"</span><span class="o">,</span> <span class="n">ex</span><span class="err">$</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div><div class="highlight"><pre class="highlight java"><code><span class="c1">// constants$0.java</span>
+<span class="c1">// Generated by jextract</span>
+
+<span class="kn">package</span> <span class="nn">io.github.skeletonxf.bindings</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.lang.invoke.MethodHandle</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.invoke.VarHandle</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.nio.ByteOrder</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">foreign</span><span class="o">.</span><span class="na">ValueLayout</span><span class="o">.*;</span>
+<span class="kd">class</span> <span class="nc">constants</span><span class="err">$</span><span class="mi">0</span> <span class="o">{</span>
+
+    <span class="kd">static</span> <span class="kd">final</span> <span class="nc">FunctionDescriptor</span> <span class="n">game_state_handle_new$FUNC</span> <span class="o">=</span> <span class="nc">FunctionDescriptor</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="nc">Constants</span><span class="n">$root</span><span class="o">.</span><span class="na">C_POINTER</span><span class="n">$LAYOUT</span><span class="o">);</span>
+    <span class="kd">static</span> <span class="kd">final</span> <span class="nc">MethodHandle</span> <span class="n">game_state_handle_new$MH</span> <span class="o">=</span> <span class="nc">RuntimeHelper</span><span class="o">.</span><span class="na">downcallHandle</span><span class="o">(</span>
+        <span class="s">"game_state_handle_new"</span><span class="o">,</span>
+        <span class="n">constants</span><span class="err">$</span><span class="mi">0</span><span class="o">.</span><span class="na">game_state_handle_new</span><span class="n">$FUNC</span>
+    <span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div><div class="highlight"><pre class="highlight java"><code><span class="c1">// Constants$root.java</span>
+<span class="c1">// Generated by jextract</span>
+
+<span class="kn">package</span> <span class="nn">io.github.skeletonxf.bindings</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.lang.invoke.MethodHandle</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.invoke.VarHandle</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.nio.ByteOrder</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">foreign</span><span class="o">.</span><span class="na">ValueLayout</span><span class="o">.*;</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Constants</span><span class="n">$root</span> <span class="o">{</span>
+
+    <span class="kd">static</span> <span class="kd">final</span>  <span class="nc">OfBoolean</span> <span class="no">C_BOOL</span><span class="n">$LAYOUT</span> <span class="o">=</span> <span class="no">JAVA_BOOLEAN</span><span class="o">;</span>
+    <span class="kd">static</span> <span class="kd">final</span>  <span class="nc">OfByte</span> <span class="no">C_CHAR</span><span class="n">$LAYOUT</span> <span class="o">=</span> <span class="no">JAVA_BYTE</span><span class="o">;</span>
+    <span class="kd">static</span> <span class="kd">final</span>  <span class="nc">OfShort</span> <span class="no">C_SHORT</span><span class="n">$LAYOUT</span> <span class="o">=</span> <span class="no">JAVA_SHORT</span><span class="o">.</span><span class="na">withBitAlignment</span><span class="o">(</span><span class="mi">16</span><span class="o">);</span>
+    <span class="kd">static</span> <span class="kd">final</span>  <span class="nc">OfInt</span> <span class="no">C_INT</span><span class="n">$LAYOUT</span> <span class="o">=</span> <span class="no">JAVA_INT</span><span class="o">.</span><span class="na">withBitAlignment</span><span class="o">(</span><span class="mi">32</span><span class="o">);</span>
+    <span class="kd">static</span> <span class="kd">final</span>  <span class="nc">OfLong</span> <span class="no">C_LONG</span><span class="n">$LAYOUT</span> <span class="o">=</span> <span class="no">JAVA_LONG</span><span class="o">.</span><span class="na">withBitAlignment</span><span class="o">(</span><span class="mi">64</span><span class="o">);</span>
+    <span class="kd">static</span> <span class="kd">final</span>  <span class="nc">OfLong</span> <span class="no">C_LONG_LONG</span><span class="n">$LAYOUT</span> <span class="o">=</span> <span class="no">JAVA_LONG</span><span class="o">.</span><span class="na">withBitAlignment</span><span class="o">(</span><span class="mi">64</span><span class="o">);</span>
+    <span class="kd">static</span> <span class="kd">final</span>  <span class="nc">OfFloat</span> <span class="no">C_FLOAT</span><span class="n">$LAYOUT</span> <span class="o">=</span> <span class="no">JAVA_FLOAT</span><span class="o">.</span><span class="na">withBitAlignment</span><span class="o">(</span><span class="mi">32</span><span class="o">);</span>
+    <span class="kd">static</span> <span class="kd">final</span>  <span class="nc">OfDouble</span> <span class="no">C_DOUBLE</span><span class="n">$LAYOUT</span> <span class="o">=</span> <span class="no">JAVA_DOUBLE</span><span class="o">.</span><span class="na">withBitAlignment</span><span class="o">(</span><span class="mi">64</span><span class="o">);</span>
+    <span class="kd">static</span> <span class="kd">final</span>  <span class="nc">OfAddress</span> <span class="no">C_POINTER</span><span class="n">$LAYOUT</span> <span class="o">=</span> <span class="no">ADDRESS</span><span class="o">.</span><span class="na">withBitAlignment</span><span class="o">(</span><span class="mi">64</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div><div class="highlight"><pre class="highlight java"><code><span class="c1">// RuntimeHelper.java</span>
+<span class="kn">package</span> <span class="nn">io.github.skeletonxf.bindings</span><span class="o">;</span>
+<span class="c1">// Generated by jextract</span>
+
+<span class="kn">import</span> <span class="nn">java.lang.foreign.Addressable</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.Linker</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.FunctionDescriptor</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.GroupLayout</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.SymbolLookup</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.MemoryAddress</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.MemoryLayout</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.MemorySegment</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.MemorySession</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.SegmentAllocator</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.foreign.ValueLayout</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.invoke.MethodHandle</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.invoke.MethodHandles</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.invoke.MethodType</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.File</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.nio.file.Path</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.nio.charset.StandardCharsets</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.Arrays</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.Optional</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.stream.Stream</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">foreign</span><span class="o">.</span><span class="na">Linker</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">foreign</span><span class="o">.</span><span class="na">ValueLayout</span><span class="o">.*;</span>
+
+<span class="kd">final</span> <span class="kd">class</span> <span class="nc">RuntimeHelper</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="nf">RuntimeHelper</span><span class="o">()</span> <span class="o">{}</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="nc">Linker</span> <span class="no">LINKER</span> <span class="o">=</span> <span class="nc">Linker</span><span class="o">.</span><span class="na">nativeLinker</span><span class="o">();</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="nc">ClassLoader</span> <span class="no">LOADER</span> <span class="o">=</span> <span class="nc">RuntimeHelper</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getClassLoader</span><span class="o">();</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="nc">MethodHandles</span><span class="o">.</span><span class="na">Lookup</span> <span class="no">MH_LOOKUP</span> <span class="o">=</span> <span class="nc">MethodHandles</span><span class="o">.</span><span class="na">lookup</span><span class="o">();</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="nc">SymbolLookup</span> <span class="no">SYMBOL_LOOKUP</span><span class="o">;</span>
+
+    <span class="kd">final</span> <span class="kd">static</span> <span class="nc">SegmentAllocator</span> <span class="no">CONSTANT_ALLOCATOR</span> <span class="o">=</span>
+            <span class="o">(</span><span class="n">size</span><span class="o">,</span> <span class="n">align</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="nc">MemorySegment</span><span class="o">.</span><span class="na">allocateNative</span><span class="o">(</span><span class="n">size</span><span class="o">,</span> <span class="n">align</span><span class="o">,</span> <span class="nc">MemorySession</span><span class="o">.</span><span class="na">openImplicit</span><span class="o">());</span>
+
+    <span class="kd">static</span> <span class="o">{</span>
+        <span class="nc">System</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="s">"/home/skeletonxf/Documents/Rust/hnefatafl/target/debug/libhnefatafl.so"</span><span class="o">);</span>
+        <span class="nc">SymbolLookup</span> <span class="n">loaderLookup</span> <span class="o">=</span> <span class="nc">SymbolLookup</span><span class="o">.</span><span class="na">loaderLookup</span><span class="o">();</span>
+        <span class="no">SYMBOL_LOOKUP</span> <span class="o">=</span> <span class="n">name</span> <span class="o">-&gt;</span> <span class="n">loaderLookup</span><span class="o">.</span><span class="na">lookup</span><span class="o">(</span><span class="n">name</span><span class="o">).</span><span class="na">or</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="no">LINKER</span><span class="o">.</span><span class="na">defaultLookup</span><span class="o">().</span><span class="na">lookup</span><span class="o">(</span><span class="n">name</span><span class="o">));</span>
+    <span class="o">}</span>
+
+    <span class="kd">static</span> <span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="no">T</span> <span class="nf">requireNonNull</span><span class="o">(</span><span class="no">T</span> <span class="n">obj</span><span class="o">,</span> <span class="nc">String</span> <span class="n">symbolName</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">obj</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">UnsatisfiedLinkError</span><span class="o">(</span><span class="s">"unresolved symbol: "</span> <span class="o">+</span> <span class="n">symbolName</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="nc">SegmentAllocator</span> <span class="no">THROWING_ALLOCATOR</span> <span class="o">=</span> <span class="o">(</span><span class="n">x</span><span class="o">,</span> <span class="n">y</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span> <span class="k">throw</span> <span class="k">new</span> <span class="nc">AssertionError</span><span class="o">(</span><span class="s">"should not reach here"</span><span class="o">);</span> <span class="o">};</span>
+
+    <span class="kd">static</span> <span class="kd">final</span> <span class="nc">MemorySegment</span> <span class="nf">lookupGlobalVariable</span><span class="o">(</span><span class="nc">String</span> <span class="n">name</span><span class="o">,</span> <span class="nc">MemoryLayout</span> <span class="n">layout</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="no">SYMBOL_LOOKUP</span><span class="o">.</span><span class="na">lookup</span><span class="o">(</span><span class="n">name</span><span class="o">).</span><span class="na">map</span><span class="o">(</span><span class="n">symbol</span> <span class="o">-&gt;</span> <span class="nc">MemorySegment</span><span class="o">.</span><span class="na">ofAddress</span><span class="o">(</span><span class="n">symbol</span><span class="o">.</span><span class="na">address</span><span class="o">(),</span> <span class="n">layout</span><span class="o">.</span><span class="na">byteSize</span><span class="o">(),</span> <span class="nc">MemorySession</span><span class="o">.</span><span class="na">openShared</span><span class="o">())).</span><span class="na">orElse</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">static</span> <span class="kd">final</span> <span class="nc">MethodHandle</span> <span class="nf">downcallHandle</span><span class="o">(</span><span class="nc">String</span> <span class="n">name</span><span class="o">,</span> <span class="nc">FunctionDescriptor</span> <span class="n">fdesc</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="no">SYMBOL_LOOKUP</span><span class="o">.</span><span class="na">lookup</span><span class="o">(</span><span class="n">name</span><span class="o">).</span>
+                <span class="n">map</span><span class="o">(</span><span class="n">addr</span> <span class="o">-&gt;</span> <span class="no">LINKER</span><span class="o">.</span><span class="na">downcallHandle</span><span class="o">(</span><span class="n">addr</span><span class="o">,</span> <span class="n">fdesc</span><span class="o">)).</span>
+                <span class="n">orElse</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">static</span> <span class="kd">final</span> <span class="nc">MethodHandle</span> <span class="nf">downcallHandle</span><span class="o">(</span><span class="nc">FunctionDescriptor</span> <span class="n">fdesc</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="no">LINKER</span><span class="o">.</span><span class="na">downcallHandle</span><span class="o">(</span><span class="n">fdesc</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">static</span> <span class="kd">final</span> <span class="nc">MethodHandle</span> <span class="nf">downcallHandleVariadic</span><span class="o">(</span><span class="nc">String</span> <span class="n">name</span><span class="o">,</span> <span class="nc">FunctionDescriptor</span> <span class="n">fdesc</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="no">SYMBOL_LOOKUP</span><span class="o">.</span><span class="na">lookup</span><span class="o">(</span><span class="n">name</span><span class="o">).</span>
+                <span class="n">map</span><span class="o">(</span><span class="n">addr</span> <span class="o">-&gt;</span> <span class="nc">VarargsInvoker</span><span class="o">.</span><span class="na">make</span><span class="o">(</span><span class="n">addr</span><span class="o">,</span> <span class="n">fdesc</span><span class="o">)).</span>
+                <span class="n">orElse</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">static</span> <span class="kd">final</span> <span class="o">&lt;</span><span class="no">Z</span><span class="o">&gt;</span> <span class="nc">MemorySegment</span> <span class="nf">upcallStub</span><span class="o">(</span><span class="nc">Class</span><span class="o">&lt;</span><span class="no">Z</span><span class="o">&gt;</span> <span class="n">fi</span><span class="o">,</span> <span class="no">Z</span> <span class="n">z</span><span class="o">,</span> <span class="nc">FunctionDescriptor</span> <span class="n">fdesc</span><span class="o">,</span> <span class="nc">MemorySession</span> <span class="n">session</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="nc">MethodHandle</span> <span class="n">handle</span> <span class="o">=</span> <span class="no">MH_LOOKUP</span><span class="o">.</span><span class="na">findVirtual</span><span class="o">(</span><span class="n">fi</span><span class="o">,</span> <span class="s">"apply"</span><span class="o">,</span> <span class="nc">Linker</span><span class="o">.</span><span class="na">upcallType</span><span class="o">(</span><span class="n">fdesc</span><span class="o">));</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="n">handle</span><span class="o">.</span><span class="na">bindTo</span><span class="o">(</span><span class="n">z</span><span class="o">);</span>
+            <span class="k">return</span> <span class="no">LINKER</span><span class="o">.</span><span class="na">upcallStub</span><span class="o">(</span><span class="n">handle</span><span class="o">,</span> <span class="n">fdesc</span><span class="o">,</span> <span class="n">session</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Throwable</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">AssertionError</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="kd">static</span> <span class="nc">MemorySegment</span> <span class="nf">asArray</span><span class="o">(</span><span class="nc">MemoryAddress</span> <span class="n">addr</span><span class="o">,</span> <span class="nc">MemoryLayout</span> <span class="n">layout</span><span class="o">,</span> <span class="kt">int</span> <span class="n">numElements</span><span class="o">,</span> <span class="nc">MemorySession</span> <span class="n">session</span><span class="o">)</span> <span class="o">{</span>
+         <span class="k">return</span> <span class="nc">MemorySegment</span><span class="o">.</span><span class="na">ofAddress</span><span class="o">(</span><span class="n">addr</span><span class="o">,</span> <span class="n">numElements</span> <span class="o">*</span> <span class="n">layout</span><span class="o">.</span><span class="na">byteSize</span><span class="o">(),</span> <span class="n">session</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="c1">// Internals only below this point</span>
+
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">VarargsInvoker</span> <span class="o">{</span>
+        <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="nc">MethodHandle</span> <span class="no">INVOKE_MH</span><span class="o">;</span>
+        <span class="kd">private</span> <span class="kd">final</span> <span class="nc">MemorySegment</span> <span class="n">symbol</span><span class="o">;</span>
+        <span class="kd">private</span> <span class="kd">final</span> <span class="nc">FunctionDescriptor</span> <span class="n">function</span><span class="o">;</span>
+
+        <span class="kd">private</span> <span class="nf">VarargsInvoker</span><span class="o">(</span><span class="nc">MemorySegment</span> <span class="n">symbol</span><span class="o">,</span> <span class="nc">FunctionDescriptor</span> <span class="n">function</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">this</span><span class="o">.</span><span class="na">symbol</span> <span class="o">=</span> <span class="n">symbol</span><span class="o">;</span>
+            <span class="k">this</span><span class="o">.</span><span class="na">function</span> <span class="o">=</span> <span class="n">function</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="kd">static</span> <span class="o">{</span>
+            <span class="k">try</span> <span class="o">{</span>
+                <span class="no">INVOKE_MH</span> <span class="o">=</span> <span class="nc">MethodHandles</span><span class="o">.</span><span class="na">lookup</span><span class="o">().</span><span class="na">findVirtual</span><span class="o">(</span><span class="nc">VarargsInvoker</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">"invoke"</span><span class="o">,</span> <span class="nc">MethodType</span><span class="o">.</span><span class="na">methodType</span><span class="o">(</span><span class="nc">Object</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="nc">SegmentAllocator</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="nc">Object</span><span class="o">[].</span><span class="na">class</span><span class="o">));</span>
+            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">ReflectiveOperationException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">e</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="kd">static</span> <span class="nc">MethodHandle</span> <span class="nf">make</span><span class="o">(</span><span class="nc">MemorySegment</span> <span class="n">symbol</span><span class="o">,</span> <span class="nc">FunctionDescriptor</span> <span class="n">function</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">VarargsInvoker</span> <span class="n">invoker</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">VarargsInvoker</span><span class="o">(</span><span class="n">symbol</span><span class="o">,</span> <span class="n">function</span><span class="o">);</span>
+            <span class="nc">MethodHandle</span> <span class="n">handle</span> <span class="o">=</span> <span class="no">INVOKE_MH</span><span class="o">.</span><span class="na">bindTo</span><span class="o">(</span><span class="n">invoker</span><span class="o">).</span><span class="na">asCollector</span><span class="o">(</span><span class="nc">Object</span><span class="o">[].</span><span class="na">class</span><span class="o">,</span> <span class="n">function</span><span class="o">.</span><span class="na">argumentLayouts</span><span class="o">().</span><span class="na">size</span><span class="o">()</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+            <span class="nc">MethodType</span> <span class="n">mtype</span> <span class="o">=</span> <span class="nc">MethodType</span><span class="o">.</span><span class="na">methodType</span><span class="o">(</span><span class="n">function</span><span class="o">.</span><span class="na">returnLayout</span><span class="o">().</span><span class="na">isPresent</span><span class="o">()</span> <span class="o">?</span> <span class="n">carrier</span><span class="o">(</span><span class="n">function</span><span class="o">.</span><span class="na">returnLayout</span><span class="o">().</span><span class="na">get</span><span class="o">(),</span> <span class="kc">true</span><span class="o">)</span> <span class="o">:</span> <span class="kt">void</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+            <span class="k">for</span> <span class="o">(</span><span class="nc">MemoryLayout</span> <span class="n">layout</span> <span class="o">:</span> <span class="n">function</span><span class="o">.</span><span class="na">argumentLayouts</span><span class="o">())</span> <span class="o">{</span>
+                <span class="n">mtype</span> <span class="o">=</span> <span class="n">mtype</span><span class="o">.</span><span class="na">appendParameterTypes</span><span class="o">(</span><span class="n">carrier</span><span class="o">(</span><span class="n">layout</span><span class="o">,</span> <span class="kc">false</span><span class="o">));</span>
+            <span class="o">}</span>
+            <span class="n">mtype</span> <span class="o">=</span> <span class="n">mtype</span><span class="o">.</span><span class="na">appendParameterTypes</span><span class="o">(</span><span class="nc">Object</span><span class="o">[].</span><span class="na">class</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">mtype</span><span class="o">.</span><span class="na">returnType</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="nc">MemorySegment</span><span class="o">.</span><span class="na">class</span><span class="o">))</span> <span class="o">{</span>
+                <span class="n">mtype</span> <span class="o">=</span> <span class="n">mtype</span><span class="o">.</span><span class="na">insertParameterTypes</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="nc">SegmentAllocator</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="n">handle</span> <span class="o">=</span> <span class="nc">MethodHandles</span><span class="o">.</span><span class="na">insertArguments</span><span class="o">(</span><span class="n">handle</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="no">THROWING_ALLOCATOR</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="n">handle</span><span class="o">.</span><span class="na">asType</span><span class="o">(</span><span class="n">mtype</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="kd">static</span> <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">carrier</span><span class="o">(</span><span class="nc">MemoryLayout</span> <span class="n">layout</span><span class="o">,</span> <span class="kt">boolean</span> <span class="n">ret</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">layout</span> <span class="k">instanceof</span> <span class="nc">ValueLayout</span> <span class="n">valueLayout</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="o">(</span><span class="n">ret</span> <span class="o">||</span> <span class="n">valueLayout</span><span class="o">.</span><span class="na">carrier</span><span class="o">()</span> <span class="o">!=</span> <span class="nc">MemoryAddress</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">?</span>
+                        <span class="n">valueLayout</span><span class="o">.</span><span class="na">carrier</span><span class="o">()</span> <span class="o">:</span> <span class="nc">Addressable</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">layout</span> <span class="k">instanceof</span> <span class="nc">GroupLayout</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="nc">MemorySegment</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">AssertionError</span><span class="o">(</span><span class="s">"Cannot get here!"</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="kd">private</span> <span class="nc">Object</span> <span class="nf">invoke</span><span class="o">(</span><span class="nc">SegmentAllocator</span> <span class="n">allocator</span><span class="o">,</span> <span class="nc">Object</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">Throwable</span> <span class="o">{</span>
+            <span class="c1">// one trailing Object[]</span>
+            <span class="kt">int</span> <span class="n">nNamedArgs</span> <span class="o">=</span> <span class="n">function</span><span class="o">.</span><span class="na">argumentLayouts</span><span class="o">().</span><span class="na">size</span><span class="o">();</span>
+            <span class="k">assert</span><span class="o">(</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">==</span> <span class="n">nNamedArgs</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+            <span class="c1">// The last argument is the array of vararg collector</span>
+            <span class="nc">Object</span><span class="o">[]</span> <span class="n">unnamedArgs</span> <span class="o">=</span> <span class="o">(</span><span class="nc">Object</span><span class="o">[])</span> <span class="n">args</span><span class="o">[</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">];</span>
+
+            <span class="kt">int</span> <span class="n">argsCount</span> <span class="o">=</span> <span class="n">nNamedArgs</span> <span class="o">+</span> <span class="n">unnamedArgs</span><span class="o">.</span><span class="na">length</span><span class="o">;</span>
+            <span class="nc">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">argTypes</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">&lt;?&gt;[</span><span class="n">argsCount</span><span class="o">];</span>
+            <span class="nc">MemoryLayout</span><span class="o">[]</span> <span class="n">argLayouts</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">MemoryLayout</span><span class="o">[</span><span class="n">nNamedArgs</span> <span class="o">+</span> <span class="n">unnamedArgs</span><span class="o">.</span><span class="na">length</span><span class="o">];</span>
+
+            <span class="kt">int</span> <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="n">nNamedArgs</span><span class="o">;</span> <span class="n">pos</span><span class="o">++)</span> <span class="o">{</span>
+                <span class="n">argLayouts</span><span class="o">[</span><span class="n">pos</span><span class="o">]</span> <span class="o">=</span> <span class="n">function</span><span class="o">.</span><span class="na">argumentLayouts</span><span class="o">().</span><span class="na">get</span><span class="o">(</span><span class="n">pos</span><span class="o">);</span>
+            <span class="o">}</span>
+
+            <span class="k">assert</span> <span class="n">pos</span> <span class="o">==</span> <span class="n">nNamedArgs</span><span class="o">;</span>
+            <span class="k">for</span> <span class="o">(</span><span class="nc">Object</span> <span class="nl">o:</span> <span class="n">unnamedArgs</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">argLayouts</span><span class="o">[</span><span class="n">pos</span><span class="o">]</span> <span class="o">=</span> <span class="n">variadicLayout</span><span class="o">(</span><span class="n">normalize</span><span class="o">(</span><span class="n">o</span><span class="o">.</span><span class="na">getClass</span><span class="o">()));</span>
+                <span class="n">pos</span><span class="o">++;</span>
+            <span class="o">}</span>
+            <span class="k">assert</span> <span class="n">pos</span> <span class="o">==</span> <span class="n">argsCount</span><span class="o">;</span>
+
+            <span class="nc">FunctionDescriptor</span> <span class="n">f</span> <span class="o">=</span> <span class="o">(</span><span class="n">function</span><span class="o">.</span><span class="na">returnLayout</span><span class="o">().</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">?</span>
+                    <span class="nc">FunctionDescriptor</span><span class="o">.</span><span class="na">ofVoid</span><span class="o">(</span><span class="n">argLayouts</span><span class="o">)</span> <span class="o">:</span>
+                    <span class="nc">FunctionDescriptor</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">function</span><span class="o">.</span><span class="na">returnLayout</span><span class="o">().</span><span class="na">get</span><span class="o">(),</span> <span class="n">argLayouts</span><span class="o">);</span>
+            <span class="nc">MethodHandle</span> <span class="n">mh</span> <span class="o">=</span> <span class="no">LINKER</span><span class="o">.</span><span class="na">downcallHandle</span><span class="o">(</span><span class="n">symbol</span><span class="o">,</span> <span class="n">f</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">mh</span><span class="o">.</span><span class="na">type</span><span class="o">().</span><span class="na">returnType</span><span class="o">()</span> <span class="o">==</span> <span class="nc">MemorySegment</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">mh</span> <span class="o">=</span> <span class="n">mh</span><span class="o">.</span><span class="na">bindTo</span><span class="o">(</span><span class="n">allocator</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="c1">// flatten argument list so that it can be passed to an asSpreader MH</span>
+            <span class="nc">Object</span><span class="o">[]</span> <span class="n">allArgs</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[</span><span class="n">nNamedArgs</span> <span class="o">+</span> <span class="n">unnamedArgs</span><span class="o">.</span><span class="na">length</span><span class="o">];</span>
+            <span class="nc">System</span><span class="o">.</span><span class="na">arraycopy</span><span class="o">(</span><span class="n">args</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="n">allArgs</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="n">nNamedArgs</span><span class="o">);</span>
+            <span class="nc">System</span><span class="o">.</span><span class="na">arraycopy</span><span class="o">(</span><span class="n">unnamedArgs</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="n">allArgs</span><span class="o">,</span> <span class="n">nNamedArgs</span><span class="o">,</span> <span class="n">unnamedArgs</span><span class="o">.</span><span class="na">length</span><span class="o">);</span>
+
+            <span class="k">return</span> <span class="n">mh</span><span class="o">.</span><span class="na">asSpreader</span><span class="o">(</span><span class="nc">Object</span><span class="o">[].</span><span class="na">class</span><span class="o">,</span> <span class="n">argsCount</span><span class="o">).</span><span class="na">invoke</span><span class="o">(</span><span class="n">allArgs</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="kd">private</span> <span class="kd">static</span> <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">unboxIfNeeded</span><span class="o">(</span><span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">clazz</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">==</span> <span class="nc">Boolean</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">boolean</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">==</span> <span class="nc">Void</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">void</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">==</span> <span class="nc">Byte</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">byte</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">==</span> <span class="nc">Character</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">char</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">==</span> <span class="nc">Short</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">short</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">==</span> <span class="nc">Integer</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">int</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">==</span> <span class="nc">Long</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">long</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">==</span> <span class="nc">Float</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">float</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">==</span> <span class="nc">Double</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">double</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="n">clazz</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="kd">private</span> <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">promote</span><span class="o">(</span><span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">c</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">c</span> <span class="o">==</span> <span class="kt">byte</span><span class="o">.</span><span class="na">class</span> <span class="o">||</span> <span class="n">c</span> <span class="o">==</span> <span class="kt">char</span><span class="o">.</span><span class="na">class</span> <span class="o">||</span> <span class="n">c</span> <span class="o">==</span> <span class="kt">short</span><span class="o">.</span><span class="na">class</span> <span class="o">||</span> <span class="n">c</span> <span class="o">==</span> <span class="kt">int</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">long</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c</span> <span class="o">==</span> <span class="kt">float</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kt">double</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="n">c</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="kd">private</span> <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">normalize</span><span class="o">(</span><span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">c</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">unboxIfNeeded</span><span class="o">(</span><span class="n">c</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">isPrimitive</span><span class="o">())</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="nf">promote</span><span class="o">(</span><span class="n">c</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">if</span> <span class="o">(</span><span class="nc">MemoryAddress</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">c</span><span class="o">))</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="nc">MemoryAddress</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span>
+            <span class="k">if</span> <span class="o">(</span><span class="nc">MemorySegment</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">c</span><span class="o">))</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="nc">MemorySegment</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+            <span class="o">}</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="s">"Invalid type for ABI: "</span> <span class="o">+</span> <span class="n">c</span><span class="o">.</span><span class="na">getTypeName</span><span class="o">());</span>
+        <span class="o">}</span>
+
+        <span class="kd">private</span> <span class="nc">MemoryLayout</span> <span class="nf">variadicLayout</span><span class="o">(</span><span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">c</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">c</span> <span class="o">==</span> <span class="kt">long</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="no">JAVA_LONG</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c</span> <span class="o">==</span> <span class="kt">double</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="no">JAVA_DOUBLE</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="nc">MemoryAddress</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">c</span><span class="o">))</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="no">ADDRESS</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="s">"Unhandled variadic argument class: "</span> <span class="o">+</span> <span class="n">c</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>Looks like I can just call <code>bindings_h.game_state_handle_new()</code> and that invokes the Rust code and gives me a <code>java.lang.foreign.MemoryAddress</code> referencing the data the Rust code allocated that is my game state (handle). So far so good.</p>
+
+<h2>Doing things with the GameStateHandle pointer safely</h2>
+
+<p>The GameStateHandle pointer the constructor returns is completely useless without methods for the JVM app to call. However, this is where the challenges start, because Rust has leaked the GameStateHandle it allocated on the heap and let the JVM manage it. Therefore, for the JVM app to invoke a method on this pointer, Rust has to cast the pointer back to a Rust reference.</p>
+
+<p>Rust has pervasive rules about references. You can have one mutable, exclusive reference, or many immutable, shared references. This can be concisely put as &lsquo;Aliasing XOR Mutability&rsquo;. Unlike Java and Kotlin, where an immutable list of elements may only be shallowly immutable (you can still mutate items inside an immutable list), this mutability in Rust is deep. A <code>&amp;Vec&lt;MyMutableStruct&gt;</code> doesn&rsquo;t <em>let</em> you call methods of <code>MyMutableStruct</code> that require <code>&amp;mut</code> references.</p>
+
+<p>Java, and Kotlin, do not enforce &lsquo;Aliasing XOR Mutability&rsquo;, they don&rsquo;t care how many references you have to something, you can <em>try</em> to mutate it from 10 different threads all at once even if the docs on the class say it&rsquo;s not thread safe. Of course, there are Java and Kotlin APIs for mutating things from different threads in a &lsquo;safe&rsquo; way, and we want to achieve the same thing here.</p>
+
+<p>To summarise, this kind of innocuous (and not thread safe) class in Kotlin takes a <a href="https://rust-unofficial.github.io/too-many-lists/">whole book to explain how to do safely in Rust</a>.</p>
+<div class="highlight"><pre class="highlight kotlin"><code><span class="kd">data class</span> <span class="nc">DoubleLinkedList</span><span class="p">(</span>
+    <span class="kd">var</span> <span class="py">parent</span><span class="p">:</span> <span class="nc">DoubleLinkedList</span><span class="p">?,</span>
+    <span class="kd">var</span> <span class="py">child</span><span class="p">:</span> <span class="nc">DoubleLinkedList</span><span class="p">?,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>I initially wrote a method like this:</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="nd">#[derive(Clone,</span> <span class="nd">Debug)]</span>
+<span class="k">enum</span> <span class="n">FFIError</span> <span class="p">{</span>
+    <span class="n">NullPointer</span><span class="p">,</span>
+    <span class="n">Panic</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">unsafe</span> <span class="k">fn</span> <span class="n">with_handle</span><span class="o">&lt;</span><span class="n">F</span><span class="p">,</span> <span class="n">R</span><span class="o">&gt;</span><span class="p">(</span><span class="n">handle</span><span class="p">:</span> <span class="o">*</span><span class="k">mut</span> <span class="n">GameStateHandle</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="n">F</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="n">R</span><span class="p">,</span> <span class="n">FFIError</span><span class="o">&gt;</span>
+<span class="k">where</span>
+    <span class="n">F</span><span class="p">:</span> <span class="nf">FnOnce</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span> <span class="n">GameStateHandle</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="n">R</span> <span class="o">+</span> <span class="nn">std</span><span class="p">::</span><span class="nn">panic</span><span class="p">::</span><span class="n">UnwindSafe</span><span class="p">,</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="n">handle</span><span class="nf">.is_null</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">Err</span><span class="p">(</span><span class="nn">FFIError</span><span class="p">::</span><span class="n">NullPointer</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nn">std</span><span class="p">::</span><span class="nn">panic</span><span class="p">::</span><span class="nf">catch_unwind</span><span class="p">(||</span> <span class="p">{</span>
+        <span class="c1">// SAFETY: We only give out valid pointers, and are trusting that</span>
+        <span class="c1">//  the Kotlin code does not invalidate them.</span>
+        <span class="k">let</span> <span class="n">handle</span> <span class="o">=</span> <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="o">&amp;</span><span class="k">mut</span> <span class="o">*</span><span class="n">handle</span>
+        <span class="p">};</span>
+        <span class="nf">op</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+    <span class="p">})</span><span class="nf">.map_err</span><span class="p">(|</span><span class="n">_</span><span class="p">|</span> <span class="nn">FFIError</span><span class="p">::</span><span class="n">Panic</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="cd">/// Prints the game state</span>
+<span class="nd">#[no_mangle]</span>
+<span class="k">pub</span> <span class="k">unsafe</span> <span class="k">extern</span> <span class="k">fn</span> <span class="nf">game_state_handle_debug</span><span class="p">(</span><span class="n">handle</span><span class="p">:</span> <span class="o">*</span><span class="k">mut</span> <span class="n">GameStateHandle</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="k">let</span> <span class="nf">Err</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="o">=</span> <span class="nf">with_handle</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="p">|</span><span class="n">handle</span><span class="p">|</span> <span class="p">{</span>
+        <span class="nd">println!</span><span class="p">(</span><span class="s">"Game state handle:</span><span class="se">\n</span><span class="s">{:?}"</span><span class="p">,</span> <span class="n">handle</span><span class="p">);</span>
+    <span class="p">})</span> <span class="p">{</span>
+        <span class="nd">eprint!</span><span class="p">(</span><span class="s">"Error calling game_state_handle_debug: {:?}"</span><span class="p">,</span> <span class="n">error</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div><div class="highlight"><pre class="highlight c"><code><span class="c1">// autogenerated C header</span>
+<span class="kt">void</span> <span class="nf">game_state_handle_debug</span><span class="p">(</span><span class="k">const</span> <span class="k">struct</span> <span class="n">GameStateHandle</span> <span class="o">*</span><span class="n">handle</span><span class="p">);</span>
+</code></pre></div>
+<p>Since <a href="https://github.com/rust-lang/rust/issues/74990">C-unwind</a> isn&rsquo;t stable at the time of writing, we can&rsquo;t yet write (stable) code that intentionally unwinds past the Rust FFI boundary. Catching any bugs in the Rust code before returning to Kotlin ensures we can return <em>something</em> sensible in such a case.</p>
+
+<p>Although the <code>with_handle</code> encapsulates a lot of the FFI boilerplate for the debug method, there&rsquo;s still the issue that nothing is stopping us from calling <code>game_state_handle_debug</code> at the same time on two different threads. That would be an aliased and mutable reference, and then</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="k">let</span> <span class="n">handle</span> <span class="o">=</span> <span class="k">unsafe</span> <span class="p">{</span>
+    <span class="o">&amp;</span><span class="k">mut</span> <span class="o">*</span><span class="n">handle</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>will create two <code>&amp;mut</code> references to the <code>GameStateHandle</code>, which is undefined behaviour. I could just promise not to do that from the Kotlin side, but there&rsquo;s no compiler checks on the Kotlin side, so it&rsquo;s not ideal. Kotlin could also create a <em>wrong</em> pointer and call the <code>game_state_handle_debug</code> method, which would also be undefined behaviour, but nothing can really be done about that and that&rsquo;s at least much harder to do by accident.</p>
+
+<p>After some research, I eventually came across a solution. The same way one would rewrite that <code>DoubleLinkedList</code> in Kotlin to add in thread safety can be used on the Rust side.</p>
+<div class="highlight"><pre class="highlight kotlin"><code><span class="kd">data class</span> <span class="nc">DoubleLinkedList</span><span class="p">(</span>
+    <span class="k">private</span> <span class="kd">var</span> <span class="py">parent</span><span class="p">:</span> <span class="nc">DoubleLinkedList</span><span class="p">?,</span>
+    <span class="k">private</span> <span class="kd">var</span> <span class="py">child</span><span class="p">:</span> <span class="nc">DoubleLinkedList</span><span class="p">?,</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">mutex</span><span class="p">:</span> <span class="nc">Mutex</span><span class="p">,</span>
+<span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// methods and implementation not included, the important bit is all mutation</span>
+    <span class="c1">// is done through the critical section of the mutex's lock, which ensures</span>
+    <span class="c1">// modifications to the linked list are properly synchronised across multiple</span>
+    <span class="c1">// threads</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Adding in a Mutex to the <code>GameStateHandle</code> lets us tweak <code>with_handle</code> so that it doesn&rsquo;t construct a <code>&amp;mut GameStateHandle</code>.</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="nd">#[derive(Debug)]</span>
+<span class="k">pub</span> <span class="k">struct</span> <span class="n">GameStateHandle</span> <span class="p">{</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">Mutex</span><span class="o">&lt;</span><span class="n">GameState</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="cd">/// Takes an (optionally) aliased handle to the game state, unlocks the mutex and performs</span>
+<span class="cd">/// and operation with a non aliased mutable reference to the game state, returning the</span>
+<span class="cd">/// result of the operation or an error if there was a failure with the FFI.</span>
+<span class="k">fn</span> <span class="n">with_handle</span><span class="o">&lt;</span><span class="n">F</span><span class="p">,</span> <span class="n">R</span><span class="o">&gt;</span><span class="p">(</span><span class="n">handle</span><span class="p">:</span> <span class="o">*</span><span class="k">const</span> <span class="n">GameStateHandle</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="n">F</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="n">R</span><span class="p">,</span> <span class="n">FFIError</span><span class="o">&gt;</span>
+<span class="k">where</span>
+    <span class="n">F</span><span class="p">:</span> <span class="nf">FnOnce</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span> <span class="n">GameState</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="n">R</span> <span class="o">+</span> <span class="nn">std</span><span class="p">::</span><span class="nn">panic</span><span class="p">::</span><span class="n">UnwindSafe</span><span class="p">,</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="n">handle</span><span class="nf">.is_null</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">Err</span><span class="p">(</span><span class="nn">FFIError</span><span class="p">::</span><span class="n">NullPointer</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nn">std</span><span class="p">::</span><span class="nn">panic</span><span class="p">::</span><span class="nf">catch_unwind</span><span class="p">(||</span> <span class="p">{</span>
+        <span class="c1">// SAFETY: We only give out valid pointers, and are trusting that</span>
+        <span class="c1">//  the Kotlin code does not invalidate them.</span>
+        <span class="k">let</span> <span class="n">handle</span> <span class="o">=</span> <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="o">&amp;</span> <span class="o">*</span><span class="n">handle</span>
+        <span class="p">};</span>
+        <span class="c1">// Since the Kotlin side can freely alias as much as it likes, we put</span>
+        <span class="c1">// the aliased handle around a Mutex so we can ensure no aliasing for</span>
+        <span class="c1">// the actual game state</span>
+        <span class="k">let</span> <span class="k">mut</span> <span class="n">guard</span> <span class="o">=</span> <span class="k">match</span> <span class="n">handle</span><span class="py">.state</span><span class="nf">.lock</span><span class="p">()</span> <span class="p">{</span>
+            <span class="nf">Ok</span><span class="p">(</span><span class="n">guard</span><span class="p">)</span> <span class="k">=&gt;</span> <span class="n">guard</span><span class="p">,</span>
+            <span class="nf">Err</span><span class="p">(</span><span class="n">poison_error</span><span class="p">)</span> <span class="k">=&gt;</span> <span class="p">{</span>
+                <span class="nd">eprintln!</span><span class="p">(</span><span class="s">"Poisoned mutex: {}"</span><span class="p">,</span> <span class="n">poison_error</span><span class="p">);</span>
+                <span class="n">poison_error</span><span class="nf">.into_inner</span><span class="p">()</span>
+            <span class="p">},</span>
+        <span class="p">};</span>
+        <span class="nf">op</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span> <span class="n">guard</span><span class="p">)</span>
+        <span class="c1">// drop mutex guard</span>
+    <span class="p">})</span><span class="nf">.map_err</span><span class="p">(|</span><span class="n">_</span><span class="p">|</span> <span class="nn">FFIError</span><span class="p">::</span><span class="n">Panic</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="cd">/// Prints the game state</span>
+<span class="nd">#[no_mangle]</span>
+<span class="k">pub</span> <span class="k">extern</span> <span class="k">fn</span> <span class="nf">game_state_handle_debug</span><span class="p">(</span><span class="n">handle</span><span class="p">:</span> <span class="o">*</span><span class="k">const</span> <span class="n">GameStateHandle</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="k">let</span> <span class="nf">Err</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="o">=</span> <span class="nf">with_handle</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="p">|</span><span class="n">handle</span><span class="p">|</span> <span class="p">{</span>
+        <span class="nd">println!</span><span class="p">(</span><span class="s">"Game state handle:</span><span class="se">\n</span><span class="s">{:?}"</span><span class="p">,</span> <span class="n">handle</span><span class="p">);</span>
+    <span class="p">})</span> <span class="p">{</span>
+        <span class="nd">eprint!</span><span class="p">(</span><span class="s">"Error calling game_state_handle_debug: {:?}"</span><span class="p">,</span> <span class="n">error</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Now, if two Kotlin threads call <code>game_state_handle_debug</code> at the same time,</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="k">let</span> <span class="n">handle</span> <span class="o">=</span> <span class="k">unsafe</span> <span class="p">{</span>
+    <span class="o">&amp;</span> <span class="o">*</span><span class="n">handle</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>will construct two shared references to the <code>GameStateHandle</code> (which is safe because they&rsquo;re not mutable), and one of them will wait on acquiring the mutex guard that gives access to a <code>&amp;mut GameState</code>.</p>
+
+<p>There might be less heavy handed solutions than full blown synchronisation with a Mutex, but for a type I&rsquo;m not intending to have a lot of access from multiple threads at once, the overhead should be pretty minor.</p>
+
+<p>Unfortunately, while this works great for methods, at some point I also want to destroy the game state so I can start a new game.</p>
+
+<h2>Cleaning up</h2>
+
+<p>The Rust side of this is straightforward just like for the constructor, the challenge is again enforcing Aliasing XOR Mutability.</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="cd">/// Destroys the data owned by the pointer</span>
+<span class="cd">/// The caller is responsible for ensuring there are no aliased references</span>
+<span class="cd">/// elsewhere in the program</span>
+<span class="nd">#[no_mangle]</span>
+<span class="k">pub</span> <span class="k">unsafe</span> <span class="k">extern</span> <span class="k">fn</span> <span class="nf">game_state_handle_destroy</span><span class="p">(</span><span class="n">handle</span><span class="p">:</span> <span class="o">*</span><span class="k">mut</span> <span class="n">GameStateHandle</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="n">handle</span><span class="nf">.is_null</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="nn">std</span><span class="p">::</span><span class="nn">mem</span><span class="p">::</span><span class="nf">drop</span><span class="p">(</span><span class="k">unsafe</span> <span class="p">{</span>
+        <span class="nn">Box</span><span class="p">::</span><span class="nf">from_raw</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+    <span class="p">});</span>
+    <span class="nn">std</span><span class="p">::</span><span class="nn">mem</span><span class="p">::</span><span class="nf">drop</span><span class="p">(</span><span class="nn">Box</span><span class="p">::</span><span class="nf">from_raw</span><span class="p">(</span><span class="n">handle</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div><div class="highlight"><pre class="highlight c"><code><span class="c1">// autogenerated C header</span>
+<span class="kt">void</span> <span class="nf">game_state_handle_destroy</span><span class="p">(</span><span class="k">struct</span> <span class="n">GameStateHandle</span> <span class="o">*</span><span class="n">handle</span><span class="p">);</span>
+</code></pre></div>
+<p>To reclaim the memory from the JVM and drop the <code>GameStateHandle</code>, we need a <code>*mut GameStateHandle</code> pointer. There&rsquo;s two related undefined behaviour landmines here, double frees and freeing the GameStateHandle while still holding references to it.</p>
+
+<p>I don&rsquo;t think there is much I can do about these issues on the Rust side, so we&rsquo;ll leave Rust with <code>game_state_handle_destroy</code> as an unsafe function and go look at what we can do on the Kotlin side.</p>
+<div class="highlight"><pre class="highlight kotlin"><code><span class="kd">interface</span> <span class="nc">GameState</span> <span class="p">{</span>
+    <span class="k">fun</span> <span class="nf">debug</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">Bridge</span> <span class="p">{</span>
+    <span class="k">fun</span> <span class="nf">useHandle</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nc">GameStateHandle</span><span class="p">().</span><span class="nf">use</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="nf">debug</span><span class="p">()</span> <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">class</span> <span class="nc">GameStateHandle</span> <span class="k">private</span> <span class="k">constructor</span><span class="p">(</span>
+        <span class="k">private</span> <span class="kd">val</span> <span class="py">handle</span><span class="p">:</span> <span class="nc">MemoryAddress</span>
+    <span class="p">):</span> <span class="nc">Closeable</span><span class="p">,</span> <span class="nc">GameState</span> <span class="p">{</span>
+        <span class="k">constructor</span><span class="p">()</span> <span class="p">:</span> <span class="k">this</span><span class="p">(</span><span class="n">bindings_h</span><span class="p">.</span><span class="nf">game_state_handle_new</span><span class="p">())</span>
+
+        <span class="k">override</span> <span class="k">fun</span> <span class="nf">debug</span><span class="p">()</span> <span class="p">{</span>
+            <span class="n">bindings_h</span><span class="p">.</span><span class="nf">game_state_handle_debug</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="k">override</span> <span class="k">fun</span> <span class="nf">close</span><span class="p">()</span> <span class="p">{</span>
+            <span class="n">bindings_h</span><span class="p">.</span><span class="nf">game_state_handle_destroy</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>I initially wrote a Kotlin wrapper around the jextract Java bindings like this. For very shortlived data, <code>Closeable</code> works pretty well, <code>use</code> lets you do operations with a <code>GameStateHandle</code> and <code>close</code> gets called automatically for you once you&rsquo;re done. Since <code>game_state_handle_destroy</code> is called for you, you&rsquo;re not going to trigger a double free accidentally. However, I don&rsquo;t want such a shortlived <code>GameStateHandle</code>. I want it to last for the duration of a game, which is going to be far longer than a single function call.</p>
+
+<p>Some initial searching lead me to the <a href="https://docs.oracle.com/javase/9/docs/api/java/lang/Object.html#finalize--">deprecated <code>finalize</code> method</a>. It seemed like exactly what I needed, something that runs exactly once as the object is going to be garbage collected. If <code>GameStateHandle</code> is getting garbage collected, there&rsquo;s no other aliases to <code>handle: MemoryAddress</code> because we never gave any out and <code>GameStateHandle</code> is the only one still holding it.</p>
+
+<p>Still, it looked like it was deprecated for good reason, so I followed the deprecation notice and looked the <a href="https://docs.oracle.com/javase/9/docs/api/java/lang/ref/Cleaner.html"><code>Cleaner</code> class docs</a>.</p>
+<div class="highlight"><pre class="highlight kotlin"><code><span class="kd">class</span> <span class="nc">GameStateHandle</span><span class="p">:</span> <span class="nc">GameState</span> <span class="p">{</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">handle</span><span class="p">:</span> <span class="nc">MemoryAddress</span> <span class="p">=</span> <span class="n">bindings_h</span><span class="p">.</span><span class="nf">game_state_handle_new</span><span class="p">()</span>
+
+    <span class="nf">init</span> <span class="p">{</span>
+        <span class="c1">// We must not use any inner classes or lambdas for the runnable object,</span>
+        <span class="c1">// to avoid capturing our GameStateHandle instance, which would prevent</span>
+        <span class="c1">// the cleaner ever running.</span>
+        <span class="c1">// We could hold onto the cleanable this method returns so that we can</span>
+        <span class="c1">// manually trigger it with a `close()` method or such, but such an API</span>
+        <span class="c1">// can't stop us calling that method while still holding references to</span>
+        <span class="c1">// the GameStateHandle, in which case we'd trigger undefined behaviour</span>
+        <span class="c1">// and likely reclaim the memory on the Rust side while we still have</span>
+        <span class="c1">// other aliases to it that think it's still in use. Instead, the</span>
+        <span class="c1">// *only* way to tell Rust it's time to call the destructor is when the</span>
+        <span class="c1">// cleaner determines there are no more references to our</span>
+        <span class="c1">// GameStateHandle.</span>
+        <span class="n">bridgeCleaner</span><span class="p">.</span><span class="nf">register</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nc">BridgeHandleCleaner</span><span class="p">(</span><span class="n">handle</span><span class="p">))</span>
+    <span class="p">}</span>
+
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">debug</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">bindings_h</span><span class="p">.</span><span class="nf">game_state_handle_debug</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">companion</span> <span class="k">object</span> <span class="p">{</span>
+        <span class="k">private</span> <span class="kd">val</span> <span class="py">bridgeCleaner</span><span class="p">:</span> <span class="nc">Cleaner</span> <span class="p">=</span> <span class="nc">Cleaner</span><span class="p">.</span><span class="nf">create</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="kd">data class</span> <span class="nc">BridgeHandleCleaner</span><span class="p">(</span><span class="k">private</span> <span class="kd">val</span> <span class="py">handle</span><span class="p">:</span> <span class="nc">MemoryAddress</span><span class="p">):</span> <span class="nc">Runnable</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">run</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Because this class is private, and we only ever call it from the</span>
+        <span class="c1">// cleaner, and we never give out any references to our</span>
+        <span class="c1">// `handle: MemoryAddress` to any other classes, this runs exactly once</span>
+        <span class="c1">// after all references to GameStateHandle are dead and the cleaner runs</span>
+        <span class="c1">// us. Hence, we can meet the requirement that the handle is not</span>
+        <span class="c1">// aliased, so the Rust side can use it as an exclusive reference and</span>
+        <span class="c1">// reclaim the memory safely.</span>
+        <span class="n">bindings_h</span><span class="p">.</span><span class="nf">game_state_handle_destroy</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Following the javadoc&rsquo;s example, I arrived at this. <code>BridgeHandleCleaner</code> is private, so only <code>GameStateHandle</code> can instantiate it. When <code>GameStateHandle</code> is instantiated, we add a <code>BridgeHandleCleaner</code> to the singleton <code>bridgeCleaner: Cleaner</code>. I&rsquo;ve removed the <code>Closeable</code> implementation because I want the Cleaner to be the only means of running the <code>BridgeHandleCleaner</code>, which it does exactly once, when there are no references to the <code>GameStateHandle</code> instance anymore. A destructor in all but name.</p>
+
+<p>If there are no references to <code>GameStateHandle</code>, since <code>handle</code> is private to <code>GameStateHandle</code> and <code>BridgeHandleCleaner</code>, that means we will always call <code>game_state_handle_destroy</code> with the <em>only</em> reference left, which is then completely safe to be a mutable one.</p>
+
+<p>Now all I need to do is build that GUI on top of that <code>GameState</code> interface I set out to do&hellip;</p>
+
+  </article>
+</div>
+
+  </div>
+  <footer>
+    <div class = "footer">
+      <p>My content on this site is licensed under Creative Commons By Attribution <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></p>
+      <p>This site's source code is licensed under the MIT license <a href="https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code">https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code</a></p>
+    </div>
+  </footer>
+</body>
+</html>
