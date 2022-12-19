@@ -122,6 +122,8 @@ ol {
   margin-bottom: 0.5em;
 }
 
+/*
+ Reworked since the animation never worked very well
 .hex.highlight {
   width: 1.2em;
   margin-left: 0.5em;
@@ -129,6 +131,17 @@ ol {
 
 .hex.center.highlight {
   width: 3em;
+}
+*/
+/*
+ * Instead remove the rounded corners to give a different shape that doesn't affect layout sizing, and a white border
+ * These properties animate much better
+ */
+.hex.highlight, .hex.highlight::before, .hex.highlight::after {
+	box-sizing: border-box;
+	border-top: 1px dashed white;
+	border-bottom: 1px dashed white;
+  border-radius: 0px;
 }
 
 .hex.half {
