@@ -24,7 +24,7 @@ body {
 
 .title {
   background-color: white;
-  border-bottom: 2px solid black;
+  border-bottom: 2px solid #dbdbdb;
   margin-top: 0;
   padding-top: 0.7em;
   padding-bottom: 0.7em;
@@ -34,7 +34,7 @@ body {
 footer {
   display: inline-block;
   background-color: white;
-  border-top: 2px solid black;
+  border-top: 2px solid #dbdbdb;
   margin-top: 1em;
 }
 
@@ -186,7 +186,15 @@ p {
 
 div.highlight {
   overflow-x: auto;
-  max-width: 100%;
+  width: auto;
+  margin-left: -0.5em;
+  margin-right: -0.5em;
+  padding: 0.5em;
+  border-radius: 12px;
+}
+
+.highlight pre {
+  margin: 0;
 }
 
 #wrapper {
@@ -204,4 +212,12 @@ div.highlight {
   margin-bottom: 0.6em;
   padding-top: 0.3em;
   border-radius: 18px;
+}
+
+p code {
+  background: #f8f8f8;
+  padding: 0.2em 0.4em;
+  border-radius: 6px;
+  font-size: 0.9em;
+  white-space: break-spaces;
 }
