@@ -57,10 +57,13 @@ h2 {
 }
 
 #grid {
+  display: -ms-grid;
   display: grid;
+  -ms-grid-columns: auto (450px)[3] auto;
   grid-template-columns: auto repeat(3, 450px) auto;
+  -ms-grid-rows: (auto)[2];
   grid-template-rows: repeat(2, auto);
-  grid-template-areas:
+      grid-template-areas:
     "left one two three right"
     "left four five six right";
   margin: 1em 0;
@@ -68,10 +71,13 @@ h2 {
 
 @media only screen and (max-width: 1378px) {
   #grid {
+    display: -ms-grid;
     display: grid;
+    -ms-grid-columns: auto (450px)[2] auto;
     grid-template-columns: auto repeat(2, 450px) auto;
+    -ms-grid-rows: (auto)[3];
     grid-template-rows: repeat(3, auto);
-    grid-template-areas:
+        grid-template-areas:
       "left one two right"
       "left three four right"
       "left five six right";
@@ -80,10 +86,13 @@ h2 {
 
 @media only screen and (max-width: 920px) and (min-width: 581px) {
   #grid {
+    display: -ms-grid;
     display: grid;
+    -ms-grid-columns: auto (550px)[1] auto;
     grid-template-columns: auto repeat(1, 550px) auto;
+    -ms-grid-rows: (auto)[6];
     grid-template-rows: repeat(6, auto);
-    grid-template-areas:
+        grid-template-areas:
       "left one right"
       "left two right"
       "left three right"
@@ -101,10 +110,13 @@ h2 {
 
 @media only screen and (max-width: 580px) {
   #grid {
+    display: -ms-grid;
     display: grid;
+    -ms-grid-columns: 0 (auto)[1] 0;
     grid-template-columns: 0 repeat(1, auto) 0;
+    -ms-grid-rows: (auto)[6];
     grid-template-rows: repeat(6, auto);
-    grid-template-areas:
+        grid-template-areas:
       "left one right"
       "left two right"
       "left three right"
@@ -122,20 +134,11 @@ h2 {
           box-shadow: 3px 3px 7px darkgray;
   background-color: white;
   /* center vertically */
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: column;
-          flex-direction: column;
+  align-items: center;
+  flex-direction: column;
   min-height: 250px;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
+  justify-content: space-between;
 }
 
 .item h2 {
@@ -196,25 +199,118 @@ h2 {
 }
 
 #one {
+  -ms-grid-row: 1;
+  -ms-grid-column: 2;
   grid-area: one;
 }
 
 #two {
+  -ms-grid-row: 1;
+  -ms-grid-column: 3;
   grid-area: two;
 }
 
 #three {
+  -ms-grid-row: 1;
+  -ms-grid-column: 4;
   grid-area: three;
 }
 
 #four {
+  -ms-grid-row: 2;
+  -ms-grid-column: 2;
   grid-area: four;
 }
 
 #five {
+  -ms-grid-row: 2;
+  -ms-grid-column: 3;
   grid-area: five;
 }
 
 #six {
+  -ms-grid-row: 2;
+  -ms-grid-column: 4;
   grid-area: six;
+}
+
+@media only screen and (max-width: 1378px) {
+  #one {
+    -ms-grid-row: 1;
+    -ms-grid-column: 2;
+  }
+  #two {
+    -ms-grid-row: 1;
+    -ms-grid-column: 3;
+  }
+  #three {
+    -ms-grid-row: 2;
+    -ms-grid-column: 2;
+  }
+  #four {
+    -ms-grid-row: 2;
+    -ms-grid-column: 3;
+  }
+  #five {
+    -ms-grid-row: 3;
+    -ms-grid-column: 2;
+  }
+  #six {
+    -ms-grid-row: 3;
+    -ms-grid-column: 3;
+  }
+}
+
+@media only screen and (max-width: 920px) and (min-width: 581px) {
+  #one {
+    -ms-grid-row: 1;
+    -ms-grid-column: 2;
+  }
+  #two {
+    -ms-grid-row: 2;
+    -ms-grid-column: 2;
+  }
+  #three {
+    -ms-grid-row: 3;
+    -ms-grid-column: 2;
+  }
+  #four {
+    -ms-grid-row: 4;
+    -ms-grid-column: 2;
+  }
+  #five {
+    -ms-grid-row: 5;
+    -ms-grid-column: 2;
+  }
+  #six {
+    -ms-grid-row: 6;
+    -ms-grid-column: 2;
+  }
+}
+
+@media only screen and (max-width: 580px) {
+  #one {
+    -ms-grid-row: 1;
+    -ms-grid-column: 2;
+  }
+  #two {
+    -ms-grid-row: 2;
+    -ms-grid-column: 2;
+  }
+  #three {
+    -ms-grid-row: 3;
+    -ms-grid-column: 2;
+  }
+  #four {
+    -ms-grid-row: 4;
+    -ms-grid-column: 2;
+  }
+  #five {
+    -ms-grid-row: 5;
+    -ms-grid-column: 2;
+  }
+  #six {
+    -ms-grid-row: 6;
+    -ms-grid-column: 2;
+  }
 }

@@ -5,8 +5,8 @@
   <meta name = "viewport" content = "width = device-width">
   <!-- Use the title from a page's frontmatter if it has one -->
   <title>Skeletonxf.github.io</title>
-  <link rel = "stylesheet" href = "stylesheets/styles.css">
   <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
 </head>
 <body>
   <div class = "page">
@@ -36,12 +36,12 @@
 <h2>Naming</h2>
 
 <p>If a type or trait is named in a way that causes issues for your tooling, comprehension or consistency, you can rename when you bring it into scope using <a href="https://doc.rust-lang.org/book/ch07-04-bringing-paths-into-scope-with-the-use-keyword.html#providing-new-names-with-the-as-keyword"><code>as</code></a>.</p>
-<div class="highlight"><pre class="highlight rust"><code><span class="c">// external library definition</span>
+<div class="highlight"><pre class="highlight rust"><code><span class="c1">// external library definition</span>
 <span class="k">pub</span> <span class="k">struct</span> <span class="n">I_Should_Be_Camel_Case</span> <span class="p">{</span>
     <span class="n">foo</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
 <span class="p">}</span>
 
-<span class="c">// consuming code</span>
+<span class="c1">// consuming code</span>
 <span class="k">use</span> <span class="nn">path_to</span><span class="p">::</span><span class="n">I_Should_Be_Camel_Case</span> <span class="k">as</span> <span class="n">IShouldBeCamelCase</span><span class="p">;</span>
 </code></pre></div>
 <h2>Interoperability and missing trait impls</h2>
@@ -51,20 +51,20 @@
 <h3>Debug</h3>
 
 <p>If you just want your type to be <code>Debug</code> rather than needing to debug a third party type it contains you can fall back to a manual <code>Debug</code> implementation on the type wrapping it, and continue using <code>#[derive(Debug)]</code> on any of your types that contain the wrapper.</p>
-<div class="highlight"><pre class="highlight rust"><code><span class="c">// external library definition</span>
+<div class="highlight"><pre class="highlight rust"><code><span class="c1">// external library definition</span>
 <span class="k">pub</span> <span class="k">struct</span> <span class="n">Opaque</span><span class="p">;</span>
 
-<span class="c">// consuming code</span>
+<span class="c1">// consuming code</span>
 <span class="k">struct</span> <span class="n">MyType</span> <span class="p">{</span>
     <span class="n">opaque</span><span class="p">:</span> <span class="n">Opaque</span><span class="p">,</span>
-    <span class="c">// other fields</span>
+    <span class="c1">// other fields</span>
 <span class="p">}</span>
 
 <span class="k">impl</span> <span class="n">Debug</span> <span class="k">for</span> <span class="n">MyType</span> <span class="p">{</span>
-    <span class="k">fn</span> <span class="nf">fmt</span><span class="p">(</span><span class="o">&amp;</span><span class="k">self</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="o">&amp;</span><span class="k">mut</span> <span class="nn">fmt</span><span class="p">::</span><span class="n">Formatter</span><span class="o">&lt;</span><span class="nv">'_</span><span class="o">&gt;</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nn">fmt</span><span class="p">::</span><span class="n">Result</span> <span class="p">{</span>
+    <span class="k">fn</span> <span class="nf">fmt</span><span class="p">(</span><span class="o">&amp;</span><span class="k">self</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="o">&amp;</span><span class="k">mut</span> <span class="nn">fmt</span><span class="p">::</span><span class="n">Formatter</span><span class="o">&lt;</span><span class="nv">'_</span><span class="o">&gt;</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nn">fmt</span><span class="p">::</span><span class="nb">Result</span> <span class="p">{</span>
         <span class="n">f</span><span class="nf">.debug_struct</span><span class="p">(</span><span class="s">"MyType"</span><span class="p">)</span>
          <span class="nf">.field</span><span class="p">(</span><span class="s">"opaque"</span><span class="p">,</span> <span class="o">&amp;</span><span class="s">"Opaque"</span><span class="p">)</span>
-          <span class="c">// other fields</span>
+          <span class="c1">// other fields</span>
          <span class="nf">.finish</span><span class="p">()</span>
     <span class="p">}</span>
 <span class="p">}</span>
@@ -72,17 +72,17 @@
 <h3>Eq, PartialEq, Ord, PartialOrd, and Hash</h3>
 
 <p>You can wrap an external type that does not implement these in a struct and manually implement them if the type exposes enough information for you to do the checks.</p>
-<div class="highlight"><pre class="highlight rust"><code><span class="c">// external library definition</span>
+<div class="highlight"><pre class="highlight rust"><code><span class="c1">// external library definition</span>
 <span class="k">pub</span> <span class="k">struct</span> <span class="n">Foo</span> <span class="p">{</span>
     <span class="k">pub</span> <span class="n">bar</span><span class="p">:</span> <span class="nb">i32</span><span class="p">,</span>
 <span class="p">}</span>
 
-<span class="c">// consuming code</span>
+<span class="c1">// consuming code</span>
 <span class="k">struct</span> <span class="n">FooWrapper</span> <span class="p">{</span>
     <span class="n">foo</span><span class="p">:</span> <span class="n">Foo</span><span class="p">,</span>
 <span class="p">}</span>
-<span class="k">impl</span> <span class="n">PartialEq</span> <span class="k">for</span> <span class="n">FooWrapper</span> <span class="p">{</span>
-    <span class="k">fn</span> <span class="nf">eq</span><span class="p">(</span><span class="o">&amp;</span><span class="k">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="o">&amp;</span><span class="n">Self</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">bool</span> <span class="p">{</span>
+<span class="k">impl</span> <span class="nb">PartialEq</span> <span class="k">for</span> <span class="n">FooWrapper</span> <span class="p">{</span>
+    <span class="k">fn</span> <span class="nf">eq</span><span class="p">(</span><span class="o">&amp;</span><span class="k">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="o">&amp;</span><span class="k">Self</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">bool</span> <span class="p">{</span>
         <span class="k">self</span><span class="py">.foo.bar</span> <span class="o">==</span> <span class="n">other</span><span class="py">.foo.bar</span>
     <span class="p">}</span>
 <span class="p">}</span>
@@ -90,13 +90,13 @@
 <h3>Default</h3>
 
 <p>You can still implement <code>Default</code> on a wrapper for an external type if you can call one of its constructors and set the relevant fields to what you want even if you don&rsquo;t have public access to all the fields for initialisation.</p>
-<div class="highlight"><pre class="highlight rust"><code><span class="c">// external library definition</span>
+<div class="highlight"><pre class="highlight rust"><code><span class="c1">// external library definition</span>
 <span class="k">pub</span> <span class="k">struct</span> <span class="n">NotAllPublicFields</span> <span class="p">{</span>
     <span class="k">pub</span> <span class="n">foo</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">bar</span><span class="p">:</span> <span class="p">(),</span>
 <span class="p">}</span>
 <span class="k">impl</span> <span class="n">NotAllPublicFields</span> <span class="p">{</span>
-    <span class="k">pub</span> <span class="k">fn</span> <span class="nf">new</span><span class="p">()</span> <span class="k">-&gt;</span> <span class="n">Self</span> <span class="p">{</span>
+    <span class="k">pub</span> <span class="k">fn</span> <span class="nf">new</span><span class="p">()</span> <span class="k">-&gt;</span> <span class="k">Self</span> <span class="p">{</span>
         <span class="n">NotAllPublicFields</span> <span class="p">{</span>
             <span class="n">foo</span><span class="p">:</span> <span class="k">true</span><span class="p">,</span>
             <span class="n">bar</span><span class="p">:</span> <span class="p">(),</span>
@@ -104,11 +104,11 @@
     <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="c">// consuming code that wants a default with foo set to false</span>
+<span class="c1">// consuming code that wants a default with foo set to false</span>
 <span class="k">struct</span> <span class="nf">Wrapper</span><span class="p">(</span><span class="n">NotAllPublicFields</span><span class="p">);</span>
 
-<span class="k">impl</span> <span class="n">Default</span> <span class="k">for</span> <span class="n">Wrapper</span> <span class="p">{</span>
-    <span class="k">fn</span> <span class="nf">default</span><span class="p">()</span> <span class="k">-&gt;</span> <span class="n">Self</span> <span class="p">{</span>
+<span class="k">impl</span> <span class="nb">Default</span> <span class="k">for</span> <span class="n">Wrapper</span> <span class="p">{</span>
+    <span class="k">fn</span> <span class="nf">default</span><span class="p">()</span> <span class="k">-&gt;</span> <span class="k">Self</span> <span class="p">{</span>
         <span class="k">let</span> <span class="k">mut</span> <span class="n">data</span> <span class="o">=</span> <span class="nn">NotAllPublicFields</span><span class="p">::</span><span class="nf">new</span><span class="p">();</span>
         <span class="n">data</span><span class="py">.foo</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>
         <span class="nf">Wrapper</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -132,12 +132,12 @@
 <h3>Send and Sync</h3>
 
 <p>Occasionally you need to use crates which contain types with dynamic trait objects as members that don&rsquo;t contain <code>Send</code> and <code>Sync</code> bounds, or types which are genuinely never thread safe. You can always put a non <code>Send</code> and non <code>Sync</code> type onto a dedicated thread and &lsquo;wrap&rsquo; it into a <code>Send</code> and <code>Sync</code> handle that acts like it owns the type via message passing to that dedicated thread.</p>
-<div class="highlight"><pre class="highlight rust"><code><span class="c">// external library definition</span>
+<div class="highlight"><pre class="highlight rust"><code><span class="c1">// external library definition</span>
 <span class="k">pub</span> <span class="k">struct</span> <span class="n">SomethingNotThreadSafe</span> <span class="p">{</span>
     <span class="n">_marker</span><span class="p">:</span> <span class="nn">std</span><span class="p">::</span><span class="nn">marker</span><span class="p">::</span><span class="n">PhantomData</span><span class="o">&lt;*</span><span class="k">const</span> <span class="p">()</span><span class="o">&gt;</span><span class="p">,</span>
 <span class="p">}</span>
 
-<span class="c">// consuming code using tokio that wants a Send and Sync handle</span>
+<span class="c1">// consuming code using tokio that wants a Send and Sync handle</span>
 <span class="k">use</span> <span class="n">tokio</span><span class="p">;</span>
 <span class="k">use</span> <span class="nn">tokio</span><span class="p">::</span><span class="nn">sync</span><span class="p">::</span><span class="n">mpsc</span><span class="p">;</span>
 
@@ -150,13 +150,13 @@
 <span class="p">}</span>
 
 <span class="k">impl</span> <span class="n">SomethingNotThreadSafeHandle</span> <span class="p">{</span>
-    <span class="k">fn</span> <span class="nf">new</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">SomethingNotThreadSafe</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="n">Self</span> <span class="p">{</span>
+    <span class="k">fn</span> <span class="nf">new</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">SomethingNotThreadSafe</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="k">Self</span> <span class="p">{</span>
         <span class="k">let</span> <span class="p">(</span><span class="n">command_tx</span><span class="p">,</span> <span class="k">mut</span> <span class="n">command_rx</span><span class="p">)</span> <span class="o">=</span> <span class="nn">mpsc</span><span class="p">::</span><span class="nf">channel</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
         <span class="k">let</span> <span class="p">(</span><span class="n">response_tx</span><span class="p">,</span> <span class="n">response_rx</span><span class="p">)</span> <span class="o">=</span> <span class="nn">mpsc</span><span class="p">::</span><span class="nf">channel</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
         <span class="nn">tokio</span><span class="p">::</span><span class="nn">task</span><span class="p">::</span><span class="nf">spawn_blocking</span><span class="p">(</span><span class="k">move</span> <span class="p">||</span> <span class="p">{</span>
             <span class="k">loop</span> <span class="p">{</span>
                 <span class="k">let</span> <span class="n">command</span> <span class="o">=</span> <span class="n">command_rx</span><span class="nf">.blocking_recv</span><span class="p">();</span>
-                <span class="c">// do something</span>
+                <span class="c1">// do something</span>
                 <span class="k">let</span> <span class="n">response</span> <span class="o">=</span> <span class="nd">unimplemented!</span><span class="p">();</span>
                 <span class="n">response_tx</span><span class="nf">.blocking_send</span><span class="p">(</span><span class="n">response</span><span class="p">);</span>
             <span class="p">}</span>
@@ -167,9 +167,9 @@
         <span class="p">}</span>
     <span class="p">}</span>
 
-    <span class="n">async</span> <span class="k">fn</span> <span class="nf">do_something</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span> <span class="k">self</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">self</span><span class="py">.command</span><span class="nf">.send</span><span class="p">(</span><span class="nd">unimplemented!</span><span class="p">())</span><span class="py">.await</span><span class="p">;</span>
-        <span class="k">let</span> <span class="n">response</span> <span class="o">=</span> <span class="k">self</span><span class="py">.response</span><span class="nf">.recv</span><span class="p">()</span><span class="py">.await</span><span class="p">;</span>
+    <span class="k">async</span> <span class="k">fn</span> <span class="nf">do_something</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span> <span class="k">self</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="py">.command</span><span class="nf">.send</span><span class="p">(</span><span class="nd">unimplemented!</span><span class="p">())</span><span class="k">.await</span><span class="p">;</span>
+        <span class="k">let</span> <span class="n">response</span> <span class="o">=</span> <span class="k">self</span><span class="py">.response</span><span class="nf">.recv</span><span class="p">()</span><span class="k">.await</span><span class="p">;</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>

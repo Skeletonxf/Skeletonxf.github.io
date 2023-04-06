@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset = "UTF-8">
+  <meta name = "viewport" content = "width = device-width">
+  <!-- Use the title from a page's frontmatter if it has one -->
+  <title>Skeletonxf.github.io</title>
+  <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
+</head>
+<body>
+  <div class = "page">
+    <header class = "back">
+  <nav>
+    <ul>
+      <li>
+        <p><a href = "index.html">Index</a></p>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<h1 class = "center title">
+  A blog of sorts
+</h1>
+<div class = "content">
+  <article>
+    <h1>Committing to a Stable API</h1>
+
+<p>As a software developer that uses a lot of libraries in my day job I often wondered how Google could make so many changes to a library that the Firebase bill of materials would reach version 29.0.0 - that&rsquo;s almost as many major versions as Android has SDK versions!
+In the Rust world cargo and crates.io enforces semver for libraries so breaking changes are supposed to only occur with a major version bump, and many crates are still &lsquo;unstable&rsquo; on 0.x.y versions. Around a year ago I was working on a Rust project that used tokio and looking through all the application&rsquo;s transitive dependencies to debug something. There were some libraries depending on tokio 0.2 and others on 0.3 and then tokio 1.0 was released. For a dependency like tokio which you build an application around having 3 different mostly incompatible versions used by the ecosystem was not fun, and lead to some difficult decisions about reimplementing functionality which was already available in libraries simply to build the functionality against tokio 1.0.</p>
+
+<p>For these kinds of reasons I wanted the library I published to crates.io to commit to a stable API from the start, so other developers would be able to build on top of a stable foundation. As I write this, the Machine Learning ecosystem in Rust is still in its infancy, and many of the major libraries which do exist are still on 0.x.y versions. A snapshot of <a href="images/librs-machine-learning-top-22.png">lib.rs&rsquo;s machine learning libraries</a> lists my <a href="https://lib.rs/crates/easy-ml">easy-ml</a> at the 22nd position. Many of the libraries above it do far more, and are developed by more people, however only <a href="https://lib.rs/crates/autograd">autograd</a> and <a href="https://lib.rs/crates/neat-gru">neat-gru</a> have also made at least one stable release.</p>
+
+<p>For a language which reached a stable version 6 years ago, its Machine Learning ecosystem still has a lot of growing to do.</p>
+
+<p>Nonetheless I&rsquo;ve already started to build up decisions which I would like to change, and can&rsquo;t yet because they would require breaking changes. I don&rsquo;t plan to avoid an Easy ML version 2.0 forever, but I would like to wait till the breaking changes are important enough to be worthwhile updating any code which depends on the library.</p>
+
+<h2>Releasing version 1.0.0</h2>
+
+<p>Easy-ML was actually the second attempt at a matrix library that I wrote. I had tried to develop one before that I never got to a releasable state, but having tried at a matrix library before I knew the general API I wanted without needing to do much experimentation. The only unknown was abstracting over all numerical types. I had looked at <a href="https://crates.io/crates/num-traits"><code>num-traits</code></a> but I could barely understand it at the time so using it as a dependency was ruled out.</p>
+
+<h2>Referenced numbers</h2>
+
+<p>The first decision I locked into version 1.x.y of easy-ml forever was committing the number type traits to also work on references. For primitives like f64 this adds very little value since they are Copy and smaller than a reference. However, it opens up the possibility to do machine learning with greater precision types such as a hypothetical f128 that numpy cannot offer. I discovered <a href="https://stackoverflow.com/questions/59520619/how-do-i-specify-a-generic-trait-for-operations-on-references-to-types">Rust cannot yet define such a trait elegantly</a>, but the workarounds are not much of an issue.</p>
+<div class="highlight"><pre class="highlight rust"><code><span class="k">impl</span> <span class="o">&lt;</span><span class="n">T</span><span class="p">:</span> <span class="n">Numeric</span><span class="o">&gt;</span> <span class="nb">Add</span> <span class="k">for</span> <span class="n">Matrix</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span>
+<span class="k">where</span> <span class="k">for</span><span class="o">&lt;</span><span class="nv">'a</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="nv">'a</span> <span class="n">T</span><span class="p">:</span> <span class="n">NumericRef</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
+</code></pre></div>
+<p>I&rsquo;m still not sure I would undo this choice, but now I&rsquo;m maintaining four times as many mathematical operations as I could have been.</p>
+
+<h2>Adding u8</h2>
+
+<p>One less intentional interface I locked in without even realising was including <a href="https://doc.rust-lang.org/std/ops/trait.Neg.html"><code>Neg</code></a> in the numerical traits. It&rsquo;s not as though I expected unsigned integers to implement Neg, but I was still surprised to realise I couldn&rsquo;t add two <code>Matrix&lt;u8&gt;</code> together because the Add implementation required their data to be Numeric and they were not. I could have not required a type to implement every operation from Numeric to just add two matrices, but I&rsquo;d just created some traits to specify math for referenced types! - I did not want to strike out potential <code>f128</code> uses after just introducing support for them. Fortunately the standard library already had <code>Wrapping&lt;u8&gt;</code> which does implement <code>Neg</code> but the first papercut was born without me realising till after easy-ml 1.0 was released.</p>
+
+<h2>Matrix traits</h2>
+
+<p>I deliberately did not introduce any traits to define a Matrix for a long time because the discoverability of trait methods on their implementing types was poor; at the time I think doc sections like <code>Methods from Deref&lt;Target = [T]&gt;</code> did not exist. I was also very wary to introduce a trait that I might need to add additional non default methods to later.</p>
+
+<h2>Slicing</h2>
+
+<p>After a few versions of using matrices for simple linear algebra tasks I found it was going to be useful to slice into a matrix. Iterator methods for matrices were useful in many cases where python would have had me slicing, but they lost the dimensionality information. I built an API for removing specific rows/columns of a Matrix using enums and methods on a Matrix, and this seemed sufficient for quite a while. When I switched the internal representation of a Matrix from two nested Vecs to a flattened Vec the slicing APIs still made sense even though their implementations were no longer O(1).</p>
+
+<h2>Matrix views</h2>
+
+<p>Eventually cutting a matrix up became inadequate. An algorithm to reduce a matrix to tridiagonal form (0s everywhere but the main and off diagonals) can be expressed very nicely if you can split a matrix into four quadrants and mutate them as if they were separate - but with Rust&rsquo;s borrow checking rules this was going to require building a concept of a manipulatable view into a Matrix, not just defining indexes to delete that had worked for slicing.</p>
+
+<p>To keep the discoverability of methods for matrix views good, I built a <em>low</em> level API with traits that defined just reading and writing values to matrices, and then created a MatrixView type which would mirror the higher level Matrix API. If I was starting from scratch, I would reconsider where to put this boundary between the traits and structs. One unexpected downside of having Matrix and MatrixView APIs be essentially the same but not implement a common trait or be subtypes of each other is it becomes difficult to write code that works with both. A Matrix is a MatrixRef, but a MatrixView owns a MatrixRef. Thus, to take either as an argument in a function you must instead take a MatrixRef, and then you&rsquo;re back to the low level API of a 2d buffer that I was trying to abstract away. The function can then construct a MatrixView from the MatrixRef to get back to high level matrix APIs, but this means to pass a MatrixView to a function we are extracting the MatrixRef out of a MatrixView and then creating a new MatrixView! I hope abstracting over a Matrix and a MatrixView is mainly a concern of the shared implementations I needed to write for Easy ML, rather than something that comes up in application code.</p>
+
+<h2>Interior mutability</h2>
+
+<p>What I realised after releasing 1.7 was that even with the fundamentals of read and write access to a matrix defined, there wasn&rsquo;t much you could do with that access if the matrix you were reading or writing from could change while you were using it. I had specified just enough restrictions on MatrixRef so that combining unsafe accessors with a type that had interior mutability would require bounds checking, but this didn&rsquo;t eliminate the possibility of a matrix being resized whilst iterating through it - only that such a resize wouldn&rsquo;t risk undefined behaviour. Multiplying two matrices requires checking that their sizes line up and then iterating through both - if one shrinks while you are iterating then suddenly an innocent <code>*</code> could lead to a panic.</p>
+
+<p>This had never been a concern when I was just writing multiplication operations for two Matrix types, since I knew neither type could be resized by unrelated code because a Matrix doesn&rsquo;t have interior mutability. However, by not ruling interior mutability out entirely, I couldn&rsquo;t rely on MatrixRef for the same operations that had been straightforward with just a Matrix. Since MatrixRef was already public API, I couldn&rsquo;t edit the required behaviour without a major version bump, even though it wasn&rsquo;t actually captured in the type system.</p>
+
+<p>Finding a way out wasn&rsquo;t that much of a problem in the end. I introduced a new trait, NoInteriorMutability, which ruled interior mutability out entirely, as perhaps MatrixRef should have done. Any type which was <code>MatrixRef&lt;T&gt; + NoInteriorMutability</code> was then nearly as usable as a <code>&amp;Matrix</code>, and similarly <code>MatrixMut&lt;T&gt; + NoInteriorMutability</code> could mirror <code>&amp;mut Matrix</code>. Implementing mutable iterators and numerical operations on the low level matrix view traits allowed for lots of code reuse between MatrixView and Matrix. Still, 3 traits and a wrapper struct just to express views wasn&rsquo;t quite as simple of an API as I had intended to build, and I won&rsquo;t be able to simplify it back to 2 traits until version 2.0.</p>
+
+<h2>Slicing</h2>
+
+<p>I&rsquo;ve still got those slicing APIs which fill a similar role to some of the view APIs, but the two are entirely separate. If I&rsquo;d built the slicing enums to be a little more restrictive instead of supporting arbitrary boolean logic combinations it wouldn&rsquo;t be too hard to create functions which take a slice and a matrix to return a view, but now I&rsquo;m going to have to think very carefully to get the slice API I&rsquo;ve already built integrated with the view system.</p>
+
+<h2>Onwards to Tensors</h2>
+
+<p>Since I&rsquo;ve not released any public tensor APIs yet, I can apply lessons I&rsquo;ve learned from matrices to the tensor APIs in a 1.x.y version. <code>TensorRef&lt;T&gt;</code> will be <code>TensorRef&lt;T&gt;: NoInteriorMutability</code>, which should interop well with matrix views but rule out tensors with interior mutability from the start. I&rsquo;ll build more basic functionality as wrapper structs over a TensorRef/TensorMut instead of creating bespoke implementations on a Tensor type, which should make code reuse between Tensor and TensorView emerge more easily. Having flattened the internal Vec of the Matrix type many versions ago, I can generalise the 2d indexing to n dimensions, so I won&rsquo;t try to first build Tensors with build a non flat buffer.</p>
+
+<h2>Iterators</h2>
+
+<p>Perhaps because iterators use a very simple trait, and it&rsquo;s already been battle tested in the standard library, the iterator APIs of Easy ML have grown and matured very well. I started out writing iterators for a <code>&amp;Matrix</code> which clone each element before returning, and later I was able to also build iterators that return references to each element. After the matrix view APIs, <code>ColumnMajorIterator&lt;&#39;a&#39;, T: Clone&gt;</code> became <code>ColumnMajorIterator&lt;&#39;a, T: Clone, S: MatrixRef&lt;T&gt; = Matrix&lt;T&gt;&gt;</code> with no breaking changes, and could support matrix views as well. I was even able to write iterators which yield mutable references and make the iterators elide bounds checks on each <code>next()</code> call.</p>
+
+<p>However, even the iterator APIs which have grown well from version 1.0 to 1.8 are going to end up with a paper cut. I created a <code>WithIndex</code> type that generalises the <code>enumerate()</code> in the standard library to provide row and column major iterators that include their row/column index. Just as <code>matrices::views::NoInteriorMutability</code> is likely to end up reused from <code>tensors::views::TensorRef</code>, <code>matrices::iterators::WithIndex</code> is going to also be useful in <code>tensors::iterators::*</code>. I could re-export the wrapper struct from <code>tensors::iterators::WithIndex</code> so it has the &lsquo;right&rsquo; namespace, but even then, eventually, then there&rsquo;s probably going to be someone who clicks on the matrix iterators doc page, clicks through to an iterator which can wrap itself in <code>WithIndex</code>, hovers over the &lsquo;notable traits&rsquo; section, and is confused to see many implementations of an iterator for <code>TensorRef</code> types with associated <code>Item</code> types that are quite different from <code>((Row, Column), T)</code>.</p>
+
+<p>Could I have guessed I would end up with useful wrapper structs when writing iterators for matrices and had the foresight to put iterators at the top level of the namespace instead of within <code>matrices</code>? Probably not.</p>
+
+  </article>
+</div>
+
+  </div>
+  <footer>
+    <div class = "footer">
+      <p>My content on this site is licensed under Creative Commons By Attribution <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></p>
+      <p>This site's source code is licensed under the MIT license <a href="https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code">https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code</a></p>
+    </div>
+  </footer>
+</body>
+</html>

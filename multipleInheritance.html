@@ -5,8 +5,8 @@
   <meta name = "viewport" content = "width = device-width">
   <!-- Use the title from a page's frontmatter if it has one -->
   <title>Skeletonxf.github.io</title>
-  <link rel = "stylesheet" href = "stylesheets/styles.css">
   <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
 </head>
 <body>
   <div class = "page">
@@ -35,8 +35,8 @@
 
 <p>A crucial problem with multiple inheritance is ambiguity when multiple subclasses have the same method or field. If this were legal java the following snippet shows the issue.</p>
 <div class="highlight"><pre class="highlight java"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Entity</span> <span class="o">{</span>
-  <span class="kd">private</span> <span class="n">Vector</span> <span class="n">location</span><span class="o">;</span>
-  <span class="kd">private</span> <span class="n">Vector</span> <span class="n">velocity</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="nc">Vector</span> <span class="n">location</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="nc">Vector</span> <span class="n">velocity</span><span class="o">;</span>
   <span class="kd">public</span> <span class="kt">void</span> <span class="nf">update</span><span class="o">()</span> <span class="o">{</span>
     <span class="n">location</span><span class="o">.</span><span class="na">update</span><span class="o">(</span><span class="n">velocity</span><span class="o">);</span>
   <span class="o">}</span>
@@ -44,29 +44,29 @@
 <span class="o">}</span>
 
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">Pathfinder</span> <span class="o">{</span>
-  <span class="kd">private</span> <span class="n">Path</span> <span class="n">path</span><span class="o">;</span>
-  <span class="kd">private</span> <span class="n">Vector</span> <span class="n">start</span><span class="o">;</span>
-  <span class="kd">private</span> <span class="n">Vector</span> <span class="n">end</span><span class="o">;</span>
-  <span class="kd">private</span> <span class="n">World</span> <span class="n">world</span><span class="o">;</span>
-  <span class="kd">private</span> <span class="n">AStar</span> <span class="n">astar</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="nc">Path</span> <span class="n">path</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="nc">Vector</span> <span class="n">start</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="nc">Vector</span> <span class="n">end</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="nc">World</span> <span class="n">world</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="nc">AStar</span> <span class="n">astar</span><span class="o">;</span>
   <span class="kd">public</span> <span class="kt">void</span> <span class="nf">update</span><span class="o">()</span> <span class="o">{</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">astar</span><span class="o">.</span><span class="na">navigate</span><span class="o">(</span><span class="n">world</span><span class="o">,</span> <span class="n">start</span><span class="o">,</span> <span class="n">end</span><span class="o">);</span>
   <span class="o">}</span>
   <span class="c1">// Constructors, getters, setters and so on</span>
 <span class="o">}</span>
 
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">PathfindingEntity</span> <span class="kd">extends</span> <span class="n">Entity</span><span class="o">,</span> <span class="n">Pathfinder</span> <span class="o">{</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">PathfindingEntity</span> <span class="kd">extends</span> <span class="nc">Entity</span><span class="o">,</span> <span class="nc">Pathfinder</span> <span class="o">{</span>
   <span class="c1">// Constructors, getters, setters and so on</span>
 
-  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">new</span> <span class="nf">PathfindingEntity</span><span class="o">().</span><span class="na">update</span><span class="o">();</span> <span class="c1">// which update method should be called?</span>
   <span class="o">}</span>
 <span class="o">}</span>
 </code></pre></div>
 <p>This can be addressed via <a href="https://en.wikipedia.org/wiki/Object_composition">composition</a></p>
 <div class="highlight"><pre class="highlight java"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">PathfindingEntity</span> <span class="o">{</span>
-  <span class="kd">private</span> <span class="n">Pathfinder</span> <span class="n">pathfinder</span><span class="o">;</span>
-  <span class="kd">private</span> <span class="n">Entity</span> <span class="n">entity</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="nc">Pathfinder</span> <span class="n">pathfinder</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="nc">Entity</span> <span class="n">entity</span><span class="o">;</span>
   <span class="kd">public</span> <span class="kt">void</span> <span class="nf">update</span><span class="o">()</span> <span class="o">{</span>
     <span class="c1">// we want to call both update methods</span>
     <span class="n">entity</span><span class="o">.</span><span class="na">update</span><span class="o">();</span>
@@ -75,9 +75,9 @@
 <span class="o">}</span>
 </code></pre></div>
 <p>However in Java this is still not ideal, because if we have a list of entities then we can&rsquo;t add a PathfindingEntity to it because PathfindingEntity is a subclass of Entity.</p>
-<div class="highlight"><pre class="highlight java"><code><span class="n">List</span><span class="o">&lt;</span><span class="n">Entity</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
-<span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="n">Entity</span><span class="o">())</span>
-<span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="n">PathfindingEntity</span><span class="o">())</span> <span class="c1">// error, not an Entity!</span>
+<div class="highlight"><pre class="highlight java"><code><span class="nc">List</span><span class="o">&lt;</span><span class="nc">Entity</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;&gt;();</span>
+<span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="nc">Entity</span><span class="o">())</span>
+<span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="nc">PathfindingEntity</span><span class="o">())</span> <span class="c1">// error, not an Entity!</span>
 </code></pre></div>
 <p>Java can deal with this problem via interfaces, but in Lua you can ducktype composition quite easily.</p>
 <div class="highlight"><pre class="highlight lua"><code><span class="kd">local</span> <span class="n">list</span> <span class="o">=</span> <span class="p">{}</span>
