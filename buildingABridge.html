@@ -454,6 +454,8 @@
 </code></pre></div>
 <p>Since <a href="https://github.com/rust-lang/rust/issues/74990">C-unwind</a> isn&rsquo;t stable at the time of writing, we can&rsquo;t yet write (stable) code that intentionally unwinds past the Rust FFI boundary. Catching any bugs in the Rust code before returning to Kotlin ensures we can return <em>something</em> sensible in such a case.</p>
 
+<p><em>Update: <code>C-unwind</code> was <a href="https://blog.rust-lang.org/2023/07/13/Rust-1.71.0.html#c-unwind-abi">stabilised in Rust 1.71</a> and stable code now can unwind past the Rust FFI boundary, however we have no particular reason to here, there&rsquo;s not going to be more Rust below some of the JVM stack that would catch the panic.</em></p>
+
 <p>Although the <code>with_handle</code> encapsulates a lot of the FFI boilerplate for the debug method, there&rsquo;s still the issue that nothing is stopping us from calling <code>game_state_handle_debug</code> at the same time on two different threads. That would be an aliased and mutable reference, and then</p>
 <div class="highlight"><pre class="highlight rust"><code><span class="k">let</span> <span class="n">handle</span> <span class="o">=</span> <span class="k">unsafe</span> <span class="p">{</span>
     <span class="o">&amp;</span><span class="k">mut</span> <span class="o">*</span><span class="n">handle</span>
