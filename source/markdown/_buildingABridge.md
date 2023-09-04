@@ -451,6 +451,8 @@ void game_state_handle_debug(const struct GameStateHandle *handle);
 
 Since [C-unwind](https://github.com/rust-lang/rust/issues/74990) isn't stable at the time of writing, we can't yet write (stable) code that intentionally unwinds past the Rust FFI boundary. Catching any bugs in the Rust code before returning to Kotlin ensures we can return *something* sensible in such a case.
 
+*Update: `C-unwind` was [stabilised in Rust 1.71](https://blog.rust-lang.org/2023/07/13/Rust-1.71.0.html#c-unwind-abi) and stable code now can unwind past the Rust FFI boundary, however we have no particular reason to here, there's not going to be more Rust below some of the JVM stack that would catch the panic.*
+
 Although the `with_handle` encapsulates a lot of the FFI boilerplate for the debug method, there's still the issue that nothing is stopping us from calling `game_state_handle_debug` at the same time on two different threads. That would be an aliased and mutable reference, and then
 
 ```rust
