@@ -115,12 +115,21 @@ article {
   margin-top: 0;
 }
 
+.pop-out {
+  background-color: white;
+  border-radius: 16px;
+  padding: 1.5em;
+  max-width: 95%;
+  width: auto;
+}
+
 @media only screen and (max-width: 768px) {
   article {
     margin: 0;
     padding: 0;
     border-radius: unset;
     width: 100%;
+    max-width: 95%;
   }
 
   body {
@@ -133,6 +142,12 @@ article {
 
   footer {
     margin-top: 0;
+  }
+
+  .pop-out {
+    margin: 0;
+    padding: 0;
+    width: 100%;
   }
 }
 
@@ -220,4 +235,31 @@ p code {
   border-radius: 6px;
   font-size: 0.9em;
   white-space: break-spaces;
+}
+
+.table-container {
+  overflow-x: scroll;
+}
+
+table th p, table td p {
+  margin: 4px;
+}
+
+table tr:nth-child(odd) {
+  background-color: #e6e6e6;
+}
+
+table tr:nth-child(even) {
+  background-color: #f0f0f0;
+}
+
+.small-input {
+  font-size: 1.1em;
+  max-width: 2.5em;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }

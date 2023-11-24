@@ -1,0 +1,57 @@
+---
+layout: doesCrimePay
+---
+
+<%= partial :back %>
+<h1 class = "center title">
+  A blog of sorts
+</h1>
+<div class = "content">
+  <article>
+      <div class="article top">
+          <%= partial "markdown/doesCrimePay1" %>
+      </div>
+      <div class="pop-out">
+          <div id="ev-calculator">
+              <div class="ev-mod">
+                  <label for="ev-stealth-1">Stealth check modifier</label>
+                  <input id="ev-stealth-1" type="number" min="-1" max="11" value="7" class="small-input"></input>
+              </div>
+              <div class="ev-mod">
+                  <label for="ev-tools-1">Thieves' tools check modifier</label>
+                  <input id="ev-tools-1" type="number" min="-1" max="11" value="7" class="small-input"></input>
+              </div>
+              <div class="ev-mod">
+                  <label for="ev-perception-1">Perception check modifier</label>
+                  <input id="ev-perception-1" type="number" min="-1" max="11" value="5" class="small-input"></input>
+              </div>
+              <div class="flex-row">
+                  <div class="dc-result" id="dc-10-stealth-1">
+                      <p>Stealth</p>
+                      <p>Lowest roll possible: <span class="result"></span></p>
+                      <p>Highest roll possible: <span class="result"></span></p>
+                      <p>Roll needed to pass check: <span class="result"></span></p>
+                      <p>Probability of passing check: <span class="result"></span></p>
+                  </div>
+                  <div class="dc-result" id="dc-10-tools-1">
+                      <p>Thieves' tools</p>
+                      <p>Lowest roll possible: <span class="result"></span></p>
+                      <p>Highest roll possible: <span class="result"></span></p>
+                      <p>Roll needed to pass check: <span class="result"></span></p>
+                      <p>Probability of passing check: <span class="result"></span></p>
+                  </div>
+                  <div class="dc-result" id="dc-10-perception-1">
+                      <p>Perception</p>
+                      <p>Lowest roll possible: <span class="result"></span></p>
+                      <p>Highest roll possible: <span class="result"></span></p>
+                      <p>Roll needed to pass check: <span class="result"></span></p>
+                      <p>Probability of passing check: <span class="result"></span></p>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="article bottom">
+          <%= partial "markdown/doesCrimePay2" %>
+      </div>
+  </article>
+</div>
