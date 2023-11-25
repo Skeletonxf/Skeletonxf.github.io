@@ -32,12 +32,12 @@ article {
     padding: 1.5em;
 }
 
-.article.top {
+.article.top, .article.middle {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
 
-.article.bottom {
+.article.bottom, .article.middle {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
@@ -57,4 +57,8 @@ article {
     article {
         max-width: 95%;
     }
+}
+
+.dc-result {
+    min-width: 15em;
 }

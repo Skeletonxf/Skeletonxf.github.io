@@ -1,11 +1,11 @@
 # Does crime pay?
-<p class = "article-date">2023/11/24</p>
+<p class = "article-date">2023/11/25</p>
 
 Before you recoil in horror I'm going to be looking not at real crime but the crime downtime activity in the Xanathar's Guide to Everything sourcebook for Dungeons & Dragons. Unlike real crime, the only victims are fictional.
 
 ## Stats and classes
 
-For reasons that will be obvious later I'll only be looking at the chances a Rogue has to earn money via this system.
+For reasons that will be obvious later I'll only be looking at the chances a rogue has to earn money via this system.
 
 *****
 
@@ -13,7 +13,7 @@ For reasons that will be obvious later I'll only be looking at the chances a Rog
 
 I'll be using the 3 character versions of the ability score names to refer to the corresponding modifiers, so a dexterity score of 15 is +3 DEX, and likewise PROF refers to the proficiency bonus and EXP to the expertise bonus.
 
-I'll be using other standard notation like DC for difficulty class (here, the number you need to roll or higher to pass the checks) and gp for gold pieces.
+I'll be using other standard notation like DC for difficulty class (here, the number you need to roll or higher to pass the checks), gp for gold pieces, and d20 for a 20 sided die roll.
 
 *****
 
@@ -23,9 +23,9 @@ The crime downtime activity has you make three ability checks
 - Thieves' tools (DEX)
 - One of Investigation (INT), Perception (WIS) or Deception (CHA)
 
-Since none of the third checks use your dexterity modifier for the rest of this article I'll just assume without loss of generality that the character/player chooses Perception. Stealth, using thieves' tools and perceiving stuff are all typical Rogue things anyway, so building a character that is good at crime shouldn't hurt your actual playing in non downtime.
+Since none of the third checks use your dexterity modifier for the rest of this article I'll just assume without loss of generality that the character/player chooses Perception. Stealth, using thieves' tools and perceiving stuff are all typical rogue things anyway, so building a character that is good at crime shouldn't hurt your actual playing in non downtime.
 
-Using point buy to choose 15 in dexterity and 15 in wisdom and +2 in DEX and +1 in WIS from the character's race, a level 1 Rogue could have expertise in two of stealth, thieves' tools and perception, proficiency in the other, with a dexterity score of 17 for a +3 DEX to these d20 dice rolls and a wisdom of 16 for also +3.
+Using point buy to choose 15 in dexterity and 15 in wisdom and +2 in DEX and +1 in WIS from the character's race, a level 1 rogue could have expertise in two of stealth, thieves' tools and perception, proficiency in the other, with a dexterity score of 17 for a +3 DEX to these d20 dice rolls and a wisdom of 16 for also +3.
 
 This gives a few options for the initial bonuses to these checks such as
 
@@ -74,6 +74,6 @@ This gives us some expected profits
     </table>
 </div>
 
-Our level 1 point buy rogue is already able to roll a minimum of 8 8 and 6 which is getting close to always passing the DC 10 check. They theoretically could pass the DC 25 check too and net 975 gp in profit, but the odds are pretty bad since they'll have to roll at least 18, 18 and 20.
+Our level 1 point buy rogue is already able to roll a minimum of 8, 8 and 6 which is getting close to always passing the DC 10 check. They theoretically could pass the DC 25 check too and net 975 gp in profit, but the odds are pretty bad since they'll have to roll at least 18, 18 and 20.
 
 Rather than just looking at odds, it's useful to look at expected value. If you kept doing the downtime activity (complications and getting jailed never giving the character any pause) what would you earn on average? If that's negative then the crime downtime will, eventually, be most likely to *lose* you money. Conversely, if those DC 20 or DC 25 checks can be reliably passed then crime could reliably pay out pretty well on average.
