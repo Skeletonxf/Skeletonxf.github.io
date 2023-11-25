@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset = "UTF-8">
+  <meta name = "viewport" content = "width = device-width">
+  <!-- Use the title from a page's frontmatter if it has one -->
+  <title>Skeletonxf.github.io</title>
+  <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
+  <link rel = "stylesheet" href = "stylesheets/dndCrime.css">
+  <script src = "javascripts/dndCrime.js"></script>
+</head>
+<body>
+  <div class = "page">
+    <header class = "back">
+  <nav>
+    <ul>
+      <li>
+        <p><a href = "index.html">Index</a></p>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<h1 class = "center title">
+  A blog of sorts
+</h1>
+<div class = "content">
+  <article>
+      <div class="article top">
+          <h1>Does crime pay?</h1>
+
+<p class = "article-date">2023/11/25</p>
+
+<p>Before you recoil in horror I&rsquo;m going to be looking not at real crime but the crime downtime activity in the Xanathar&rsquo;s Guide to Everything sourcebook for Dungeons &amp; Dragons. Unlike real crime, the only victims are fictional.</p>
+
+<h2>Stats and classes</h2>
+
+<p>For reasons that will be obvious later I&rsquo;ll only be looking at the chances a rogue has to earn money via this system.</p>
+
+<hr>
+
+<p><em>Notation</em></p>
+
+<p>I&rsquo;ll be using the 3 character versions of the ability score names to refer to the corresponding modifiers, so a dexterity score of 15 is +3 DEX, and likewise PROF refers to the proficiency bonus and EXP to the expertise bonus.</p>
+
+<p>I&rsquo;ll be using other standard notation like DC for difficulty class (here, the number you need to roll or higher to pass the checks), gp for gold pieces, and d20 for a 20 sided die roll.</p>
+
+<hr>
+
+<p>The crime downtime activity has you make three ability checks</p>
+
+<ul>
+<li>Stealth (DEX)</li>
+<li>Thieves&rsquo; tools (DEX)</li>
+<li>One of Investigation (INT), Perception (WIS) or Deception (CHA)</li>
+</ul>
+
+<p>Since none of the third checks use your dexterity modifier for the rest of this article I&rsquo;ll just assume without loss of generality that the character/player chooses Perception. Stealth, using thieves&rsquo; tools and perceiving stuff are all typical rogue things anyway, so building a character that is good at crime shouldn&rsquo;t hurt your actual playing in non downtime.</p>
+
+<p>Using point buy to choose 15 in dexterity and 15 in wisdom and +2 in DEX and +1 in WIS from the character&rsquo;s race, a level 1 rogue could have expertise in two of stealth, thieves&rsquo; tools and perception, proficiency in the other, with a dexterity score of 17 for a +3 DEX to these d20 dice rolls and a wisdom of 16 for also +3.</p>
+
+<p>This gives a few options for the initial bonuses to these checks such as</p>
+
+<ul>
+<li><em>Stealth</em>: 1d20 + 3 (DEX) + 2 (PROF) + 2 (EXP)</li>
+<li><em>Thieves&rsquo; tools</em>: 1d20 + 3 (DEX) + 2 (PROF) + 2 (EXP)</li>
+<li><em>Perception</em>: 1d20 + 3 (WIS) + 2 (PROF)</li>
+</ul>
+
+<p>Again, assuming DEX and WIS are the same, there&rsquo;s no loss of generality to just pick this option and calculate from there. If WIS was only +2 then not having expertise in perception might make it more difficult to pass that third ability check, and it might be worthwhile to move the one of the expertise choices over to it.</p>
+
+<h2>The difficulty</h2>
+
+<p>This is where it gets interesting, there&rsquo;s a very non linear set of choices for who to try robbing.</p>
+
+<ul>
+<li>DC 10 can pay out 50 gp</li>
+<li>DC 15 can pay out 100 gp</li>
+<li>DC 20 can pay out 200 gp</li>
+<li>DC 25 can pay out 1000 gp</li>
+</ul>
+
+<p>Regardless of success or not, first the character must spend at least 25 gp. Then if exactly 3 checks are successful they earn the payout, so can end up with profits of the above list minus the 25 gp. If exactly 2 checks are successful they earn half the payout, which interestingly means no profit for the DC 10 choice. If exactly 1 check is successful the character earns nothing but doesn&rsquo;t get caught, netting them a loss of the initial spending. If exactly 0 checks are successful the character is caught and fined the profit they would have made.</p>
+
+<p>This results in zero mechanical reason to spend more than 25 - you&rsquo;ll decrease the fine you might have to pay but only by eating into your profit by the same amount if you&rsquo;re not fined. Hence I&rsquo;ll assume the character is only spending the minimum 25 gp.</p>
+
+<p>This gives us some expected profits</p>
+
+<div class="table-container">
+    <table>
+        <tr>
+            <th><p>DC</p></th>
+            <th><p>3 successes</p></th>
+            <th><p>2 successes</p></th>
+            <th><p>1 success</p></th>
+            <th><p>0 successes</p></th>
+        </tr>
+        <tr>
+            <td><p>10</p></td><td><p>25</p></td><td><p>0</p></td><td><p>-25</p></td><td><p>-50</p></td>
+        </tr>
+        <tr>
+            <td><p>15</p></td><td><p>75</p></td><td><p>25</p></td><td><p>-25</p></td><td><p>-100</p></td>
+        </tr>
+        <tr>
+            <td><p>20</p></td><td><p>175</p></td><td><p>75</p></td><td><p>-25</p></td><td><p>-200</p></td>
+        </tr>
+        <tr>
+            <td><p>25</p></td><td><p>975</p></td><td><p>475</p></td><td><p>-25</p></td><td><p>-1000</p></td>
+        </tr>
+    </table>
+</div>
+
+<p>Our level 1 point buy rogue is already able to roll a minimum of 8, 8 and 6 which is getting close to always passing the DC 10 check. They theoretically could pass the DC 25 check too and net 975 gp in profit, but the odds are pretty bad since they&rsquo;ll have to roll at least 18, 18 and 20.</p>
+
+<p>Rather than just looking at odds, it&rsquo;s useful to look at expected value. If you kept doing the downtime activity (complications and getting jailed never giving the character any pause) what would you earn on average? If that&rsquo;s negative then the crime downtime will, eventually, be most likely to <em>lose</em> you money. Conversely, if those DC 20 or DC 25 checks can be reliably passed then crime could reliably pay out pretty well on average.</p>
+
+      </div>
+      <div class="pop-out">
+          <div id="ev-calculator-1">
+              <div class="ev-mod center">
+                  <label for="ev-stealth-1">Stealth check modifier</label>
+                  <input id="ev-stealth-1" type="number" min="-1" max="17" value="7" class="small-input"></input>
+              </div>
+              <div class="ev-mod center">
+                  <label for="ev-tools-1">Thieves' tools check modifier</label>
+                  <input id="ev-tools-1" type="number" min="-1" max="17" value="7" class="small-input"></input>
+              </div>
+              <div class="ev-mod center">
+                  <label for="ev-perception-1">Perception check modifier</label>
+                  <input id="ev-perception-1" type="number" min="-1" max="17" value="5" class="small-input"></input>
+              </div>
+              <div class="center">
+                  <p>Summary</p>
+                  <div class="flex-row center">
+                      <div id="dc-10-expected-value-1" class="expected-value center dc-result">
+                          <p>DC 10</p>
+                          <p>3 successes: <span class="result success-3"></span></p>
+                          <p>2 successes: <span class="result success-2"></span></p>
+                          <p>1 success: <span class="result success-1"></span></p>
+                          <p>Failure: <span class="result success-0"></span></p>
+                          <p>Expected value: <span class="result ev"></span> gp</p>
+                      </div>
+                      <div id="dc-15-expected-value-1" class="expected-value center dc-result">
+                          <p>DC 15</p>
+                          <p>3 successes: <span class="result success-3"></span></p>
+                          <p>2 successes: <span class="result success-2"></span></p>
+                          <p>1 success: <span class="result success-1"></span></p>
+                          <p>Failure: <span class="result success-0"></span></p>
+                          <p>Expected value: <span class="result ev"></span> gp</p>
+                      </div>
+                      <div id="dc-20-expected-value-1" class="expected-value center dc-result">
+                          <p>DC 20</p>
+                          <p>3 successes: <span class="result success-3"></span></p>
+                          <p>2 successes: <span class="result success-2"></span></p>
+                          <p>1 success: <span class="result success-1"></span></p>
+                          <p>Failure: <span class="result success-0"></span></p>
+                          <p>Expected value: <span class="result ev"></span> gp</p>
+                      </div>
+                      <div id="dc-25-expected-value-1" class="expected-value center dc-result">
+                          <p>DC 25</p>
+                          <p>3 successes: <span class="result success-3"></span></p>
+                          <p>2 successes: <span class="result success-2"></span></p>
+                          <p>1 success: <span class="result success-1"></span></p>
+                          <p>Failure: <span class="result success-0"></span></p>
+                          <p>Expected value: <span class="result ev"></span> gp</p>
+                      </div>
+                  </div>
+              </div>
+              <div id="dc-10-1">
+                  <p class="center">DC 10</p>
+                  <div class="flex-row center dc-results">
+                      <div class="dc-result stealth-results">
+                          <p>Stealth</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result tools-results">
+                          <p>Thieves' tools</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result perception-results">
+                          <p>Perception</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                  </div>
+              </div>
+              <div id="dc-15-1">
+                  <p class="center">DC 15</p>
+                  <div class="flex-row center dc-results">
+                      <div class="dc-result stealth-results">
+                          <p>Stealth</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result tools-results">
+                          <p>Thieves' tools</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result perception-results">
+                          <p>Perception</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                  </div>
+              </div>
+              <div id="dc-20-1">
+                  <p class="center">DC 20</p>
+                  <div class="flex-row center dc-results">
+                      <div class="dc-result stealth-results">
+                          <p>Stealth</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result tools-results">
+                          <p>Thieves' tools</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result perception-results">
+                          <p>Perception</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                  </div>
+              </div>
+              <div id="dc-25-1">
+                  <p class="center">DC 25</p>
+                  <div class="flex-row center dc-results">
+                      <div class="dc-result stealth-results">
+                          <p>Stealth</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result tools-results">
+                          <p>Thieves' tools</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result perception-results">
+                          <p>Perception</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="article middle">
+          <h2>The results</h2>
+
+<p>The level 1 point buy rogue will already make more profit from DC 15 than DC 10, though the variance will be much higher since DC 10 is already nearly impossible to fail outright. As they get ability score increases at level 4 and 8, and proficiency increases to +3 at level 5 and +4 at level 9, with expertise making that +6 and +8 respectively, the rogue can eventually max out their dexterity for +5 DEX +4 PROF +4 EXP at level 9. This could in the most generous optimisation case mean +13 to stealth and thieves&rsquo; tools. At level 6 the rogue also gets to choose 2 more expertise skills so the perception might not be too far behind +13 either.</p>
+
+<p>If we consider rolling stats instead of point buy and say the rogue gets to 20 dexterity, 20 wisdom, and puts expertise in all three ability checks, then at level 6 they&rsquo;re adding 11 to all three checks and 13 at level 9.</p>
+
+<p>This gets them to the DC 20 crime being somewhat profitable, with an expected value around 83 gp and failure slightly less than 3%. DC 10 became a free 25 gp a long time ago and DC 15 offers a more modest 67.5 gp expected value with failure only possible if they roll three 1s.</p>
+
+<p>Proficiency bonuses eventually go up to +6 so it&rsquo;s possible for a high level rogue to have +17 in all three of these checks, but by that point petty theft is probably the least of their concerns.</p>
+
+<p>The final piece of the puzzle is the reliable talent class feature for level 11 rogues. This allows a rogue proficient in all three checks to treat any rolls between 1 and 9 as 10 instead, massively reducing the variance of their rolls and potentially removing the chance of failure.</p>
+
+      </div>
+      <div class="pop-out">
+          <div id="ev-calculator-2">
+              <div class="ev-mod center">
+                  <label for="ev-stealth-2">Stealth check modifier</label>
+                  <input id="ev-stealth-2" type="number" min="3" max="17" value="13" class="small-input"></input>
+              </div>
+              <div class="ev-mod center">
+                  <label for="ev-tools-2">Thieves' tools check modifier</label>
+                  <input id="ev-tools-2" type="number" min="3" max="17" value="13" class="small-input"></input>
+              </div>
+              <div class="ev-mod center">
+                  <label for="ev-perception-2">Perception check modifier</label>
+                  <input id="ev-perception-2" type="number" min="3" max="17" value="9" class="small-input"></input>
+              </div>
+              <div class="center">
+                  <p>Summary (with reliable talent for all three checks)</p>
+                  <div class="flex-row center">
+                      <div id="dc-10-expected-value-2" class="expected-value center dc-result">
+                          <p>DC 10</p>
+                          <p>3 successes: <span class="result success-3"></span></p>
+                          <p>2 successes: <span class="result success-2"></span></p>
+                          <p>1 success: <span class="result success-1"></span></p>
+                          <p>Failure: <span class="result success-0"></span></p>
+                          <p>Expected value: <span class="result ev"></span> gp</p>
+                      </div>
+                      <div id="dc-15-expected-value-2" class="expected-value center dc-result">
+                          <p>DC 15</p>
+                          <p>3 successes: <span class="result success-3"></span></p>
+                          <p>2 successes: <span class="result success-2"></span></p>
+                          <p>1 success: <span class="result success-1"></span></p>
+                          <p>Failure: <span class="result success-0"></span></p>
+                          <p>Expected value: <span class="result ev"></span> gp</p>
+                      </div>
+                      <div id="dc-20-expected-value-2" class="expected-value center dc-result">
+                          <p>DC 20</p>
+                          <p>3 successes: <span class="result success-3"></span></p>
+                          <p>2 successes: <span class="result success-2"></span></p>
+                          <p>1 success: <span class="result success-1"></span></p>
+                          <p>Failure: <span class="result success-0"></span></p>
+                          <p>Expected value: <span class="result ev"></span> gp</p>
+                      </div>
+                      <div id="dc-25-expected-value-2" class="expected-value center dc-result">
+                          <p>DC 25</p>
+                          <p>3 successes: <span class="result success-3"></span></p>
+                          <p>2 successes: <span class="result success-2"></span></p>
+                          <p>1 success: <span class="result success-1"></span></p>
+                          <p>Failure: <span class="result success-0"></span></p>
+                          <p>Expected value: <span class="result ev"></span> gp</p>
+                      </div>
+                  </div>
+              </div>
+              <div id="dc-10-2">
+                  <p class="center">DC 10</p>
+                  <div class="flex-row center dc-results">
+                      <div class="dc-result stealth-results">
+                          <p>Stealth</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result tools-results">
+                          <p>Thieves' tools</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result perception-results">
+                          <p>Perception</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                  </div>
+              </div>
+              <div id="dc-15-2">
+                  <p class="center">DC 15</p>
+                  <div class="flex-row center dc-results">
+                      <div class="dc-result stealth-results">
+                          <p>Stealth</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result tools-results">
+                          <p>Thieves' tools</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result perception-results">
+                          <p>Perception</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                  </div>
+              </div>
+              <div id="dc-20-2">
+                  <p class="center">DC 20</p>
+                  <div class="flex-row center dc-results">
+                      <div class="dc-result stealth-results">
+                          <p>Stealth</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result tools-results">
+                          <p>Thieves' tools</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result perception-results">
+                          <p>Perception</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                  </div>
+              </div>
+              <div id="dc-25-2">
+                  <p class="center">DC 25</p>
+                  <div class="flex-row center dc-results">
+                      <div class="dc-result stealth-results">
+                          <p>Stealth</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result tools-results">
+                          <p>Thieves' tools</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                      <div class="dc-result perception-results">
+                          <p>Perception</p>
+                          <p>Lowest roll possible: <span class="result lowest"></span></p>
+                          <p>Highest roll possible: <span class="result highest"></span></p>
+                          <p>Roll needed to pass: <span class="result to-pass"></span></p>
+                          <p>Probability to pass: <span class="result chance-to-pass"></span></p>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="article bottom">
+          <h2>Reliable talent</h2>
+
+<p>Perhaps a little counter intuitively reliable talent is better at things you expected to be able to pass at anyway than things you were struggling to achieve. This is because if you <em>need</em> to roll 11 or higher for success, turning a 1 into a 10 is still a failure so doesn&rsquo;t improve your chances.</p>
+
+<p>On the DC 20 crime, this creates a massive breakpoint where getting each ability modifier from +9 to +10 removes the possibility of failure entirely, turning a 50/50 success on 11+/20 into guaranteed success.</p>
+
+<p>The DC 25 check remains stubbornly difficult however, since reliable talent doesn&rsquo;t kick in until you get a modifier higher enough to auto pass.</p>
+
+<p>At level 13 the rogue gets a proficiency bonus of +5 which with expertise and maxed ability score comes out to +15. This is where we finally hit the breakpoint in the DC 25 checks, each ability check we can get to +15 massively increases our expected value by turning into an automatic pass.</p>
+
+<h2>Other modifiers</h2>
+
+<p>I&rsquo;ve ignored all the additional dice modifiers such as casting Guidance on yourself for a +1d4 or using various resource based ability check boosts such as +1d6 Knowledge from a Past Life for reborn characters. If you&rsquo;re allowed to use these extra dice modifiers in downtime, that +15 needed to auto-pass the DC 25 checks starts to drop, and reliable talent kicks in even when by itself it wouldn&rsquo;t create success, since rolling a 1 on a d20 when you needed 13 or higher to pass is still 50/50 odds if you&rsquo;re adding a d4 to that 10.
+Giving yourself advantage on these checks by itself doesn&rsquo;t make reliable talent kick in, but it also skews the probability distribution in your favour.</p>
+
+<h2>Summary</h2>
+
+<p>It doesn&rsquo;t look like crime will pay that well for most rogues till level 15. One consolation is that getting your modifiers past 15 doesn&rsquo;t increase your profit at all once you have reliable talent on all of the checks. Without expertise that DC 25 crime is going to lose you a lot of money (unless you can use add additional dice on top of your d20 rolls), and even with expertise, you&rsquo;ll need a lot of levels to get your proficiency and expertise modifiers high enough for it to pay better than the DC 20 crime.</p>
+
+<p>Consider fighting in the pits for honest money instead, you can&rsquo;t lose money there and if you&rsquo;re lucky you can make 200 gp in profit - no need to rob of the richest figures in town for a slim chance at making off with more than 200 gp.</p>
+
+<p>Of course, don&rsquo;t let the math stop you, it might be a bad financial idea to steal from very rich people but that need not stop your character wanting to try anyway.</p>
+
+      </div>
+  </article>
+</div>
+
+  </div>
+  <footer>
+    <div class = "footer">
+      <p>My content on this site is licensed under Creative Commons By Attribution <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></p>
+      <p>This site's source code is licensed under the MIT license <a href="https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code">https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code</a></p>
+    </div>
+  </footer>
+</body>
+</html>
