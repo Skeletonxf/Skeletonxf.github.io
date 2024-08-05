@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset = "UTF-8">
+  <meta name = "viewport" content = "width = device-width">
+  <!-- Use the title from a page's frontmatter if it has one -->
+  <title>Skeletonxf.github.io</title>
+  <link rel = "stylesheet" href = "stylesheets/highlighting.css">
+  <link rel = "stylesheet" href = "stylesheets/styles.css">
+</head>
+<body>
+  <div class = "page">
+    <header class = "back">
+  <nav>
+    <ul>
+      <li>
+        <p><a href = "index.html">Index</a></p>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<h1 class = "center title">
+  A blog of sorts
+</h1>
+<div class = "content">
+  <article>
+    <h1>The computer does what you tell it to do</h1>
+
+<p class = "article-date">2024/08/05</p>
+
+<p>When I was in school I heard some variant of &ldquo;the computer does what you tell it to do&rdquo; often. This was long before before large language models had broke into the news so for most people computers were still just in the realm of preprogrammed behaviour.</p>
+
+<p>However, as a programmer, you quickly learn that even the most basic preprogrammed behaviour suffers the same issue. You program the computer to do something step by step, it does exactly that and that wasn&rsquo;t quite what you wanted, or maybe it was what you wanted but you give the software to someone else and they think it is meant to be doing something slightly different. Typing &ldquo;please show me why alignment problems in computer science are considered an existential risk&rdquo; into a search engine will probably give you exactly what you asked for, but you would probably get better results by just typing in the keywords from that sentence. A user could be fooled into thinking the search term should be what they want to ask, not a filter to return content in the database that contain the same words as they typed in. This misunderstanding is easily corrected when trying to use very dumb search engines like Reddit&rsquo;s.</p>
+
+<p><a href="https://80000hours.org/problem-profiles/artificial-intelligence/">Artificial Intelligence is considered by many to have enormous potential in the next few decades, however many experts think there could also be severe risks</a>. Yet this blog post isn&rsquo;t about sophisticated AI. The aforementioned 80000 hours webpage details this problem in lots of depth and I&rsquo;d highly recommend reading it.</p>
+
+<p>No, I was reminded that &ldquo;the computer does what you tell it to do&rdquo; because I was trying to work out why the extremely simple minmax algorithm <a href="https://github.com/Skeletonxf/hnefatafl">I wrote for a game</a> wasn&rsquo;t working.</p>
+
+<p>I started out with writing the well understood and well documented <a href="https://en.wikipedia.org/wiki/Alpha%e2%80%93beta_pruning">alpha beta pruning min max</a> algorithm. The problem was simple enough, I wanted to program a bot to play <a href="https://en.wikipedia.org/wiki/Tafl_games">Hnefatafl</a> and had already implemented code that would return a list of every possible move the turn player in the board game could take. I simply needed to write a function that would take this game state and return the &lsquo;best&rsquo; move that should be played.</p>
+
+<p>By having it loop through and evaluate all possible moves rather than simply produce one I&rsquo;d already eliminated a possible alignment issue. A human can attempt to make an illegal move in a board game they don&rsquo;t fully understand, however in a computerised version of a board game the interface can prevent them from selecting an illegal move. Similarly, if a bot tries to choose a move it can&rsquo;t make then it would be stuck. It would even be possible to make the AI graciously avoid infinite loops with the player if a board game reached a state where both the computer and human were stuck repeating the same cycle of moves - just detect this cycle and remove that offending move from the list that the AI will pick from.</p>
+
+<p>Obviously, I thought to myself, the best move would be one that immediately wins the game. However it is not possible to win the game in just a few turns in a tafl game. As the side trying to free the king, you must reach a corner of the board, and both your own pieces and the opponent&rsquo;s block your path. As the side trying to capture the king, you must surround it on all sides, which takes multiple turns even once it is exposed. Since the minmax algorithm even with alpha beta pruning could only look ahead by 3 turns before the exponential number of moves made the algorithm too slow to play against in real time I had to implement a way to evaluate game states where victory was not possible. I figured a good proxy for victory would be capturing the opponent&rsquo;s pieces. A simple <code>my pieces - opponent&#39;s pieces</code> heuristic tells the minmax algorithm that a <code>1 for 1</code> trade is worth as much as no trade at all, and a <code>2 for 1</code> trade or a <code>1 for 0</code> trade have the same value. These trades of pieces require far less lookahead to see. Even with a depth of only 3 turns, playing against the computer frequently had me losing pieces that I did not forsee the computer capturing.</p>
+
+<p>However, while the minmax algorithm with these heuristics was very good at identifying &lsquo;free&rsquo; captures of my pieces, it was strikingly bad at winning the game. It could leave open a corner of the board that would require only two turns for the king to reach and win, or I could pin the attacking pieces down to give my king an open path in such a way that it could have easily prevented if it had only looked ahead to two of my turns. What gives? It clearly liked capturing my pieces, why was it so short sighted?</p>
+
+<p>After some time debugging, I realised this was the consequence of setting the look ahead to 3 turns. It evaluated its turn as the turn player, considered my best options (according to its own heuristic), then looked at what it could do after, and totally neglected to consider if that third turn ahead left either side about to win the game. Raising the lookahead made the algorithm play &lsquo;properly&rsquo; as the king&rsquo;s side, and so I  tweaked the code to check for imminent victory or loss on the third turn to avoid having to raise the look ahead to 4.</p>
+
+<p>However, after adding UI support to start the game with my playing the attacking side and it trying to free the king, it seemed very reluctant to actually move the king to a corner and win. I was intentionally trying to throw games and leave multiple corners wide open for it to move the king to, yet it would just not take the victory. It still liked capturing my pieces, even with a bigger reward available to it. What gives?</p>
+
+<p>After <em>more</em> time debugging I realised I had made an error in the heuristic. The minmax algorithm did not value winning <em>now</em>, it only valued winning. As long as it had a means to win, if the other player couldn&rsquo;t close that path to victory, it didn&rsquo;t value taking that win on its immediate turn any more than on its next turn. By throwing a game intentionally, I had put it in such an overwhelming position of victory that it would just not bother actually taking the win. Of course eventually it would take the win, it did value <em>winning</em>, but Hnefatafl is an asymmetric game. For two humans, it may be played as a best of two, with a tie break based on who won their game in fewer turns. I had failed to include this in the heuristic.</p>
+
+<p>Adding a penalty to the heuristic so that winning on turn 3 was less valuable than the current turn, the bot finally worked as I had expected it to, playing with very minimal foresight, and when pieces were not available to capture, just taking random moves rather than playing towards setting up a victory later, but competently enough that if I don&rsquo;t pay attention it would beat me.</p>
+
+<p>I had implemented the min max algorithm correctly all along, it simply valued what I told it to, and looked ahead as much as I told it to. I programmed it to play Hnefatafl, but it was not programmed to play the game like a human would.</p>
+
+<p>I suspected when initially programming the min max algorithm that the heuristic to value capturing the opponent&rsquo;s pieces may cause it to lose games it could have won. I still suspect that when I implement a neural net to pick the &lsquo;best&rsquo; move that neural net will end up valuing sacrificial plays that lead to victory, potentially at the expense of the minmax algorithm valuing piece advantage. It&rsquo;s perhaps typical of AI that the one thing that I thought might cause the minmax algorithm to not value playing Hnefatafl properly was the one part of its implementation that wasn&rsquo;t causing issues yet.</p>
+
+<p>The computer does exactly what you tell it to do, even when those instructions are themselves instructions on how it should work out what to do.</p>
+
+  </article>
+</div>
+
+  </div>
+  <footer>
+    <div class = "footer">
+      <p>My content on this site is licensed under Creative Commons By Attribution <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></p>
+      <p>This site's source code is licensed under the MIT license <a href="https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code">https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code</a></p>
+    </div>
+  </footer>
+</body>
+</html>
