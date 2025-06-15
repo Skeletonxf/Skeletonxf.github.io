@@ -33,7 +33,7 @@ jobs:
       - name: Build site with middleman
         run: |
           gem install middleman
-          middleman build
+          bundle exec middleman build
 
       - name: Upload static files as artifact
         id: deployment
