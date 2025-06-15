@@ -1,1 +1,1 @@
-This is the build folder output of the [code](https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code) branch where the source files are.
+This was the build folder output of the [code](https://github.com/Skeletonxf/Skeletonxf.github.io/tree/code) branch where the source files are. The master branch is now the source code and automatically deployed, so this branch isn't needed and has been renamed to archive. This branch will not be kept in sync with the deployed site.
